@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة قضيتي - Detective Cases</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 200 200" fill="none">
+                    <rect width="200" height="200" rx="40" fill="#1A1C1E"/>
+                    <g stroke="#00E5FF" stroke-width="4" opacity="0.9">
+                        <path d="M 70 100 C 70 70, 130 70, 130 100" />
+                        <path d="M 60 100 C 60 55, 140 55, 140 100" />
+                        <path d="M 80 100 C 80 80, 120 80, 120 100" />
+                    </g>
+                    <circle cx="100" cy="100" r="40" stroke="#FFF" stroke-width="8"/>
+                    <line x1="130" y1="130" x2="165" y2="165" stroke="#FFF" stroke-width="12" stroke-linecap="round"/>
+                </svg>
+                <h1>قَضِيَّتِي</h1>
+            </div>
+            <div id="userRankArea">
+                <span id="userRankDisplay" class="rank-badge">مساعد محقق 🕵️‍♂️</span>
+            </div>
+        </header>
+
+        <!-- Main Content Views -->
+        <main id="mainContent">
+
+            <!-- 0. Auth Section (تسجيل الدخول وإنشاء حساب) -->
+            <section id="authSection" class="view-section">
+                <div class="desk-paper" style="max-width: 400px; margin: 20px auto; text-align: center;">
+                    <h2>🔐 تسجيل دخول المحقق</h2>
+                    <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 15px;">أدخل بياناتك لحفظ تقدمك وقضاياك أونلاين</p>
+                    
+                    <div style="text-align: right; margin-bottom: 10px;">
+                        <label style="font-size: 0.85rem; font-weight: bold;">اسم المستخدم:</label>
+                        <input type="text" id="authUsername" placeholder="مثال: mohnad" style="width:100%; padding:10px; margin-top:5px; background:#111; color:#fff; border:1px solid #444; border-radius:5px; font-family:inherit;">
+                    </div>
+
+                    <div style="text-align: right; margin-bottom: 15px;">
+                        <label style="font-size: 0.85rem; font-weight: bold;">كلمة السر:</label>
+                        <input type="password" id="authPassword" placeholder="******" style="width:100%; padding:10px; margin-top:5px; background:#111; color:#fff; border:1px solid #444; border-radius:5px; font-family:inherit;">
+                    </div>
+
+                    <div id="authError" style="color: #e74c3c; font-size: 0.85rem; margin-bottom: 10px;"></div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnLogin" class="btn-primary" style="flex: 1;">دخول</button>
+                        <button id="btnRegister" class="btn-secondary" style="flex: 1;">إنشاء حساب</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1. Main Menu -->
+            <section id="mainMenuSection" class="view-section hidden">
+                <div class="hero-banner">
+                    <h2>مكتب التحقيقات الجنائية</h2>
+                    <p>استعد لتحليل الأدلة، استجواب المشتبه بهم، وكشف الغموض في القضايا اليومية المتجددة.</p>
+                    <button id="btnStartGame" class="btn-primary">🚪 دخول مكتب القضايا</button>
+                    <div class="menu-grid">
+                        <button id="btnHowToPlay" class="btn-secondary">📖 طريقة اللعب</button>
+                        <button id="btnSettings" class="btn-secondary">⚙️ الإعدادات</button>
+                        <button id="btnAbout" class="btn-secondary">ℹ️ عن اللعبة</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Cases List -->
+            <section id="casesListSection" class="view-section hidden">
+                <div class="section-header">
+                    <h2>📁 سجل القضايا</h2>
+                    <button class="btn-to-menu btn-small">⬅ القائمة الرئيسية</button>
+                </div>
+                <div id="casesContainer" class="cases-grid"></div>
+            </section>
+
+            <!-- 3. Case Board -->
+            <section id="caseBoardSection" class="view-section hidden">
+                <div class="board-header">
+                    <div>
+                        <span id="boardCaseId" class="case-tag">CASE-01</span>
+                        <h2 id="boardCaseTitle">عنوان القضية</h2>
+                    </div>
+                    <button class="btn-to-cases btn-small">⬅ قائمة القضايا</button>
+                </div>
+
+                <div class="stats-bar">
+                    <span>النقاط: <strong id="scoreDisplay">1000</strong></span>
+                    <span>الأخطاء: <strong id="mistakesDisplay">0</strong></span>
+                    <button id="btnUseHint" class="btn-hint">💡 تلميح (<span id="hintsLeftDisplay">3</span>)</button>
+                </div>
+
+                <div class="board-tabs">
+                    <button class="tab-btn active" data-tab="tabOverview">ملف القضية</button>
+                    <button class="tab-btn" data-tab="tabCharacters">الشخصيات</button>
+                    <button class="tab-btn" data-tab="tabEvidences">الأدلة</button>
+                    <button class="tab-btn" data-tab="tabTimeline">التسلسل الزمني</button>
+                    <button class="tab-btn" data-tab="tabDeduction">تقديم الاستنتاج</button>
+                </div>
+
+                <div class="board-content">
+                    <div id="tabOverview" class="tab-pane active">
+                        <div class="desk-paper">
+                            <h3>📜 تفاصيل البلاغ</h3>
+                            <p id="caseOverviewText">جاري تحميل البيانات...</p>
+                        </div>
+                    </div>
+                    <div id="tabCharacters" class="tab-pane">
+                        <p class="hint-subtext">💡 يمكنك استبعاد المشتبه بهم المصرح ببراءتهم بالضغط على زر "استبعاد".</p>
+                        <div id="charactersGrid" class="cards-grid"></div>
+                    </div>
+                    <div id="tabEvidences" class="tab-pane">
+                        <div id="evidenceGrid" class="cards-grid"></div>
+                    </div>
+                    <div id="tabTimeline" class="tab-pane">
+                        <div id="timelineContainer"></div>
+                    </div>
+                    <div id="tabDeduction" class="tab-pane">
+                        <div id="deductionPuzzlesContainer"></div>
+                        <div id="cooldownTimerDisplay" class="cooldown-banner hidden">⏳ فترة انتظار التحقيق التالي: <span id="cooldownSeconds">15</span> ثانية</div>
+                        <button id="btnSubmitDeduction" class="btn-primary" style="margin-top:15px; width:100%;">⚖️ إصدار قرار الاتهام</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. How To Play -->
+            <section id="howToPlaySection" class="view-section hidden">
+                <div class="desk-paper">
+                    <h2>📖 كيف تلعب "قضيتي"؟</h2>
+                    <ol>
+                        <li>افتح ملف القضية واقرأ تفاصيل البلاغ بتركيز.</li>
+                        <li>استبعد المشتبه بهم الذين يمتلكون حجة غياب قاطعة.</li>
+                        <li>حدد الثغرة في أقوال المتهم والدليل المادي القاطع.</li>
+                        <li>احذر من الاتهام الخاطئ لتعلق القضية لمدة 15 ثانية وتخسر نقاطاً.</li>
+                    </ol>
+                    <button class="btn-to-menu btn-primary">فهمت، العودة للرئيسية</button>
+                </div>
+            </section>
+
+            <!-- 5. Settings -->
+            <section id="settingsSection" class="view-section hidden">
+                <div class="desk-paper">
+                    <h2>⚙️ إعدادات اللعبة</h2>
+                    <label style="display:block; margin: 15px 0;">
+                        <input type="checkbox" id="settingSoundToggle" checked> تفعيل المؤثرات الصوتية
+                    </label>
+                    <button id="btnResetProgress" class="btn-danger">⚠️ إعادة ضبط التقدم والمحسوبات</button>
+                    <br><br>
+                    <button class="btn-to-menu btn-secondary">حفظ والعودة</button>
+                </div>
+            </section>
+
+            <!-- 6. About -->
+            <section id="aboutSection" class="view-section hidden">
+                <div class="desk-paper">
+                    <h2>ℹ️ عن اللعبة</h2>
+                    <p>لعبة "قضيتي" هي لعبة تحقيق وألغاز جنائية تفاعلية. يتم تحديث القضايا وإضافتها بانتظام.</p>
+                    <p>تطوير وإعداد: <strong>فريق قضيتي</strong></p>
+                    <button class="btn-to-menu btn-primary">العودة للرئيسية</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Floating Notebook Button -->
+        <button id="notebookToggleBtn" class="notebook-fab">📝 الملاحظات</button>
+
+        <!-- Notebook Modal -->
+        <div id="notebookModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📝 مفكرة المحقق</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <textarea id="notebookTextArea" placeholder="دون ملاحظاتك واستنتاجاتك هنا..."></textarea>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
