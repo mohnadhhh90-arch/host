@@ -66,6 +66,7 @@
                     <p>استعد لتحليل الأدلة، استجواب المشتبه بهم، وكشف الغموض في القضايا اليومية المتجددة.</p>
                     <button id="btnStartGame" class="btn-primary">🚪 دخول مكتب القضايا</button>
                     <div class="menu-grid">
+                        <button id="btnLeaderboard" class="btn-secondary">🏆 ترتيب المحققين</button>
                         <button id="btnHowToPlay" class="btn-secondary">📖 طريقة اللعب</button>
                         <button id="btnSettings" class="btn-secondary">⚙️ الإعدادات</button>
                         <button id="btnAbout" class="btn-secondary">ℹ️ عن اللعبة</button>
@@ -80,6 +81,25 @@
                     <button class="btn-to-menu btn-small">⬅ القائمة الرئيسية</button>
                 </div>
                 <div id="casesContainer" class="cases-grid"></div>
+            </section>
+
+            <!-- Leaderboard Section -->
+            <section id="leaderboardSection" class="view-section hidden">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2>🏆 لوحة الشرف والترتيب</h2>
+                    <button class="btn-to-menu btn-small">⬅ القائمة الرئيسية</button>
+                </div>
+                
+                <div class="desk-paper">
+                    <div class="leaderboard-header">
+                        <span>المركز</span>
+                        <span>اسم المحقق</span>
+                        <span>النقاط</span>
+                    </div>
+                    <div id="leaderboardList" class="leaderboard-list">
+                        <p style="text-align: center; color: #888;">جاري تحميل سجلات الإنتربول...</p>
+                    </div>
+                </div>
             </section>
 
             <!-- 3. Case Board -->
