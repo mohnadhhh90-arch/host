@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1A1C1E">
+
     <title>لعبة قضيتي - Detective Cases</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -173,7 +178,6 @@
                         <input type="checkbox" id="settingSoundToggle" checked> تفعيل المؤثرات الصوتية
                     </label>
                     
-                    <!-- زر تسجيل الخروج -->
                     <button id="btnLogout" class="btn-secondary" style="width:100%; margin-bottom:10px;">🚪 تسجيل الخروج</button>
                     
                     <button id="btnResetProgress" class="btn-danger">⚠️ إعادة ضبط التقدم والمحسوبات</button>
@@ -207,6 +211,18 @@
             </div>
         </div>
     </div>
+
     <script type="module" src="script.js"></script>
+
+    <!-- تشغيل PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(() => console.log('Service Worker registered successfully'))
+                    .catch(error => console.error('Service Worker registration failed:', error));
+            });
+        }
+    </script>
 </body>
 </html>
