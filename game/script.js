@@ -1,16 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // إعدادات Firebase الخاص بك
 const firebaseConfig = {
-  apiKey: "AIzaSyDLOklvLUPBa8IqM3-4xaswdMMqqAdqzXY",
-  authDomain: "mohnad2-bfb02.firebaseapp.com",
-  projectId: "mohnad2-bfb02",
-  storageBucket: "mohnad2-bfb02.firebasestorage.app",
-  messagingSenderId: "846017797996",
-  appId: "1:846017797996:web:518f9eaa546004cd631d49",
-  measurementId: "G-QKG96L42XB"
+    apiKey: "AIzaSyDLOklvLUPBa8IqM3-4xaswdMMqqAdqzXY",
+    authDomain: "mohnad2-bfb02.firebaseapp.com",
+    projectId: "mohnad2-bfb02",
+    storageBucket: "mohnad2-bfb02.firebasestorage.app",
+    messagingSenderId: "846017797996",
+    appId: "1:846017797996:web:518f9eaa546004cd631d49",
+    measurementId: "G-QKG96L42XB"
 };
 
 // تهيئة خدمات Firebase
@@ -28,6 +28,19 @@ function usernameToEmail(username) {
 
 document.addEventListener('DOMContentLoaded', () => {
     let audioCtx = null;
+
+    // --- مراقبة حالة تسجيل الدخول تلقائياً (Auto-Login) ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            await loadUserData(currentUserId);
+            showView('mainMenu');
+        } else {
+            currentUserId = null;
+            currentUserData = null;
+            showView('auth');
+        }
+    });
 
     function playSound(type) {
         try {
@@ -75,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         howToPlay: document.getElementById('howToPlaySection'),
         settings: document.getElementById('settingsSection'),
         about: document.getElementById('aboutSection'),
-        leaderboard: document.getElementById('leaderboardSection') // تمت الإضافة هنا
+        leaderboard: document.getElementById('leaderboardSection')
     };
 
     function showView(viewKey) {
@@ -129,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 username: username,
                 solvedCases: [],
                 rank: "مساعد محقق 🕵️‍♂️",
-                totalScore: 0 // تمت إضافة النقاط الإجمالية
+                totalScore: 0
             };
 
             await setDoc(doc(db, "users", currentUserId), currentUserData);
@@ -144,6 +157,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     errorDiv.innerText = "حدث خطأ أثناء إنشاء الحساب!";
                 }
             }
+        }
+    });
+
+    // --- زر تسجيل الخروج (Logout) ---
+    document.getElementById('btnLogout')?.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            currentUserId = null;
+            currentUserData = null;
+            showView('auth');
+        } catch (error) {
+            console.error("خطأ أثناء تسجيل الخروج:", error);
         }
     });
 
@@ -162,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await updateDoc(docRef, {
                 solvedCases: currentUserData.solvedCases,
                 rank: currentUserData.rank,
-                totalScore: currentUserData.totalScore || 0 // حفظ النقاط
+                totalScore: currentUserData.totalScore || 0
             });
         }
     }
@@ -172,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnSettings')?.addEventListener('click', () => showView('settings'));
     document.getElementById('btnAbout')?.addEventListener('click', () => showView('about'));
     
-    // زر فتح الليدر بورد
     document.getElementById('btnLeaderboard')?.addEventListener('click', async () => {
         showView('leaderboard');
         await renderLeaderboard();
@@ -476,13 +500,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSuspectCorrect = selectedSuspect === sol.correctSuspectId;
         const isEvidenceCorrect = selectedEvidence === sol.keyEvidenceId;
 
-        // ---- التعديل الخاص بالنقاط هنا ----
         if (isSuspectCorrect && isEvidenceCorrect) {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
             saveSolvedCase(currentCase.id, noHintsUsed);
             
-            // إضافة 10 نقاط للمستخدم
             if (currentUserData) {
                 currentUserData.totalScore = (currentUserData.totalScore || 0) + 10;
                 saveProgressOnline();
@@ -497,11 +519,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             playSound('error');
             mistakes++;
-            score = Math.max(0, score - 200); // دي نقط القضية الحالية ملناش دعوة بيها
+            score = Math.max(0, score - 200);
             document.getElementById('scoreDisplay').innerText = score;
             document.getElementById('mistakesDisplay').innerText = mistakes;
             
-            // خصم نقطة من المستخدم الإجمالي
             if (currentUserData) {
                 currentUserData.totalScore = Math.max(0, (currentUserData.totalScore || 0) - 1);
                 saveProgressOnline();
@@ -512,7 +533,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- دالة سحب بيانات الليدر بورد ---
     async function renderLeaderboard() {
         const container = document.getElementById('leaderboardList');
         if (!container) return;
