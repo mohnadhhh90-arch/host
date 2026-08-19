@@ -326,6 +326,61 @@ button:active {
     font-weight: bold;
 }
 
+/* Leaderboard Styles */
+.leaderboard-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    color: var(--accent-color);
+    font-size: 0.9rem;
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.leaderboard-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #131415;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+    transition: 0.2s;
+}
+
+.leaderboard-row:hover {
+    background: #181a1c;
+    border-left: 3px solid var(--accent-color);
+}
+
+.lb-rank {
+    width: 20%;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.lb-name {
+    width: 50%;
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.lb-score {
+    width: 30%;
+    text-align: left;
+    font-weight: bold;
+    color: var(--success-color);
+}
+
 /* Notebook & Modals */
 .notebook-fab {
     position: fixed;
