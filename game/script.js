@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // إعدادات Firebase الخاص بك
 const firebaseConfig = {
@@ -74,7 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         caseBoard: document.getElementById('caseBoardSection'),
         howToPlay: document.getElementById('howToPlaySection'),
         settings: document.getElementById('settingsSection'),
-        about: document.getElementById('aboutSection')
+        about: document.getElementById('aboutSection'),
+        leaderboard: document.getElementById('leaderboardSection') // تمت الإضافة هنا
     };
 
     function showView(viewKey) {
@@ -127,7 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserData = {
                 username: username,
                 solvedCases: [],
-                rank: "مساعد محقق 🕵️‍♂️"
+                rank: "مساعد محقق 🕵️‍♂️",
+                totalScore: 0 // تمت إضافة النقاط الإجمالية
             };
 
             await setDoc(doc(db, "users", currentUserId), currentUserData);
@@ -159,7 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const docRef = doc(db, "users", currentUserId);
             await updateDoc(docRef, {
                 solvedCases: currentUserData.solvedCases,
-                rank: currentUserData.rank
+                rank: currentUserData.rank,
+                totalScore: currentUserData.totalScore || 0 // حفظ النقاط
             });
         }
     }
@@ -168,6 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnHowToPlay')?.addEventListener('click', () => showView('howToPlay'));
     document.getElementById('btnSettings')?.addEventListener('click', () => showView('settings'));
     document.getElementById('btnAbout')?.addEventListener('click', () => showView('about'));
+    
+    // زر فتح الليدر بورد
+    document.getElementById('btnLeaderboard')?.addEventListener('click', async () => {
+        showView('leaderboard');
+        await renderLeaderboard();
+    });
 
     document.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
     document.querySelectorAll('.btn-to-cases').forEach(btn => btn.addEventListener('click', () => showView('casesList')));
@@ -467,12 +476,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSuspectCorrect = selectedSuspect === sol.correctSuspectId;
         const isEvidenceCorrect = selectedEvidence === sol.keyEvidenceId;
 
+        // ---- التعديل الخاص بالنقاط هنا ----
         if (isSuspectCorrect && isEvidenceCorrect) {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
             saveSolvedCase(currentCase.id, noHintsUsed);
             
-            let winMsg = `🎉 إدانة صحيحة وقاطعة!\n\n${sol.explanation}`;
+            // إضافة 10 نقاط للمستخدم
+            if (currentUserData) {
+                currentUserData.totalScore = (currentUserData.totalScore || 0) + 10;
+                saveProgressOnline();
+            }
+            
+            let winMsg = `🎉 إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
             if (noHintsUsed) winMsg += `\n\n🏆 حصلت على وسام "المحقق الصارم"!`;
             
             alert(winMsg);
@@ -481,14 +497,56 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             playSound('error');
             mistakes++;
-            score = Math.max(0, score - 200);
+            score = Math.max(0, score - 200); // دي نقط القضية الحالية ملناش دعوة بيها
             document.getElementById('scoreDisplay').innerText = score;
             document.getElementById('mistakesDisplay').innerText = mistakes;
             
-            alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.');
+            // خصم نقطة من المستخدم الإجمالي
+            if (currentUserData) {
+                currentUserData.totalScore = Math.max(0, (currentUserData.totalScore || 0) - 1);
+                saveProgressOnline();
+            }
+
+            alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.\n(تم خصم نقطة من تقييمك الإجمالي)');
             startCooldownPenalty();
         }
     });
+
+    // --- دالة سحب بيانات الليدر بورد ---
+    async function renderLeaderboard() {
+        const container = document.getElementById('leaderboardList');
+        if (!container) return;
+        container.innerHTML = '<p style="text-align:center;">جاري البحث في ملفات الإنتربول...</p>';
+
+        try {
+            const q = query(collection(db, "users"), orderBy("totalScore", "desc"), limit(50));
+            const querySnapshot = await getDocs(q);
+            
+            container.innerHTML = '';
+            let rank = 1;
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const item = document.createElement('div');
+                item.className = 'leaderboard-row';
+                
+                let medal = `#${rank}`;
+                if(rank === 1) medal = '🥇';
+                if(rank === 2) medal = '🥈';
+                if(rank === 3) medal = '🥉';
+
+                item.innerHTML = `
+                    <div class="lb-rank">${medal}</div>
+                    <div class="lb-name">${data.username} <span style="font-size: 0.7rem; color: #888; display:block;">${data.rank}</span></div>
+                    <div class="lb-score">${data.totalScore || 0} نقطة</div>
+                `;
+                container.appendChild(item);
+                rank++;
+            });
+        } catch (error) {
+            console.error("خطأ في تحميل الترتيب:", error);
+            container.innerHTML = '<p style="text-align:center; color:red;">تعذر الاتصال بالخادم لجلب الترتيب.</p>';
+        }
+    }
 
     const notebookModal = document.getElementById('notebookModal');
     const notebookBtn = document.getElementById('notebookToggleBtn');
