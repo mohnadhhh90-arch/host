@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- PWA -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1A1C1E">
+    
+    <!-- أيقونات اللعبة بروابط مباشرة للشاشة الرئيسية (أندرويد وآيفون) -->
+    <link rel="apple-touch-icon" href="https://i.imgur.com/6VBx3io.png">
+    <link rel="icon" type="image/png" href="https://i.imgur.com/6VBx3io.png">
 
     <title>لعبة قضيتي - Detective Cases</title>
     <link rel="stylesheet" href="style.css">
@@ -177,6 +181,9 @@
                     <label style="display:block; margin: 15px 0;">
                         <input type="checkbox" id="settingSoundToggle" checked> تفعيل المؤثرات الصوتية
                     </label>
+
+                    <!-- زر إضافة اللعبة للشاشة الرئيسية -->
+                    <button id="btnInstallApp" class="btn-primary hidden" style="width:100%; margin-bottom:10px; background-color: #00E5FF; color: #000;">📱 إضافة اللعبة للشاشة الرئيسية</button>
                     
                     <button id="btnLogout" class="btn-secondary" style="width:100%; margin-bottom:10px;">🚪 تسجيل الخروج</button>
                     
@@ -214,7 +221,7 @@
 
     <script type="module" src="script.js"></script>
 
-    <!-- تشغيل PWA Service Worker -->
+    <!-- تشغيل PWA Service Worker وتثبيت التطبيق -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -223,6 +230,26 @@
                     .catch(error => console.error('Service Worker registration failed:', error));
             });
         }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.getElementById('btnInstallApp');
+            if (installBtn) installBtn.classList.remove('hidden');
+        });
+
+        document.getElementById('btnInstallApp')?.addEventListener('click', () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        });
     </script>
 </body>
 </html>
