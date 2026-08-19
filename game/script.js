@@ -101,8 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- إدارة تسجيل الدخول وإنشاء الحسابات أونلاين ---
-    document.getElementById('btnLogin')?.addEventListener('click', async () => {
+    // --- إدارة تسجيل الدخول (مع حماية ضد التهنيج والضغط المتكرر) ---
+    document.getElementById('btnLogin')?.addEventListener('click', async (e) => {
+        const btn = e.target;
         const username = document.getElementById('authUsername')?.value.trim();
         const password = document.getElementById('authPassword')?.value.trim();
         const errorDiv = document.getElementById('authError');
@@ -112,6 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        btn.disabled = true;
+        btn.innerText = "جاري الدخول...";
+
         try {
             const email = usernameToEmail(username);
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -120,10 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
             showView('mainMenu');
         } catch (err) {
             if (errorDiv) errorDiv.innerText = "اسم المستخدم أو كلمة السر غير صحيحة!";
+            btn.disabled = false;
+            btn.innerText = "دخول";
         }
     });
 
-    document.getElementById('btnRegister')?.addEventListener('click', async () => {
+    // --- إدارة إنشاء الحساب (مع حماية ضد التهنيج والضغط المتكرر) ---
+    document.getElementById('btnRegister')?.addEventListener('click', async (e) => {
+        const btn = e.target;
         const username = document.getElementById('authUsername')?.value.trim();
         const password = document.getElementById('authPassword')?.value.trim();
         const errorDiv = document.getElementById('authError');
@@ -132,6 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (errorDiv) errorDiv.innerText = "اسم المستخدم 3 حروف على الأقل، وكلمة السر 6 أرقام/حروف";
             return;
         }
+
+        btn.disabled = true;
+        btn.innerText = "جاري الإنشاء...";
 
         try {
             const email = usernameToEmail(username);
@@ -157,6 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     errorDiv.innerText = "حدث خطأ أثناء إنشاء الحساب!";
                 }
             }
+            btn.disabled = false;
+            btn.innerText = "إنشاء حساب";
         }
     });
 
@@ -185,9 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUserId && currentUserData) {
             const docRef = doc(db, "users", currentUserId);
             await updateDoc(docRef, {
-                solvedCases: currentUserData.solvedCases,
-                rank: currentUserData.rank,
-                totalScore: currentUserData.totalScore || 0
+                solvedCases: currentUserData.solvedCases || [],
+                rank: currentUserData.rank || "مساعد محقق 🕵️‍♂️",
+                totalScore: Number(currentUserData.totalScore) || 0
             });
         }
     }
@@ -484,7 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    document.getElementById('btnSubmitDeduction')?.addEventListener('click', () => {
+    // --- تقديم الاستنتاج وتحديث النقاط في الفايربيز ---
+    document.getElementById('btnSubmitDeduction')?.addEventListener('click', async () => {
         if (!currentCase || isCooldown) return;
 
         const selectedSuspect = document.getElementById('selectSuspect')?.value;
@@ -503,11 +517,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSuspectCorrect && isEvidenceCorrect) {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
-            saveSolvedCase(currentCase.id, noHintsUsed);
+            await saveSolvedCase(currentCase.id, noHintsUsed);
             
-            if (currentUserData) {
-                currentUserData.totalScore = (currentUserData.totalScore || 0) + 10;
-                saveProgressOnline();
+            if (currentUserId && currentUserData) {
+                currentUserData.totalScore = (Number(currentUserData.totalScore) || 0) + 10;
+                await saveProgressOnline();
             }
             
             let winMsg = `🎉 إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
@@ -523,9 +537,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('scoreDisplay').innerText = score;
             document.getElementById('mistakesDisplay').innerText = mistakes;
             
-            if (currentUserData) {
-                currentUserData.totalScore = Math.max(0, (currentUserData.totalScore || 0) - 1);
-                saveProgressOnline();
+            if (currentUserId && currentUserData) {
+                currentUserData.totalScore = Math.max(0, (Number(currentUserData.totalScore) || 0) - 1);
+                await saveProgressOnline();
             }
 
             alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.\n(تم خصم نقطة من تقييمك الإجمالي)');
