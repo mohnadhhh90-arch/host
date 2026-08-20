@@ -193,22 +193,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function loadUserData(uid) {
-        const docRef = doc(db, "users", uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            currentUserData = docSnap.data();
-            
-            let currentScore = Number(currentUserData.totalScore) || 0;
-            const solvedList = currentUserData.solvedCases || [];
-            
-            // إصلاح تلقائي للنقاط إن وجدت قضايا محلولة
-            const expectedScore = solvedList.length * 10;
-            if (currentScore < expectedScore) {
-                currentUserData.totalScore = expectedScore;
-                await updateDoc(docRef, { totalScore: expectedScore });
+        try {
+            const docRef = doc(db, "users", uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                currentUserData = docSnap.data();
+                if (!currentUserData.solvedCases) currentUserData.solvedCases = [];
+                if (currentUserData.totalScore === undefined) currentUserData.totalScore = 0;
+                updateRankDisplay();
+            } else {
+                // إذا لم يكن مستند المستخدم موجوداً، قم بإنشائه فوراً
+                currentUserData = {
+                    username: auth.currentUser?.email?.split('@')[0] || "محقق",
+                    solvedCases: [],
+                    rank: "مساعد محقق 🕵️‍♂️",
+                    totalScore: 0
+                };
+                await setDoc(docRef, currentUserData);
             }
-
-            updateRankDisplay();
+        } catch (e) {
+            console.error("خطأ في تحميل بيانات المستخدم:", e);
         }
     }
 
@@ -244,36 +248,40 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
     }
 
-    // الدالة المعدلة خصيصاً لتحديث ولحفظ النقاط مباشرة في قاعدة البيانات فور حل القضية
+    // الدالة المحسنة لضمان الحفظ الفوري في قاعدة البيانات مع معالجة الأخطاء
     async function saveSolvedCase(caseId, noHintsUsed) {
         let solved = getSolvedCases();
         if (!solved.includes(caseId)) {
             solved.push(caseId);
         }
 
+        const newScore = solved.length * 10;
+        
+        let rank = "مساعد محقق 🕵️‍♂️";
+        if (solved.length >= 5) rank = "خبير أدلة جنائية 🏅";
+        else if (solved.length >= 3) rank = "رئيس مباحث 🎖️";
+        else if (solved.length >= 1) rank = "محقق موهوب 🔍";
+
         if (currentUserId) {
             if (!currentUserData) currentUserData = {};
             currentUserData.solvedCases = solved;
-            
-            // حساب النقاط الجديدة بدقة بناءً على عدد القضايا المحلولة (كل قضية بـ 10 نقاط)
-            const newScore = solved.length * 10;
             currentUserData.totalScore = newScore;
-            
-            // تحديث الرتبة بناءً على عدد القضايا
-            let rank = "مساعد محقق 🕵️‍♂️";
-            if (solved.length >= 5) rank = "خبير أدلة جنائية 🏅";
-            else if (solved.length >= 3) rank = "رئيس مباحث 🎖️";
-            else if (solved.length >= 1) rank = "محقق موهوب 🔍";
             currentUserData.rank = rank;
 
-            // حفظ مباشر وفوري في الفايرستور (Firebase Firestore)
-            const docRef = doc(db, "users", currentUserId);
-            await setDoc(docRef, {
-                username: currentUserData.username || auth.currentUser?.email?.split('@')[0] || "محقق",
-                solvedCases: currentUserData.solvedCases,
-                rank: currentUserData.rank,
-                totalScore: currentUserData.totalScore
-            }, { merge: true });
+            try {
+                const docRef = doc(db, "users", currentUserId);
+                // استخدام setDoc مع merge لتحديث السجل بالكامل وضمان نجاح العملية
+                await setDoc(docRef, {
+                    username: currentUserData.username || auth.currentUser?.email?.split('@')[0] || "محقق",
+                    solvedCases: solved,
+                    rank: rank,
+                    totalScore: newScore
+                }, { merge: true });
+                console.log("تم حفظ النقاط في قاعدة البيانات بنجاح:", newScore);
+            } catch (err) {
+                console.error("فشل حفظ البيانات في قاعدة البيانات:", err);
+                alert("⚠️ تنبيه: تم الحل محلياً ولكن تعذر الاتصال بالسيرفر لحفظ النقاط!");
+            }
         } else {
             localStorage.setItem('detective_solved_cases', JSON.stringify(solved));
         }
@@ -548,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
             
-            // حفظ القضية وتحديث النقاط في سحابية فايربيز فوراً
+            // الانتظار حتى يتم الحفظ الفعلي في سحابية فايربيز قبل الانتقال
             await saveSolvedCase(currentCase.id, noHintsUsed);
             
             let winMsg = `🎉 إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
@@ -566,8 +574,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (currentUserId && currentUserData) {
                 currentUserData.totalScore = Math.max(0, (Number(currentUserData.totalScore) || 0) - 1);
-                const docRef = doc(db, "users", currentUserId);
-                await updateDoc(docRef, { totalScore: currentUserData.totalScore });
+                try {
+                    const docRef = doc(db, "users", currentUserId);
+                    await updateDoc(docRef, { totalScore: currentUserData.totalScore });
+                } catch (e) {
+                    console.error("خطأ في تحديث الخصم:", e);
+                }
             }
 
             alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.\n(تم خصم نقطة من تقييمك الإجمالي)');
