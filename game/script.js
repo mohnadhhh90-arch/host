@@ -21,7 +21,6 @@ const db = getFirestore(app);
 let currentUserId = null;
 let currentUserData = null;
 
-// تحويل اسم المستخدم لإيميل افتراضي مقبول في Firebase
 function usernameToEmail(username) {
     return `${username.toLowerCase().trim()}@qadayati.game`;
 }
@@ -29,7 +28,6 @@ function usernameToEmail(username) {
 document.addEventListener('DOMContentLoaded', () => {
     let audioCtx = null;
 
-    // --- إظهار نافذة التحذير الغامضة (الرسالة السرية) عند التحميل ---
     const secretNoticeModal = document.getElementById('secretNoticeModal');
     const btnCloseSecretNotice = document.getElementById('btnCloseSecretNotice');
     
@@ -42,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
         secretNoticeModal?.classList.add('hidden');
     });
 
-    // --- مراقبة حالة تسجيل الدخول تلقائياً (Auto-Login) ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
@@ -114,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- إدارة تسجيل الدخول (مع حماية ضد التهنيج والضغط المتكرر) ---
     document.getElementById('btnLogin')?.addEventListener('click', async (e) => {
         const btn = e.target;
         const username = document.getElementById('authUsername')?.value.trim();
@@ -142,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- إدارة إنشاء الحساب (مع حماية ضد التهنيج والضغط المتكرر) ---
     document.getElementById('btnRegister')?.addEventListener('click', async (e) => {
         const btn = e.target;
         const username = document.getElementById('authUsername')?.value.trim();
@@ -186,7 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- زر تسجيل الخروج (Logout) ---
     document.getElementById('btnLogout')?.addEventListener('click', async () => {
         try {
             await signOut(auth);
@@ -203,6 +197,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             currentUserData = docSnap.data();
+            
+            // --- التصحيح التلقائي للنقاط لو كانت مخزنة كصفر أو غير موجودة ---
+            let calculatedScore = Number(currentUserData.totalScore) || 0;
+            const solvedList = currentUserData.solvedCases || [];
+            
+            // لو عنده قضايا محلولة بس النقاط صفر، نحسبها تلقائياً (كل قضية بـ 10 نقاط)
+            if (calculatedScore === 0 && solvedList.length > 0) {
+                calculatedScore = solvedList.length * 10;
+                currentUserData.totalScore = calculatedScore;
+                // تحديثها في قاعدة البيانات فوراً لتثبيتها
+                await updateDoc(docRef, { totalScore: calculatedScore });
+            }
+
             updateRankDisplay();
         }
     }
@@ -510,7 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    // --- تقديم الاستنتاج وتحديث النقاط في الفايربيز ---
     document.getElementById('btnSubmitDeduction')?.addEventListener('click', async () => {
         if (!currentCase || isCooldown) return;
 
@@ -580,7 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 
-                // التحقق هل هذا هو المستخدم الحالي لتحديث بطاقته العلوية
                 if (docSnap.id === currentUserId) {
                     myScore = data.totalScore || 0;
                     myFoundRank = `#${rank}`;
@@ -603,7 +608,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 rank++;
             });
 
-            // تحديث بطاقة نقاط وترتيب المستخدم الحالي أعلى الـ Leaderboard
             if (myScoreEl) myScoreEl.innerText = myScore;
             if (myRankEl) myRankEl.innerText = myFoundRank || "خارج القمة";
 
