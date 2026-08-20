@@ -201,11 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let currentScore = Number(currentUserData.totalScore) || 0;
             const solvedList = currentUserData.solvedCases || [];
             
-            // تصحيح تلقائي للنقاط بناءً على عدد القضايا المحلولة إذا كانت صفراً
-            if (currentScore === 0 && solvedList.length > 0) {
-                currentScore = solvedList.length * 10;
-                currentUserData.totalScore = currentScore;
-                await updateDoc(docRef, { totalScore: currentScore });
+            // فحص وتصحيح تلقائي للنقاط إن وجدت قضايا محلولة
+            const expectedScore = solvedList.length * 10;
+            if (currentScore < expectedScore) {
+                currentUserData.totalScore = expectedScore;
+                await updateDoc(docRef, { totalScore: expectedScore });
             }
 
             updateRankDisplay();
@@ -224,58 +224,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    document.getElementById('btnRestoreScore')?.addEventListener('click', async () => {
-        const activeUser = auth.currentUser;
-        if (!activeUser) {
-            alert("يرجى تسجيل الدخول أولاً من الشاشة الرئيسية!");
-            return;
-        }
-
-        currentUserId = activeUser.uid;
-        playSound('click');
-
-        try {
-            const docRef = doc(db, "users", currentUserId);
-            const docSnap = await getDoc(docRef);
-
-            let solvedList = [];
-            if (docSnap.exists()) {
-                currentUserData = docSnap.data();
-                solvedList = currentUserData.solvedCases || [];
-            } else {
-                currentUserData = { username: activeUser.email.split('@')[0], solvedCases: [], totalScore: 0 };
-            }
-
-            const localSolved = JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
-            localSolved.forEach(cId => {
-                if (!solvedList.includes(cId)) {
-                    solvedList.push(cId);
-                }
-            });
-
-            let restoredScore = solvedList.length * 10;
-            if (restoredScore === 0) restoredScore = 10;
-
-            currentUserData.solvedCases = solvedList;
-            currentUserData.totalScore = restoredScore;
-            currentUserData.rank = solvedList.length >= 5 ? "خبير أدلة جنائية 🏅" : solvedList.length >= 3 ? "رئيس مباحث 🎖️" : solvedList.length >= 1 ? "محقق موهوب 🔍" : "مساعد محقق 🕵️‍♂️";
-
-            await setDoc(docRef, currentUserData, { merge: true });
-            updateRankDisplay();
-
-            alert(`✅ تم استعادة وتحديث نقاطك بنجاح!\nرصيدك الحالي الآن: ${restoredScore} نقطة.`);
-        } catch (e) {
-            console.error(e);
-            alert("حدث خطأ أثناء الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.");
-        }
-    });
-
     document.getElementById('btnStartGame')?.addEventListener('click', () => { renderCasesList(); showView('casesList'); });
     document.getElementById('btnHowToPlay')?.addEventListener('click', () => showView('howToPlay'));
     document.getElementById('btnSettings')?.addEventListener('click', () => showView('settings'));
     document.getElementById('btnAbout')?.addEventListener('click', () => showView('about'));
     
     document.getElementById('btnLeaderboard')?.addEventListener('click', async () => {
+        // تحديث البيانات تلقائياً قبل فتح لوحة الشرف لضمان ظهور النقاط الحقيقية
+        if (currentUserId) {
+            await loadUserData(currentUserId);
+        }
         showView('leaderboard');
         await renderLeaderboard();
     });
@@ -307,7 +265,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (currentUserData) {
             currentUserData.solvedCases = solved;
-            // زيادة النقاط مباشرة بقيمة 10 نقاط عند حل القضية
             currentUserData.totalScore = (Number(currentUserData.totalScore) || 0) + 10;
             await saveProgressOnline();
         } else {
@@ -584,7 +541,6 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
             
-            // حفظ القضية وتحديث النقاط في قاعدة البيانات مباشرة
             await saveSolvedCase(currentCase.id, noHintsUsed);
             
             let winMsg = `🎉 إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
