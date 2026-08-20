@@ -29,6 +29,19 @@ function usernameToEmail(username) {
 document.addEventListener('DOMContentLoaded', () => {
     let audioCtx = null;
 
+    // --- إظهار نافذة التحذير الغامضة (الرسالة السرية) عند التحميل ---
+    const secretNoticeModal = document.getElementById('secretNoticeModal');
+    const btnCloseSecretNotice = document.getElementById('btnCloseSecretNotice');
+    
+    if (secretNoticeModal) {
+        secretNoticeModal.classList.remove('hidden');
+    }
+
+    btnCloseSecretNotice?.addEventListener('click', () => {
+        playSound('click');
+        secretNoticeModal?.classList.add('hidden');
+    });
+
     // --- مراقبة حالة تسجيل الدخول تلقائياً (Auto-Login) ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -549,6 +562,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function renderLeaderboard() {
         const container = document.getElementById('leaderboardList');
+        const myScoreEl = document.getElementById('myScoreDisplay');
+        const myRankEl = document.getElementById('myRankDisplay');
+
         if (!container) return;
         container.innerHTML = '<p style="text-align:center;">جاري البحث في ملفات الإنتربول...</p>';
 
@@ -558,8 +574,18 @@ document.addEventListener('DOMContentLoaded', () => {
             
             container.innerHTML = '';
             let rank = 1;
+            let myFoundRank = null;
+            let myScore = 0;
+
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
+                
+                // التحقق هل هذا هو المستخدم الحالي لتحديث بطاقته العلوية
+                if (docSnap.id === currentUserId) {
+                    myScore = data.totalScore || 0;
+                    myFoundRank = `#${rank}`;
+                }
+
                 const item = document.createElement('div');
                 item.className = 'leaderboard-row';
                 
@@ -576,6 +602,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.appendChild(item);
                 rank++;
             });
+
+            // تحديث بطاقة نقاط وترتيب المستخدم الحالي أعلى الـ Leaderboard
+            if (myScoreEl) myScoreEl.innerText = myScore;
+            if (myRankEl) myRankEl.innerText = myFoundRank || "خارج القمة";
+
         } catch (error) {
             console.error("خطأ في تحميل الترتيب:", error);
             container.innerHTML = '<p style="text-align:center; color:red;">تعذر الاتصال بالخادم لجلب الترتيب.</p>';
