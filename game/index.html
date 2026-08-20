@@ -9,10 +9,8 @@
     <meta name="theme-color" content="#1A1C1E">
     
     <!-- أيقونات اللعبة بروابط مباشرة للشاشة الرئيسية (أندرويد وآيفون) -->
-<!-- أيقونات اللعبة بروابط مباشرة للشاشة الرئيسية (أندرويد وآيفون) -->
-<link rel="apple-touch-icon" href="https://cdn.phototourl.com/free/2026-08-19-2fd42d20-7850-4ce2-8a08-e7f5e282df9c.png">
-<link rel="icon" type="image/png" href="https://cdn.phototourl.com/free/2026-08-19-2fd42d20-7850-4ce2-8a08-e7f5e282df9c.png">
-
+    <link rel="apple-touch-icon" href="https://cdn.phototourl.com/free/2026-08-19-2fd42d20-7850-4ce2-8a08-e7f5e282df9c.png">
+    <link rel="icon" type="image/png" href="https://cdn.phototourl.com/free/2026-08-19-2fd42d20-7850-4ce2-8a08-e7f5e282df9c.png">
 
     <title>لعبة قضيتي - Detective Cases</title>
     <link rel="stylesheet" href="style.css">
@@ -101,6 +99,15 @@
                     <button class="btn-to-menu btn-small">⬅ القائمة الرئيسية</button>
                 </div>
                 
+                <!-- بطاقة عرض نقاط ومركز المستخدم الحالي -->
+                <div id="currentUserStatsCard" class="desk-paper" style="background: rgba(0, 229, 255, 0.05); border: 1px dashed #00E5FF; margin-bottom: 15px; padding: 12px; text-align: center;">
+                    <span style="font-size: 0.9rem; color: #aaa;">رصيدك الحالي: </span>
+                    <strong id="myScoreDisplay" style="color: #00E5FF; font-size: 1.1rem;">0</strong> نقطة
+                    <span style="margin: 0 10px; color: #555;">|</span>
+                    <span style="font-size: 0.9rem; color: #aaa;">ترتيبك: </span>
+                    <strong id="myRankDisplay" style="color: #f1c40f; font-size: 1.1rem;">--</strong>
+                </div>
+
                 <div class="desk-paper">
                     <div class="leaderboard-header">
                         <span>المركز</span>
@@ -184,7 +191,6 @@
                         <input type="checkbox" id="settingSoundToggle" checked> تفعيل المؤثرات الصوتية
                     </label>
 
-                    <!-- زر إضافة اللعبة للشاشة الرئيسية (ظاهر دائماً) -->
                     <button id="btnInstallApp" class="btn-primary" style="width:100%; margin-bottom:10px; background-color: #00E5FF; color: #000; font-weight: bold;">📱 إضافة اللعبة للشاشة الرئيسية</button>
                     
                     <button id="btnLogout" class="btn-secondary" style="width:100%; margin-bottom:10px;">🚪 تسجيل الخروج</button>
@@ -217,6 +223,18 @@
                     <button class="close-modal">&times;</button>
                 </div>
                 <textarea id="notebookTextArea" placeholder="دون ملاحظاتك واستنتاجاتك هنا..."></textarea>
+            </div>
+        </div>
+
+        <!-- نافذة التحذير الغامضة (الرسالة السرية) -->
+        <div id="secretNoticeModal" class="modal-overlay hidden" style="background: rgba(0,0,0,0.85); z-index: 9999;">
+            <div class="desk-paper" style="max-width: 380px; margin: 30% auto; text-align: center; border: 2px solid #e74c3c; box-shadow: 0 0 20px rgba(231,76,60,0.4);">
+                <span style="font-size: 2.5rem;">🚨</span>
+                <h3 style="color: #e74c3c; margin: 10px 0;">بلاغ عاجل من الإنتربول</h3>
+                <p style="font-size: 1rem; color: #fff; line-height: 1.6; margin: 15px 0;">
+                    جاهزين للي هحصل بكره فـ القضايا الجديدة؟ 🕵️‍♂️🔥
+                </p>
+                <button id="btnCloseSecretNotice" class="btn-primary" style="width: 100%; background: #e74c3c; color: #fff;">فتح ملف التحقيق</button>
             </div>
         </div>
     </div>
