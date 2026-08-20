@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let currentScore = Number(currentUserData.totalScore) || 0;
             const solvedList = currentUserData.solvedCases || [];
             
-            // فحص وتصحيح تلقائي للنقاط إن وجدت قضايا محلولة
+            // إصلاح تلقائي للنقاط إن وجدت قضايا محلولة
             const expectedScore = solvedList.length * 10;
             if (currentScore < expectedScore) {
                 currentUserData.totalScore = expectedScore;
@@ -212,25 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function saveProgressOnline() {
-        if (currentUserId && currentUserData) {
-            const docRef = doc(db, "users", currentUserId);
-            await setDoc(docRef, {
-                username: currentUserData.username,
-                solvedCases: currentUserData.solvedCases || [],
-                rank: currentUserData.rank || "مساعد محقق 🕵️‍♂️",
-                totalScore: Number(currentUserData.totalScore) || 0
-            }, { merge: true });
-        }
-    }
-
     document.getElementById('btnStartGame')?.addEventListener('click', () => { renderCasesList(); showView('casesList'); });
     document.getElementById('btnHowToPlay')?.addEventListener('click', () => showView('howToPlay'));
     document.getElementById('btnSettings')?.addEventListener('click', () => showView('settings'));
     document.getElementById('btnAbout')?.addEventListener('click', () => showView('about'));
     
     document.getElementById('btnLeaderboard')?.addEventListener('click', async () => {
-        // تحديث البيانات تلقائياً قبل فتح لوحة الشرف لضمان ظهور النقاط الحقيقية
         if (currentUserId) {
             await loadUserData(currentUserId);
         }
@@ -251,22 +238,42 @@ document.addEventListener('DOMContentLoaded', () => {
     let isCooldown = false;
 
     function getSolvedCases() {
-        if (currentUserData) {
-            return currentUserData.solvedCases || [];
+        if (currentUserData && currentUserData.solvedCases) {
+            return currentUserData.solvedCases;
         }
         return JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
     }
 
+    // الدالة المعدلة خصيصاً لتحديث ولحفظ النقاط مباشرة في قاعدة البيانات فور حل القضية
     async function saveSolvedCase(caseId, noHintsUsed) {
-        const solved = getSolvedCases();
+        let solved = getSolvedCases();
         if (!solved.includes(caseId)) {
             solved.push(caseId);
         }
 
-        if (currentUserData) {
+        if (currentUserId) {
+            if (!currentUserData) currentUserData = {};
             currentUserData.solvedCases = solved;
-            currentUserData.totalScore = (Number(currentUserData.totalScore) || 0) + 10;
-            await saveProgressOnline();
+            
+            // حساب النقاط الجديدة بدقة بناءً على عدد القضايا المحلولة (كل قضية بـ 10 نقاط)
+            const newScore = solved.length * 10;
+            currentUserData.totalScore = newScore;
+            
+            // تحديث الرتبة بناءً على عدد القضايا
+            let rank = "مساعد محقق 🕵️‍♂️";
+            if (solved.length >= 5) rank = "خبير أدلة جنائية 🏅";
+            else if (solved.length >= 3) rank = "رئيس مباحث 🎖️";
+            else if (solved.length >= 1) rank = "محقق موهوب 🔍";
+            currentUserData.rank = rank;
+
+            // حفظ مباشر وفوري في الفايرستور (Firebase Firestore)
+            const docRef = doc(db, "users", currentUserId);
+            await setDoc(docRef, {
+                username: currentUserData.username || auth.currentUser?.email?.split('@')[0] || "محقق",
+                solvedCases: currentUserData.solvedCases,
+                rank: currentUserData.rank,
+                totalScore: currentUserData.totalScore
+            }, { merge: true });
         } else {
             localStorage.setItem('detective_solved_cases', JSON.stringify(solved));
         }
@@ -541,6 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
             
+            // حفظ القضية وتحديث النقاط في سحابية فايربيز فوراً
             await saveSolvedCase(currentCase.id, noHintsUsed);
             
             let winMsg = `🎉 إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
@@ -558,7 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (currentUserId && currentUserData) {
                 currentUserData.totalScore = Math.max(0, (Number(currentUserData.totalScore) || 0) - 1);
-                await saveProgressOnline();
+                const docRef = doc(db, "users", currentUserId);
+                await updateDoc(docRef, { totalScore: currentUserData.totalScore });
             }
 
             alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.\n(تم خصم نقطة من تقييمك الإجمالي)');
@@ -653,7 +662,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentUserData.totalScore = 0;
                 currentUserData.rank = "مساعد محقق 🕵️‍♂️";
                 try {
-                    await saveProgressOnline();
+                    const docRef = doc(db, "users", currentUserId);
+                    await setDoc(docRef, currentUserData);
                 } catch (e) {
                     console.error("خطأ أثناء تحديث الخادم:", e);
                 }
