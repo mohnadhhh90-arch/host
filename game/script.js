@@ -223,7 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
     }
 
-    // 💡 الإصلاح الأساسي الأول: إضافة النقاط بشكل صحيح (الجمع بدلاً من الاستبدال)
     async function saveSolvedCase(caseId, noHintsUsed, earnedScore) {
         let solved = getSolvedCases();
         let isNewCase = !solved.includes(caseId);
@@ -232,10 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
             solved.push(caseId);
         }
 
-        // إضافة النقاط الجديدة إلى الرصيد السابق لو القضية جديدة
         let newTotalScore = Number(currentUserData?.totalScore || 0);
         if (isNewCase) {
-            newTotalScore += earnedScore;
+            newTotalScore += earnedScore; // إضافة 10 نقاط فقط للقضايا الجديدة
         }
 
         let rank = "مساعد محقق 🕵️‍♂️";
@@ -549,11 +547,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSuspectCorrect && isEvidenceCorrect) {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
+            const earnedPoints = 10; // 10 نقاط ثابتة عند الحل الصحيح
             
-            // 💡 تمرير النقاط (score) إلى دالة الحفظ
-            await saveSolvedCase(currentCase.id, noHintsUsed, score);
+            await saveSolvedCase(currentCase.id, noHintsUsed, earnedPoints);
             
-            let winMsg = `إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+${score} نقطة لتقييمك الإجمالي!)`;
+            let winMsg = `إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+${earnedPoints} نقطة أضيفت لرصيدك!)`;
             if (noHintsUsed) winMsg += `\n\n🏆 حصلت على وسام "المحقق الصارم"!`;
             
             showWinModal(winMsg);
@@ -577,7 +575,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 💡 الإصلاح الأساسي الثاني: قراءة وتحديث رصيدك الشخصي أعلى لوحة الشرف بشكل دائم
     async function renderLeaderboard() {
         const container = document.getElementById('leaderboardList');
         const myScoreEl = document.getElementById('myScoreDisplay');
@@ -593,14 +590,12 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
             let rank = 1;
 
-            // جلب رصيدك الحالي من بياناتك المحفوظة (سواء كنت في القمة أو خارجها)
             let myScore = currentUserData ? (currentUserData.totalScore || 0) : 0;
             let myFoundRank = "خارج القمة";
 
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 
-                // إذا تم العثور عليك ضمن أول 50، قم بتحديث المركز فقط (الرصيد تم جلبه مسبقاً)
                 if (docSnap.id === currentUserId) {
                     myFoundRank = `#${rank}`;
                 }
@@ -622,7 +617,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 rank++;
             });
 
-            // عرض بياناتك في الشريط العلوي بشكل دائم
             if (myScoreEl) myScoreEl.innerText = myScore;
             if (myRankEl) myRankEl.innerText = myFoundRank;
 
