@@ -198,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (docSnap.exists()) {
             currentUserData = docSnap.data();
             
-            // تحقق ذاتي وتصحيح تلقائي لو النقاط صفر بس عنده قضايا محلولة
             const solvedList = currentUserData.solvedCases || [];
             let currentScore = Number(currentUserData.totalScore) || 0;
             
@@ -223,9 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- زر استعادة النقاط المحسّن (بيجيب الـ User حتى لو المتغير فاضي مؤقتاً) ---
     document.getElementById('btnRestoreScore')?.addEventListener('click', async () => {
-        // التأكد من جلب الـ ID حتى لو الـ variable لم يتم تحديثه
         const activeUser = auth.currentUser;
         if (!activeUser) {
             alert("يرجى تسجيل الدخول أولاً من الشاشة الرئيسية!");
@@ -247,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentUserData = { username: activeUser.email.split('@')[0], solvedCases: [], totalScore: 0 };
             }
 
-            // دمج القضايا المحلية إن وجدت لضمان عدم ضياع أي تقدم
             const localSolved = JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
             localSolved.forEach(cId => {
                 if (!solvedList.includes(cId)) {
@@ -255,15 +251,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // حساب النقاط الجديدة (كل قضية بـ 10 نقاط، ولو مفيش قضايا وكاتب صفر نديها 10 افتراضية أو نحسب حسب الموجود)
             let restoredScore = solvedList.length * 10;
-            if (restoredScore === 0) restoredScore = 10; // ضمان ظهور نقاط فورية
+            if (restoredScore === 0) restoredScore = 10;
 
             currentUserData.solvedCases = solvedList;
             currentUserData.totalScore = restoredScore;
             currentUserData.rank = solvedList.length >= 5 ? "خبير أدلة جنائية 🏅" : solvedList.length >= 3 ? "رئيس مباحث 🎖️" : solvedList.length >= 1 ? "محقق موهوب 🔍" : "مساعد محقق 🕵️‍♂️";
 
-            // حفظ مباشر في الـ Firestore
             await setDoc(docRef, currentUserData, { merge: true });
             updateRankDisplay();
 
@@ -686,9 +680,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.getElementById('btnResetProgress')?.addEventListener('click', () => {
-        if (confirm('هل أنت متاكد من مسح جميع التقدم؟')) {
-            localStorage.clear();
+    document.getElementById('btnResetProgress')?.addEventListener('click', async () => {
+        if (confirm('هل أنت متأكد من مسح جميع التقدم وتصفير النقاط والقضايا؟')) {
+            playSound('click');
+            
+            // 1. مسح التخزين المحلي تماماً للمتقدمين محلياً
+            localStorage.removeItem('detective_solved_cases');
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('badge_strict_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+
+            // 2. تصفير النقاط والقضايا في قاعدة البيانات للمستخدم الحالي المسجل
+            if (currentUserId && currentUserData) {
+                currentUserData.solvedCases = [];
+                currentUserData.totalScore = 0;
+                currentUserData.rank = "مساعد محقق 🕵️‍♂️";
+                try {
+                    await saveProgressOnline();
+                } catch (e) {
+                    console.error("خطأ أثناء تحديث الخادم:", e);
+                }
+            }
+
+            alert('✅ تم إعادة تعيين جميع القضايا وتصفير النقاط بنجاح!');
             location.reload();
         }
     });
