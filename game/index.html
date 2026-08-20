@@ -182,8 +182,8 @@
                         <input type="checkbox" id="settingSoundToggle" checked> تفعيل المؤثرات الصوتية
                     </label>
 
-                    <!-- زر إضافة اللعبة للشاشة الرئيسية -->
-                    <button id="btnInstallApp" class="btn-primary hidden" style="width:100%; margin-bottom:10px; background-color: #00E5FF; color: #000;">📱 إضافة اللعبة للشاشة الرئيسية</button>
+                    <!-- زر إضافة اللعبة للشاشة الرئيسية (ظاهر دائماً) -->
+                    <button id="btnInstallApp" class="btn-primary" style="width:100%; margin-bottom:10px; background-color: #00E5FF; color: #000; font-weight: bold;">📱 إضافة اللعبة للشاشة الرئيسية</button>
                     
                     <button id="btnLogout" class="btn-secondary" style="width:100%; margin-bottom:10px;">🚪 تسجيل الخروج</button>
                     
@@ -235,12 +235,14 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            const installBtn = document.getElementById('btnInstallApp');
-            if (installBtn) installBtn.classList.remove('hidden');
         });
 
         document.getElementById('btnInstallApp')?.addEventListener('click', () => {
-            if (deferredPrompt) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            if (isIOS) {
+                alert("لتثبيت اللعبة على الآيفون:\n1. اضغط على زر المشاركة (Share) أسفل المتصفح ⎋\n2. اختر 'إضافة إلى الشاشة الرئيسية' (Add to Home Screen) ➕");
+            } else if (deferredPrompt) {
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
@@ -248,6 +250,8 @@
                     }
                     deferredPrompt = null;
                 });
+            } else {
+                alert("التطبيق جاهز أو يمكنك تثبيته مباشرة من إعدادات المتصفح (نقاط القائمة ثم اختيار تثبيت التطبيق).");
             }
         });
     </script>
