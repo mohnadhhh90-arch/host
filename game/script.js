@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// إعدادات Firebase الخاص بك
+// إعدادات Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyDLOklvLUPBa8IqM3-4xaswdMMqqAdqzXY",
     authDomain: "mohnad2-bfb02.firebaseapp.com",
@@ -13,7 +13,6 @@ const firebaseConfig = {
     measurementId: "G-QKG96L42XB"
 };
 
-// تهيئة خدمات Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -31,9 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const secretNoticeModal = document.getElementById('secretNoticeModal');
     const btnCloseSecretNotice = document.getElementById('btnCloseSecretNotice');
     
-    if (secretNoticeModal) {
-        secretNoticeModal.classList.remove('hidden');
-    }
+    if (secretNoticeModal) secretNoticeModal.classList.remove('hidden');
 
     btnCloseSecretNotice?.addEventListener('click', () => {
         playSound('click');
@@ -55,12 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function playSound(type) {
         try {
             if (!document.getElementById('settingSoundToggle')?.checked) return;
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
 
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -85,9 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.3);
             }
-        } catch (e) {
-            console.log("Audio play error:", e);
-        }
+        } catch (e) { console.log("Audio play error:", e); }
     }
 
     const views = {
@@ -103,12 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showView(viewKey) {
         playSound('click');
-        Object.values(views).forEach(v => {
-            if (v) v.classList.add('hidden');
-        });
-        if (views[viewKey]) {
-            views[viewKey].classList.remove('hidden');
-        }
+        Object.values(views).forEach(v => { if (v) v.classList.add('hidden'); });
+        if (views[viewKey]) views[viewKey].classList.remove('hidden');
     }
 
     document.getElementById('btnLogin')?.addEventListener('click', async (e) => {
@@ -170,11 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showView('mainMenu');
         } catch (err) {
             if (errorDiv) {
-                if (err.code === 'auth/email-already-in-use') {
-                    errorDiv.innerText = "اسم المستخدم هذا مستخدم بالفعل!";
-                } else {
-                    errorDiv.innerText = "حدث خطأ أثناء إنشاء الحساب!";
-                }
+                if (err.code === 'auth/email-already-in-use') errorDiv.innerText = "اسم المستخدم هذا مستخدم بالفعل!";
+                else errorDiv.innerText = "حدث خطأ أثناء إنشاء الحساب!";
             }
             btn.disabled = false;
             btn.innerText = "إنشاء حساب";
@@ -187,9 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserId = null;
             currentUserData = null;
             showView('auth');
-        } catch (error) {
-            console.error("خطأ أثناء تسجيل الخروج:", error);
-        }
+        } catch (error) { console.error("خطأ أثناء تسجيل الخروج:", error); }
     });
 
     async function loadUserData(uid) {
@@ -210,9 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 await setDoc(docRef, currentUserData);
             }
-        } catch (e) {
-            console.error("خطأ في تحميل بيانات المستخدم:", e);
-        }
+        } catch (e) { console.error("خطأ في تحميل بيانات المستخدم:", e); }
     }
 
     document.getElementById('btnStartGame')?.addEventListener('click', () => { renderCasesList(); showView('casesList'); });
@@ -221,9 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnAbout')?.addEventListener('click', () => showView('about'));
     
     document.getElementById('btnLeaderboard')?.addEventListener('click', async () => {
-        if (currentUserId) {
-            await loadUserData(currentUserId);
-        }
+        if (currentUserId) await loadUserData(currentUserId);
         showView('leaderboard');
         await renderLeaderboard();
     });
@@ -241,20 +219,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let isCooldown = false;
 
     function getSolvedCases() {
-        if (currentUserData && currentUserData.solvedCases) {
-            return currentUserData.solvedCases;
-        }
+        if (currentUserData && currentUserData.solvedCases) return currentUserData.solvedCases;
         return JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
     }
 
-    async function saveSolvedCase(caseId, noHintsUsed) {
+    // 💡 الإصلاح الأساسي الأول: إضافة النقاط بشكل صحيح (الجمع بدلاً من الاستبدال)
+    async function saveSolvedCase(caseId, noHintsUsed, earnedScore) {
         let solved = getSolvedCases();
-        if (!solved.includes(caseId)) {
+        let isNewCase = !solved.includes(caseId);
+
+        if (isNewCase) {
             solved.push(caseId);
         }
 
-        const newScore = solved.length * 10;
-        
+        // إضافة النقاط الجديدة إلى الرصيد السابق لو القضية جديدة
+        let newTotalScore = Number(currentUserData?.totalScore || 0);
+        if (isNewCase) {
+            newTotalScore += earnedScore;
+        }
+
         let rank = "مساعد محقق 🕵️‍♂️";
         if (solved.length >= 5) rank = "خبير أدلة جنائية 🏅";
         else if (solved.length >= 3) rank = "رئيس مباحث 🎖️";
@@ -262,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!currentUserData) currentUserData = {};
         currentUserData.solvedCases = solved;
-        currentUserData.totalScore = newScore;
+        currentUserData.totalScore = newTotalScore;
         currentUserData.rank = rank;
 
         const activeUser = auth.currentUser;
@@ -273,12 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     username: currentUserData.username || activeUser.email.split('@')[0],
                     solvedCases: solved,
                     rank: rank,
-                    totalScore: newScore
+                    totalScore: newTotalScore
                 }, { merge: true });
-                console.log("✅ تم حفظ النقاط في قاعدة البيانات بنجاح:", newScore);
-            } catch (err) {
-                console.error("❌ خطأ من فايربيز أثناء الحفظ:", err);
-            }
+            } catch (err) { console.error("❌ خطأ من فايربيز أثناء الحفظ:", err); }
         } else {
             localStorage.setItem('detective_solved_cases', JSON.stringify(solved));
         }
@@ -297,7 +277,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (solvedCount >= 1) rank = "محقق موهوب 🔍";
 
         if (currentUserData) currentUserData.rank = rank;
-
         const rankEl = document.getElementById('userRankDisplay');
         if (rankEl) rankEl.innerText = rank;
     }
@@ -309,9 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             CASES_DATA = await response.json();
             updateRankDisplay();
             renderCasesList();
-        } catch (error) {
-            console.error("خطأ في التحميل:", error);
-        }
+        } catch (error) { console.error("خطأ في التحميل:", error); }
     }
 
     function renderCasesList() {
@@ -354,10 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.querySelectorAll('.btn-open-case').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = e.target.getAttribute('data-id');
-                loadCase(id);
-            });
+            btn.addEventListener('click', (e) => { loadCase(e.target.getAttribute('data-id')); });
         });
     }
 
@@ -412,20 +386,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.querySelectorAll('.btn-eliminate').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const charId = e.target.getAttribute('data-char');
-                toggleEliminate(charId);
-            });
+            btn.addEventListener('click', (e) => { toggleEliminate(e.target.getAttribute('data-char')); });
         });
     }
 
     function toggleEliminate(charId) {
         playSound('click');
-        if (eliminatedSuspects.has(charId)) {
-            eliminatedSuspects.delete(charId);
-        } else {
-            eliminatedSuspects.add(charId);
-        }
+        if (eliminatedSuspects.has(charId)) eliminatedSuspects.delete(charId);
+        else eliminatedSuspects.add(charId);
         renderCharacters();
     }
 
@@ -471,13 +439,10 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = `
             <div class="desk-paper">
                 <h4 style="margin-bottom:10px;">⚖️ قرار الاتهام والتحليل</h4>
-                
                 <label style="font-size:0.85rem; font-weight:bold;">1. الجاني الرئيسي:</label>
                 <select id="selectSuspect" style="width:100%; padding:8px; margin:5px 0 12px 0; background:#111; color:#fff; border:1px solid #444; border-radius:5px;">${suspectOptions}</select>
-
                 <label style="font-size:0.85rem; font-weight:bold;">2. الدليل الإداني القاطع:</label>
                 <select id="selectEvidence" style="width:100%; padding:8px; margin:5px 0 12px 0; background:#111; color:#fff; border:1px solid #444; border-radius:5px;">${evidenceOptions}</select>
-
                 <label style="font-size:0.85rem; font-weight:bold;">3. الثغرة في أقوال المتهم:</label>
                 <input type="text" id="alibiInput" placeholder="أدخل الكلمة/التناقض الأساسي..." style="width:100%; padding:8px; margin-top:5px; background:#111; color:#fff; border:1px solid #444; border-radius:5px; font-family:inherit;">
             </div>
@@ -533,7 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    // دالة لإنشاء نافذة تهنئة مخصصة تحتوي على زر "حفظ" بدلاً من إغلاق عادي
     function showWinModal(message) {
         let existingModal = document.getElementById('customWinModal');
         if (existingModal) existingModal.remove();
@@ -586,9 +550,10 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
             
-            await saveSolvedCase(currentCase.id, noHintsUsed);
+            // 💡 تمرير النقاط (score) إلى دالة الحفظ
+            await saveSolvedCase(currentCase.id, noHintsUsed, score);
             
-            let winMsg = `إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
+            let winMsg = `إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+${score} نقطة لتقييمك الإجمالي!)`;
             if (noHintsUsed) winMsg += `\n\n🏆 حصلت على وسام "المحقق الصارم"!`;
             
             showWinModal(winMsg);
@@ -604,9 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const docRef = doc(db, "users", currentUserId);
                     await updateDoc(docRef, { totalScore: currentUserData.totalScore });
-                } catch (e) {
-                    console.error("خطأ في تحديث الخصم:", e);
-                }
+                } catch (e) { console.error("خطأ في تحديث الخصم:", e); }
             }
 
             alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.\n(تم خصم نقطة من تقييمك الإجمالي)');
@@ -614,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 💡 الإصلاح الأساسي الثاني: قراءة وتحديث رصيدك الشخصي أعلى لوحة الشرف بشكل دائم
     async function renderLeaderboard() {
         const container = document.getElementById('leaderboardList');
         const myScoreEl = document.getElementById('myScoreDisplay');
@@ -628,14 +592,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             container.innerHTML = '';
             let rank = 1;
-            let myFoundRank = null;
-            let myScore = 0;
+
+            // جلب رصيدك الحالي من بياناتك المحفوظة (سواء كنت في القمة أو خارجها)
+            let myScore = currentUserData ? (currentUserData.totalScore || 0) : 0;
+            let myFoundRank = "خارج القمة";
 
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 
+                // إذا تم العثور عليك ضمن أول 50، قم بتحديث المركز فقط (الرصيد تم جلبه مسبقاً)
                 if (docSnap.id === currentUserId) {
-                    myScore = data.totalScore || 0;
                     myFoundRank = `#${rank}`;
                 }
 
@@ -656,8 +622,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 rank++;
             });
 
+            // عرض بياناتك في الشريط العلوي بشكل دائم
             if (myScoreEl) myScoreEl.innerText = myScore;
-            if (myRankEl) myRankEl.innerText = myFoundRank || "خارج القمة";
+            if (myRankEl) myRankEl.innerText = myFoundRank;
 
         } catch (error) {
             console.error("خطأ في تحميل الترتيب:", error);
@@ -691,9 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             localStorage.removeItem('detective_solved_cases');
             Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('badge_strict_')) {
-                    localStorage.removeItem(key);
-                }
+                if (key.startsWith('badge_strict_')) localStorage.removeItem(key);
             });
 
             if (currentUserId && currentUserData) {
@@ -703,9 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const docRef = doc(db, "users", currentUserId);
                     await setDoc(docRef, currentUserData);
-                } catch (e) {
-                    console.error("خطأ أثناء تحديث الخادم:", e);
-                }
+                } catch (e) { console.error("خطأ أثناء تحديث الخادم:", e); }
             }
 
             alert('✅ تم إعادة تعيين جميع القضايا وتصفير النقاط بنجاح!');
