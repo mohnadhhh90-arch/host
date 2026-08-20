@@ -247,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
     }
 
-    // [تم التعديل هنا] الدالة المحدثة لضمان الحفظ الفوري في قاعدة البيانات
     async function saveSolvedCase(caseId, noHintsUsed) {
         let solved = getSolvedCases();
         if (!solved.includes(caseId)) {
@@ -276,13 +275,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     rank: rank,
                     totalScore: newScore
                 }, { merge: true });
-                console.log("✅ تم حفظ النقاط في قاعدة البيانات بنجاح تام:", newScore);
+                console.log("✅ تم حفظ النقاط في قاعدة البيانات بنجاح:", newScore);
             } catch (err) {
-                console.error("❌ خطأ تفصيلي من فايربيز:", err);
-                alert("⚠️ تحذير: تعذر الحفظ في السيرفر بسبب خطأ في الشبكة أو الأذونات!");
+                console.error("❌ خطأ من فايربيز أثناء الحفظ:", err);
             }
         } else {
-            console.warn("⚠️ تنبيه: لا يوجد مستخدم مسجل حالياً، سيتم الحفظ محلياً.");
             localStorage.setItem('detective_solved_cases', JSON.stringify(solved));
         }
 
@@ -536,6 +533,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
+    // دالة لإنشاء نافذة تهنئة مخصصة تحتوي على زر "حفظ" بدلاً من إغلاق عادي
+    function showWinModal(message) {
+        let existingModal = document.getElementById('customWinModal');
+        if (existingModal) existingModal.remove();
+
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'customWinModal';
+        modalOverlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center;
+            align-items: center; z-index: 99999; font-family: inherit;
+        `;
+
+        modalOverlay.innerHTML = `
+            <div style="background: #1a1a1a; border: 2px solid #f1c40f; padding: 25px; border-radius: 10px; max-width: 450px; width: 90%; text-align: center; color: #fff; box-shadow: 0 0 20px rgba(241,196,15, 0.4);">
+                <h3 style="color: #f1c40f; margin-bottom: 15px; font-size: 1.4rem;">🎉 تهانينا يا محقق!</h3>
+                <p style="margin-bottom: 20px; line-height: 1.6; white-space: pre-line; font-size: 0.95rem; color: #ddd;">${message}</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="btnSaveAndExit" class="btn-primary" style="background: #27ae60; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold; color: #fff;">💾 حفظ ومتابعة</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modalOverlay);
+
+        document.getElementById('btnSaveAndExit').addEventListener('click', () => {
+            playSound('click');
+            modalOverlay.remove();
+            showView('casesList');
+            renderCasesList();
+        });
+    }
+
     document.getElementById('btnSubmitDeduction')?.addEventListener('click', async () => {
         if (!currentCase || isCooldown) return;
 
@@ -558,12 +588,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             await saveSolvedCase(currentCase.id, noHintsUsed);
             
-            let winMsg = `🎉 إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
+            let winMsg = `إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
             if (noHintsUsed) winMsg += `\n\n🏆 حصلت على وسام "المحقق الصارم"!`;
             
-            alert(winMsg);
-            showView('casesList');
-            renderCasesList();
+            showWinModal(winMsg);
         } else {
             playSound('error');
             mistakes++;
