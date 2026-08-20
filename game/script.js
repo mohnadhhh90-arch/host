@@ -197,6 +197,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             currentUserData = docSnap.data();
+            
+            // تحقق ذاتي وتصحيح تلقائي لو النقاط صفر بس عنده قضايا محلولة
+            const solvedList = currentUserData.solvedCases || [];
+            let currentScore = Number(currentUserData.totalScore) || 0;
+            
+            if (currentScore === 0 && solvedList.length > 0) {
+                currentScore = solvedList.length * 10;
+                currentUserData.totalScore = currentScore;
+                await updateDoc(docRef, { totalScore: currentScore });
+            }
+
             updateRankDisplay();
         }
     }
@@ -212,38 +223,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- زر استعادة النقاط الآمن في الإعدادات ---
+    // --- زر استعادة النقاط المحسّن (بيجيب الـ User حتى لو المتغير فاضي مؤقتاً) ---
     document.getElementById('btnRestoreScore')?.addEventListener('click', async () => {
-        if (!currentUserId || !currentUserData) {
-            alert("يرجى تسجيل الدخول أولاً!");
+        // التأكد من جلب الـ ID حتى لو الـ variable لم يتم تحديثه
+        const activeUser = auth.currentUser;
+        if (!activeUser) {
+            alert("يرجى تسجيل الدخول أولاً من الشاشة الرئيسية!");
             return;
         }
 
+        currentUserId = activeUser.uid;
         playSound('click');
-        const solvedList = currentUserData.solvedCases || [];
-        // حساب النقاط: كل قضية بـ 10 نقاط (أو على الأقل 10 نقاط لو عنده قضايا محلولة)
-        let restoredScore = solvedList.length * 10;
-        
-        // لو مفيش قضايا مسجلة في السيرفر بس فيه في الـ LocalStorage، ندمجهم للأمان
-        const localSolved = JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
-        localSolved.forEach(cId => {
-            if (!solvedList.includes(cId)) {
-                solvedList.push(cId);
-            }
-        });
-        
-        restoredScore = Math.max(restoredScore, solvedList.length * 10, 10); // ضمان استعادة النقاط الصحيحة
-
-        currentUserData.solvedCases = solvedList;
-        currentUserData.totalScore = restoredScore;
 
         try {
-            await saveProgressOnline();
+            const docRef = doc(db, "users", currentUserId);
+            const docSnap = await getDoc(docRef);
+
+            let solvedList = [];
+            if (docSnap.exists()) {
+                currentUserData = docSnap.data();
+                solvedList = currentUserData.solvedCases || [];
+            } else {
+                currentUserData = { username: activeUser.email.split('@')[0], solvedCases: [], totalScore: 0 };
+            }
+
+            // دمج القضايا المحلية إن وجدت لضمان عدم ضياع أي تقدم
+            const localSolved = JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
+            localSolved.forEach(cId => {
+                if (!solvedList.includes(cId)) {
+                    solvedList.push(cId);
+                }
+            });
+
+            // حساب النقاط الجديدة (كل قضية بـ 10 نقاط، ولو مفيش قضايا وكاتب صفر نديها 10 افتراضية أو نحسب حسب الموجود)
+            let restoredScore = solvedList.length * 10;
+            if (restoredScore === 0) restoredScore = 10; // ضمان ظهور نقاط فورية
+
+            currentUserData.solvedCases = solvedList;
+            currentUserData.totalScore = restoredScore;
+            currentUserData.rank = solvedList.length >= 5 ? "خبير أدلة جنائية 🏅" : solvedList.length >= 3 ? "رئيس مباحث 🎖️" : solvedList.length >= 1 ? "محقق موهوب 🔍" : "مساعد محقق 🕵️‍♂️";
+
+            // حفظ مباشر في الـ Firestore
+            await setDoc(docRef, currentUserData, { merge: true });
             updateRankDisplay();
+
             alert(`✅ تم استعادة وتحديث نقاطك بنجاح!\nرصيدك الحالي الآن: ${restoredScore} نقطة.`);
         } catch (e) {
             console.error(e);
-            alert("حدث خطأ أثناء الاتصال بالخادم لاستعادة النقاط.");
+            alert("حدث خطأ أثناء الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.");
         }
     });
 
