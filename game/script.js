@@ -198,9 +198,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (docSnap.exists()) {
             currentUserData = docSnap.data();
             
-            const solvedList = currentUserData.solvedCases || [];
             let currentScore = Number(currentUserData.totalScore) || 0;
+            const solvedList = currentUserData.solvedCases || [];
             
+            // تصحيح تلقائي للنقاط بناءً على عدد القضايا المحلولة إذا كانت صفراً
             if (currentScore === 0 && solvedList.length > 0) {
                 currentScore = solvedList.length * 10;
                 currentUserData.totalScore = currentScore;
@@ -214,11 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveProgressOnline() {
         if (currentUserId && currentUserData) {
             const docRef = doc(db, "users", currentUserId);
-            await updateDoc(docRef, {
+            await setDoc(docRef, {
+                username: currentUserData.username,
                 solvedCases: currentUserData.solvedCases || [],
                 rank: currentUserData.rank || "مساعد محقق 🕵️‍♂️",
                 totalScore: Number(currentUserData.totalScore) || 0
-            });
+            }, { merge: true });
         }
     }
 
@@ -305,6 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (currentUserData) {
             currentUserData.solvedCases = solved;
+            // زيادة النقاط مباشرة بقيمة 10 نقاط عند حل القضية
+            currentUserData.totalScore = (Number(currentUserData.totalScore) || 0) + 10;
             await saveProgressOnline();
         } else {
             localStorage.setItem('detective_solved_cases', JSON.stringify(solved));
@@ -579,12 +583,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSuspectCorrect && isEvidenceCorrect) {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
-            await saveSolvedCase(currentCase.id, noHintsUsed);
             
-            if (currentUserId && currentUserData) {
-                currentUserData.totalScore = (Number(currentUserData.totalScore) || 0) + 10;
-                await saveProgressOnline();
-            }
+            // حفظ القضية وتحديث النقاط في قاعدة البيانات مباشرة
+            await saveSolvedCase(currentCase.id, noHintsUsed);
             
             let winMsg = `🎉 إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+10 نقاط لتقييمك الإجمالي!)`;
             if (noHintsUsed) winMsg += `\n\n🏆 حصلت على وسام "المحقق الصارم"!`;
@@ -684,7 +685,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirm('هل أنت متأكد من مسح جميع التقدم وتصفير النقاط والقضايا؟')) {
             playSound('click');
             
-            // 1. مسح التخزين المحلي تماماً للمتقدمين محلياً
             localStorage.removeItem('detective_solved_cases');
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('badge_strict_')) {
@@ -692,7 +692,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // 2. تصفير النقاط والقضايا في قاعدة البيانات للمستخدم الحالي المسجل
             if (currentUserId && currentUserData) {
                 currentUserData.solvedCases = [];
                 currentUserData.totalScore = 0;
