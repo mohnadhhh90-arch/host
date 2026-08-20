@@ -197,19 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             currentUserData = docSnap.data();
-            
-            // --- التصحيح التلقائي للنقاط لو كانت مخزنة كصفر أو غير موجودة ---
-            let calculatedScore = Number(currentUserData.totalScore) || 0;
-            const solvedList = currentUserData.solvedCases || [];
-            
-            // لو عنده قضايا محلولة بس النقاط صفر، نحسبها تلقائياً (كل قضية بـ 10 نقاط)
-            if (calculatedScore === 0 && solvedList.length > 0) {
-                calculatedScore = solvedList.length * 10;
-                currentUserData.totalScore = calculatedScore;
-                // تحديثها في قاعدة البيانات فوراً لتثبيتها
-                await updateDoc(docRef, { totalScore: calculatedScore });
-            }
-
             updateRankDisplay();
         }
     }
@@ -224,6 +211,41 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+
+    // --- زر استعادة النقاط الآمن في الإعدادات ---
+    document.getElementById('btnRestoreScore')?.addEventListener('click', async () => {
+        if (!currentUserId || !currentUserData) {
+            alert("يرجى تسجيل الدخول أولاً!");
+            return;
+        }
+
+        playSound('click');
+        const solvedList = currentUserData.solvedCases || [];
+        // حساب النقاط: كل قضية بـ 10 نقاط (أو على الأقل 10 نقاط لو عنده قضايا محلولة)
+        let restoredScore = solvedList.length * 10;
+        
+        // لو مفيش قضايا مسجلة في السيرفر بس فيه في الـ LocalStorage، ندمجهم للأمان
+        const localSolved = JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
+        localSolved.forEach(cId => {
+            if (!solvedList.includes(cId)) {
+                solvedList.push(cId);
+            }
+        });
+        
+        restoredScore = Math.max(restoredScore, solvedList.length * 10, 10); // ضمان استعادة النقاط الصحيحة
+
+        currentUserData.solvedCases = solvedList;
+        currentUserData.totalScore = restoredScore;
+
+        try {
+            await saveProgressOnline();
+            updateRankDisplay();
+            alert(`✅ تم استعادة وتحديث نقاطك بنجاح!\nرصيدك الحالي الآن: ${restoredScore} نقطة.`);
+        } catch (e) {
+            console.error(e);
+            alert("حدث خطأ أثناء الاتصال بالخادم لاستعادة النقاط.");
+        }
+    });
 
     document.getElementById('btnStartGame')?.addEventListener('click', () => { renderCasesList(); showView('casesList'); });
     document.getElementById('btnHowToPlay')?.addEventListener('click', () => showView('howToPlay'));
