@@ -3,420 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قضايا - لعبة التحقيق الجنائي</title>
-    <style>
-        :root {
-            --bg-color: #121212;
-            --paper-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --accent-color: #f1c40f;
-            --border-color: #333;
-            --danger-color: #e74c3c;
-            --success-color: #2ecc71;
-        }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1A1C1E">
+    
+    <!-- أيقونات اللعبة بروابط مباشرة للشاشة الرئيسية (أندرويد وآيفون) -->
+    <link rel="apple-touch-icon" href="https://cdn.phototourl.com/free/2026-08-19-2fd42d20-7850-4ce2-8a08-e7f5e282df9c.png">
+    <link rel="icon" type="image/png" href="https://cdn.phototourl.com/free/2026-08-19-2fd42d20-7850-4ce2-8a08-e7f5e282df9c.png">
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        header {
-            background: #181818;
-            border-bottom: 2px solid var(--border-color);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header h1 {
-            color: var(--accent-color);
-            font-size: 1.5rem;
-        }
-
-        .user-status {
-            font-size: 0.9rem;
-            color: #aaa;
-        }
-
-        main {
-            flex: 1;
-            padding: 20px;
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        .desk-paper {
-            background: var(--paper-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-
-        .btn-primary {
-            background: var(--accent-color);
-            color: #121212;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        /* شاشة تسجيل الدخول */
-        #authSection {
-            max-width: 400px;
-            margin: 50px auto;
-            text-align: center;
-        }
-
-        #authSection input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background: #111;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            border-radius: 5px;
-        }
-
-        .auth-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-
-        /* القائمة الرئيسية */
-        #mainMenuSection {
-            text-align: center;
-            max-width: 500px;
-            margin: 40px auto;
-        }
-
-        #mainMenuSection button {
-            display: block;
-            width: 100%;
-            margin: 15px 0;
-            padding: 12px;
-            font-size: 1.1rem;
-        }
-
-        /* قائمة القضايا */
-        .cases-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .locked {
-            opacity: 0.5;
-            filter: grayscale(1);
-        }
-
-        /* لوحة التحقيق */
-        .board-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background: #2a2a2a;
-            color: #fff;
-            border: 1px solid var(--border-color);
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .tab-btn.active {
-            background: var(--accent-color);
-            color: #121212;
-            font-weight: bold;
-        }
-
-        .tab-pane {
-            display: none;
-        }
-
-        .tab-pane.active {
-            display: block;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .eliminated {
-            text-decoration: line-through;
-            opacity: 0.5;
-            border-color: var(--danger-color);
-        }
-
-        .btn-eliminate {
-            background: var(--danger-color);
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 10px;
-        }
-
-        /* المتصدرين */
-        .leaderboard-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .leaderboard-row:nth-child(even) {
-            background: rgba(255,255,255,0.02);
-        }
-
-        footer {
-            text-align: center;
-            padding: 15px;
-            font-size: 0.8rem;
-            color: #777;
-            border-top: 1px solid var(--border-color);
-        }
-    </style>
+    <title>لعبة قضيتي - Detective Cases</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <!-- إشعار هام عند بدء اللعبة -->
-    <div id="secretNoticeModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:99999;">
-        <div class="desk-paper" style="max-width:400px; width:90%; text-align:center;">
-            <h3 style="color:var(--accent-color); margin-bottom:10px;">🚨 تنبيه أمني</h3>
-            <p style="font-size:0.9rem; line-height:1.6; margin-bottom:15px;">أهلاً بك يا محقق في ملفات قضايا الإنتربول. ركّز جيداً، تفحص الأدلة، ولا تدع أي تفصيل يفوتك.</p>
-            <button id="btnCloseSecretNotice" class="btn-primary">فهمت، ابدأ</button>
-        </div>
-    </div>
-
-    <header>
-        <h1>🕵️‍♂️ قضايا: لعبة التحقيق</h1>
-        <div id="userRankDisplay" class="user-status">مساعد محقق 🕵️‍♂️</div>
-    </header>
-
-    <main>
-        <!-- قسم تسجيل الدخول -->
-        <section id="authSection" class="desk-paper">
-            <h2>تسجيل دخول المحققين</h2>
-            <p style="font-size: 0.85rem; color: #aaa; margin: 10px 0;">أدخل اسم المستخدم وكلمة السر للمتابعة</p>
-            <input type="text" id="authUsername" placeholder="اسم المستخدم">
-            <input type="password" id="authPassword" placeholder="كلمة السر (6 رموز على الأقل)">
-            <div id="authError" style="color: var(--danger-color); font-size: 0.85rem; margin: 5px 0;"></div>
-            <div class="auth-buttons">
-                <button id="btnLogin" class="btn-primary">دخول</button>
-                <button id="btnRegister" class="btn-primary" style="background:#2c3e50; color:#fff;">إنشاء حساب</button>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 200 200" fill="none">
+                    <rect width="200" height="200" rx="40" fill="#1A1C1E"/>
+                    <g stroke="#00E5FF" stroke-width="4" opacity="0.9">
+                        <path d="M 70 100 C 70 70, 130 70, 130 100" />
+                        <path d="M 60 100 C 60 55, 140 55, 140 100" />
+                        <path d="M 80 100 C 80 80, 120 80, 120 100" />
+                    </g>
+                    <circle cx="100" cy="100" r="40" stroke="#FFF" stroke-width="8"/>
+                    <line x1="130" y1="130" x2="165" y2="165" stroke="#FFF" stroke-width="12" stroke-linecap="round"/>
+                </svg>
+                <h1>قَضِيَّتِي</h1>
             </div>
-        </section>
+            <div id="userRankArea">
+                <span id="userRankDisplay" class="rank-badge">مساعد محقق 🕵️‍♂️</span>
+            </div>
+        </header>
 
-        <!-- القائمة الرئيسية -->
-        <section id="mainMenuSection" class="desk-paper hidden">
-            <h2>مكتب التحقيقات الرئيسي</h2>
-            <p style="color: #aaa; margin: 10px 0 20px 0;">اختر وجهتك التالية يا محقق:</p>
-            <button id="btnStartGame" class="btn-primary">📂 قضايا التحقيق</button>
-            <button id="btnStoryMode" class="btn-primary" style="background: #8e44ad; color: #fff; border-color: #9b59b6;">📖 طور القصة</button>
-            <button id="btnLeaderboard" class="btn-primary" style="background: #27ae60; color: #fff;">🏆 لوحة الشرف</button>
-            <button id="btnHowToPlay" class="btn-primary" style="background: #2980b9; color: #fff;">❓ كيف تلعب؟</button>
-            <button id="btnSettings" class="btn-primary" style="background: #7f8c8d; color: #fff;">⚙️ الإعدادات</button>
-            <button id="btnAbout" class="btn-primary" style="background: #d35400; color: #fff;">ℹ️ عن اللعبة</button>
-            <button id="btnLogout" class="btn-primary" style="background: #c0392b; color: #fff; margin-top: 30px;">🚪 تسجيل الخروج</button>
-        </section>
+        <!-- Main Content Views -->
+        <main id="mainContent">
 
-        <!-- قسم طور القصة -->
-        <section id="storyModeSection" class="hidden" style="padding: 20px; max-width: 800px; margin: 0 auto; font-family: inherit;">
-            <div class="desk-paper" style="position: relative;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #444; padding-bottom: 10px;">
-                    <h2 style="color: #f1c40f; margin: 0;">📖 طور القصة: خيوط الجريمة الكبرى</h2>
-                    <button class="btn-primary btn-to-menu" style="background: #e74c3c; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; color: #fff;">العودة للقائمة</button>
+            <!-- 0. Auth Section (تسجيل الدخول وإنشاء حساب) -->
+            <section id="authSection" class="view-section">
+                <div class="desk-paper" style="max-width: 400px; margin: 20px auto; text-align: center;">
+                    <h2>🔐 تسجيل دخول المحقق</h2>
+                    <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 15px;">أدخل بياناتك لحفظ تقدمك وقضاياك أونلاين</p>
+                    
+                    <div style="text-align: right; margin-bottom: 10px;">
+                        <label style="font-size: 0.85rem; font-weight: bold;">اسم المستخدم:</label>
+                        <input type="text" id="authUsername" placeholder="مثال: mohnad" style="width:100%; padding:10px; margin-top:5px; background:#111; color:#fff; border:1px solid #444; border-radius:5px; font-family:inherit;">
+                    </div>
+
+                    <div style="text-align: right; margin-bottom: 15px;">
+                        <label style="font-size: 0.85rem; font-weight: bold;">كلمة السر:</label>
+                        <input type="password" id="authPassword" placeholder="******" style="width:100%; padding:10px; margin-top:5px; background:#111; color:#fff; border:1px solid #444; border-radius:5px; font-family:inherit;">
+                    </div>
+
+                    <div id="authError" style="color: #e74c3c; font-size: 0.85rem; margin-bottom: 10px;"></div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnLogin" class="btn-primary" style="flex: 1;">دخول</button>
+                        <button id="btnRegister" class="btn-secondary" style="flex: 1;">إنشاء حساب</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1. Main Menu -->
+            <section id="mainMenuSection" class="view-section hidden">
+                <div class="hero-banner">
+                    <h2>مكتب التحقيقات الجنائية</h2>
+                    <p>استعد لتحليل الأدلة، استجواب المشتبه بهم، وكشف الغموض في القضايا اليومية المتجددة.</p>
+                    <button id="btnStartGame" class="btn-primary">🚪 دخول مكتب القضايا</button>
+                    <div class="menu-grid">
+                        <button id="btnLeaderboard" class="btn-secondary">🏆 ترتيب المحققين</button>
+                        <button id="btnHowToPlay" class="btn-secondary">📖 طريقة اللعب</button>
+                        <button id="btnSettings" class="btn-secondary">⚙️ الإعدادات</button>
+                        <button id="btnAbout" class="btn-secondary">ℹ️ عن اللعبة</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Cases List -->
+            <section id="casesListSection" class="view-section hidden">
+                <div class="section-header">
+                    <h2>📁 سجل القضايا</h2>
+                    <button class="btn-to-menu btn-small">⬅ القائمة الرئيسية</button>
+                </div>
+                <div id="casesContainer" class="cases-grid"></div>
+            </section>
+
+            <!-- Leaderboard Section -->
+            <section id="leaderboardSection" class="view-section hidden">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2>🏆 لوحة الشرف والترتيب</h2>
+                    <button class="btn-to-menu btn-small">⬅ القائمة الرئيسية</button>
                 </div>
                 
-                <!-- صندوق عرض الحوار أو القصة -->
-                <div id="storyDialogueBox" style="background: #111; border: 1px solid #444; padding: 20px; border-radius: 8px; min-height: 180px; margin-bottom: 20px; line-height: 1.7; font-size: 1.05rem; color: #eee;">
-                    <!-- النص يظهر هنا ديناميكياً -->
+                <!-- بطاقة عرض نقاط ومركز المستخدم الحالي -->
+                <div id="currentUserStatsCard" class="desk-paper" style="background: rgba(0, 229, 255, 0.05); border: 1px dashed #00E5FF; margin-bottom: 15px; padding: 12px; text-align: center;">
+                    <span style="font-size: 0.9rem; color: #aaa;">رصيدك الحالي: </span>
+                    <strong id="myScoreDisplay" style="color: #00E5FF; font-size: 1.1rem;">0</strong> نقطة
+                    <span style="margin: 0 10px; color: #555;">|</span>
+                    <span style="font-size: 0.9rem; color: #aaa;">ترتيبك: </span>
+                    <strong id="myRankDisplay" style="color: #f1c40f; font-size: 1.1rem;">--</strong>
                 </div>
 
-                <!-- خيارات اللاعب التفاعلية -->
-                <div id="storyChoicesContainer" style="display: flex; flex-direction: column; gap: 10px;">
-                    <!-- الأزرار تتولد هنا -->
+                <div class="desk-paper">
+                    <div class="leaderboard-header">
+                        <span>المركز</span>
+                        <span>اسم المحقق</span>
+                        <span>النقاط</span>
+                    </div>
+                    <div id="leaderboardList" class="leaderboard-list">
+                        <p style="text-align: center; color: #888;">جاري تحميل سجلات الإنتربول...</p>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- قائمة القضايا -->
-        <section id="casesListSection" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>ملفات القضايا المتاحة</h2>
-                <button class="btn-primary btn-to-menu" style="background: #444; color:#fff;">القائمة الرئيسية</button>
-            </div>
-            <div id="casesContainer" class="cases-grid">
-                <!-- توليد القضايا ديناميكياً من الجافاسكريبت -->
-            </div>
-        </section>
-
-        <!-- لوحة تفاصيل القضية -->
-        <section id="caseBoardSection" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <div>
-                    <span id="boardCaseId" style="color:var(--accent-color); font-weight:bold;"></span>
-                    <h2 id="boardCaseTitle" style="display:inline; margin-right:10px;"></h2>
-                </div>
-                <div>
-                    <button id="notebookToggleBtn" class="btn-primary" style="background:#f39c12; margin-left:5px;">📓 الدفتـر</button>
-                    <button class="btn-primary btn-to-cases" style="background:#444; color:#fff;">قائمة القضايا</button>
-                </div>
-            </div>
-
-            <div class="desk-paper" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding: 10px 20px;">
-                <div>⭐ النقاط: <span id="scoreDisplay" style="color:var(--accent-color); font-weight:bold;">1000</span></div>
-                <div>❌ الأخطاء: <span id="mistakesDisplay" style="color:var(--danger-color); font-weight:bold;">0</span></div>
-                <div>💡 التلميحات المتبقية: <span id="hintsLeftDisplay" style="color:var(--success-color); font-weight:bold;">3</span></div>
-                <button id="btnUseHint" class="btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">طلب تلميح</button>
-            </div>
-
-            <!-- عداد العقوبة عند الخطأ -->
-            <div id="cooldownTimerDisplay" class="desk-paper hidden" style="background: rgba(231, 76, 60, 0.2); border-color: var(--danger-color); text-align: center; color: var(--danger-color);">
-                ⚠️ محاولة خاطئة! تم حظر تقديم الحلول لمدة <span id="cooldownSeconds">15</span> ثانية.
-            </div>
-
-            <div class="board-tabs">
-                <button class="tab-btn active" data-tab="tabOverview">نظرة عامة</button>
-                <button class="tab-btn" data-tab="tabCharacters">المشتبه بهم</button>
-                <button class="tab-btn" data-tab="tabEvidence">الأدلة</button>
-                <button class="tab-btn" data-tab="tabTimeline">تسلسل الأحداث</button>
-                <button class="tab-btn" data-tab="tabDeduction">قرار الاتهام</button>
-            </div>
-
-            <div class="board-content">
-                <!-- نظرة عامة -->
-                <div id="tabOverview" class="tab-pane active desk-paper">
-                    <h3>ملخص مسرح الجريمة</h3>
-                    <p id="caseOverviewText" style="margin-top: 10px; line-height: 1.6;"></p>
+            <!-- 3. Case Board -->
+            <section id="caseBoardSection" class="view-section hidden">
+                <div class="board-header">
+                    <div>
+                        <span id="boardCaseId" class="case-tag">CASE-01</span>
+                        <h2 id="boardCaseTitle">عنوان القضية</h2>
+                    </div>
+                    <button class="btn-to-cases btn-small">⬅ قائمة القضايا</button>
                 </div>
 
-                <!-- المشتبه بهم -->
-                <div id="tabCharacters" class="tab-pane">
-                    <div id="charactersGrid" class="grid-2"></div>
+                <div class="stats-bar">
+                    <span>النقاط: <strong id="scoreDisplay">1000</strong></span>
+                    <span>الأخطاء: <strong id="mistakesDisplay">0</strong></span>
+                    <button id="btnUseHint" class="btn-hint">💡 تلميح (<span id="hintsLeftDisplay">3</span>)</button>
                 </div>
 
-                <!-- الأدلة -->
-                <div id="tabEvidence" class="tab-pane">
-                    <div id="evidenceGrid" class="grid-2"></div>
+                <div class="board-tabs">
+                    <button class="tab-btn active" data-tab="tabOverview">ملف القضية</button>
+                    <button class="tab-btn" data-tab="tabCharacters">الشخصيات</button>
+                    <button class="tab-btn" data-tab="tabEvidences">الأدلة</button>
+                    <button class="tab-btn" data-tab="tabTimeline">التسلسل الزمني</button>
+                    <button class="tab-btn" data-tab="tabDeduction">تقديم الاستنتاج</button>
                 </div>
 
-                <!-- تسلسل الأحداث -->
-                <div id="tabTimeline" class="tab-pane">
-                    <div id="timelineContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+                <div class="board-content">
+                    <div id="tabOverview" class="tab-pane active">
+                        <div class="desk-paper">
+                            <h3>📜 تفاصيل البلاغ</h3>
+                            <p id="caseOverviewText">جاري تحميل البيانات...</p>
+                        </div>
+                    </div>
+                    <div id="tabCharacters" class="tab-pane">
+                        <p class="hint-subtext">💡 يمكنك استبعاد المشتبه بهم المصرح ببراءتهم بالضغط على زر "استبعاد".</p>
+                        <div id="charactersGrid" class="cards-grid"></div>
+                    </div>
+                    <div id="tabEvidences" class="tab-pane">
+                        <div id="evidenceGrid" class="cards-grid"></div>
+                    </div>
+                    <div id="tabTimeline" class="tab-pane">
+                        <div id="timelineContainer"></div>
+                    </div>
+                    <div id="tabDeduction" class="tab-pane">
+                        <div id="deductionPuzzlesContainer"></div>
+                        <div id="cooldownTimerDisplay" class="cooldown-banner hidden">⏳ فترة انتظار التحقيق التالي: <span id="cooldownSeconds">15</span> ثانية</div>
+                        <button id="btnSubmitDeduction" class="btn-primary" style="margin-top:15px; width:100%;">⚖️ إصدار قرار الاتهام</button>
+                    </div>
                 </div>
+            </section>
 
-                <!-- قرار الاتهام -->
-                <div id="tabDeduction" class="tab-pane">
-                    <div id="deductionPuzzlesContainer"></div>
-                    <button id="btnSubmitDeduction" class="btn-primary" style="width:100%; margin-top:15px; background:var(--success-color); color:#fff; padding:12px;">⚖️ إصدار مذكرة إدانة نهائية</button>
+            <!-- 4. How To Play -->
+            <section id="howToPlaySection" class="view-section hidden">
+                <div class="desk-paper">
+                    <h2>📖 كيف تلعب "قضيتي"؟</h2>
+                    <ol>
+                        <li>افتح ملف القضية واقرأ تفاصيل البلاغ بتركيز.</li>
+                        <li>استبعد المشتبه بهم الذين يمتلكون حجة غياب قاطعة.</li>
+                        <li>حدد الثغرة في أقوال المتهم والدليل المادي القاطع.</li>
+                        <li>احذر من الاتهام الخاطئ لتعلق القضية لمدة 15 ثانية وتخسر نقاطاً.</li>
+                    </ol>
+                    <button class="btn-to-menu btn-primary">فهمت، العودة للرئيسية</button>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- لوحة الشرف -->
-        <section id="leaderboardSection" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>🏆 لوحة شرف المحققين (Top 50)</h2>
-                <button class="btn-primary btn-to-menu" style="background: #444; color:#fff;">القائمة الرئيسية</button>
-            </div>
-            <div class="desk-paper" style="margin-bottom: 15px; display: flex; justify-content: space-around; text-align: center;">
-                <div>نقاطك: <span id="myScoreDisplay" style="color:var(--accent-color); font-weight:bold;">0</span></div>
-                <div>ترتيبك: <span id="myRankDisplay" style="color:var(--success-color); font-weight:bold;">-</span></div>
-            </div>
-            <div class="desk-paper" id="leaderboardList">
-                <p style="text-align:center;">جاري جلب قائمة المتصدرين...</p>
-            </div>
-        </section>
+            <!-- 5. Settings -->
+            <section id="settingsSection" class="view-section hidden">
+                <div class="desk-paper">
+                    <h2>⚙️ إعدادات اللعبة</h2>
+                    <label style="display:block; margin: 15px 0;">
+                        <input type="checkbox" id="settingSoundToggle" checked> تفعيل المؤثرات الصوتية
+                    </label>
 
-        <!-- كيف تلعب -->
-        <section id="howToPlaySection" class="desk-paper hidden">
-            <h2>كيف تلعب دور المحقق؟</h2>
-            <div style="margin-top: 15px; line-height: 1.8; font-size: 0.95rem;">
-                <p>1. <strong>افحص مسرح الجريمة:</strong> اقرأ ملخص القضية بعناية وافهم تفاصيل الواقعة.</p>
-                <p>2. <strong>استجوب المشتبه بهم:</strong> طابق أقوالهم وتعرّف على دوافعهم، ويمكنك استخدام زر الاستبعاد لتصفية الأبرياء.</p>
-                <p>3. <strong>اربط الأدلة:</strong> راجع الأدلة المادية وتتابع الأوقات لكشف التناقضات.</p>
-                <p>4. <strong>أصدر الاتهام:</strong> توجّه لتبويب "قرار الاتهام"، حدد الجاني الحقيقي، الدليل القاطع، والثغرة في الأقوال لكسب القضية!</p>
+                    <button id="btnInstallApp" class="btn-primary" style="width:100%; margin-bottom:10px; background-color: #00E5FF; color: #000; font-weight: bold;">📱 إضافة اللعبة للشاشة الرئيسية</button>
+                    
+                    <button id="btnLogout" class="btn-secondary" style="width:100%; margin-bottom:10px;">🚪 تسجيل الخروج</button>
+                 
+                    
+                    <button id="btnResetProgress" class="btn-danger">⚠️ إعادة ضبط التقدم والمحسوبات</button>
+                    <br><br>
+                    <button class="btn-to-menu btn-secondary">حفظ والعودة</button>
+                </div>
+            </section>
+
+            <!-- 6. About -->
+            <section id="aboutSection" class="view-section hidden">
+                <div class="desk-paper">
+                    <h2>ℹ️ عن اللعبة</h2>
+                    <p>لعبة "قضيتي" هي لعبة تحقيق وألغاز جنائية تفاعلية. يتم تحديث القضايا وإضافتها بانتظام.</p>
+                    <p>تطوير وإعداد: <strong>فريق قضيتي</strong></p>
+                    <button class="btn-to-menu btn-primary">العودة للرئيسية</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Floating Notebook Button -->
+        <button id="notebookToggleBtn" class="notebook-fab">📝 الملاحظات</button>
+
+        <!-- Notebook Modal -->
+        <div id="notebookModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📝 مفكرة المحقق</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <textarea id="notebookTextArea" placeholder="دون ملاحظاتك واستنتاجاتك هنا..."></textarea>
             </div>
-            <button class="btn-primary btn-to-menu" style="margin-top: 20px;">العودة للقائمة</button>
-        </section>
+        </div>
 
-        <!-- الإعدادات -->
-        <section id="settingsSection" class="desk-paper hidden">
-            <h2>إعدادات اللعبة</h2>
-            <div style="margin: 20px 0; display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="settingSoundToggle" checked style="width:20px; height:20px; cursor:pointer;">
-                <label for="settingSoundToggle" style="cursor:pointer;">تفعيل المؤثرات الصوتية والموسيقى</label>
+        <!-- نافذة التحذير الغامضة (الرسالة السرية) -->
+        <div id="secretNoticeModal" class="modal-overlay hidden" style="background: rgba(0,0,0,0.85); z-index: 9999;">
+            <div class="desk-paper" style="max-width: 380px; margin: 30% auto; text-align: center; border: 2px solid #e74c3c; box-shadow: 0 0 20px rgba(231,76,60,0.4);">
+                <span style="font-size: 2.5rem;">🚨</span>
+                <h3 style="color: #e74c3c; margin: 10px 0;">بلاغ عاجل من مكتب القضاه</h3>
+                <p style="font-size: 1rem; color: #fff; line-height: 1.6; margin: 15px 0;">
+        جمعه مباركه للجميع ❤️ 
+                </p>
+                
+                <!-- زرار اللينك المباشر للبوست -->
+                <a href="https://www.facebook.com/share/p/14kjyJKRijL/?mibextid=wwXIfr" target="_blank" class="btn-primary" style="display: block; background: #27ae60; color: #fff; text-decoration: none; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-weight: bold;">
+                    🔗 شوف آخر بوست الآن
+                </a>
+
+                <button id="btnCloseSecretNotice" class="btn-primary" style="width: 100%; background: #e74c3c; color: #fff;">فتح ملف التحقيق</button>
             </div>
-            <hr style="border:0; border-top:1px solid #444; margin: 20px 0;">
-            <button id="btnResetProgress" class="btn-primary" style="background:var(--danger-color); color:#fff;">⚠️ مسح جميع التقدم وتصفير النقاط</button>
-            <br><br>
-            <button class="btn-primary btn-to-menu" style="margin-top: 10px;">العودة للقائمة</button>
-        </section>
-
-        <!-- عن اللعبة -->
-        <section id="aboutSection" class="desk-paper hidden">
-            <h2>عن اللعبة</h2>
-            <p style="margin: 15px 0; line-height: 1.6;">لعبة قضايا جنائية تفاعلية تختبر مهاراتك التحليلية وقدرتك على ربط الأدلة وكشف الجناة الحقيقيين.</p>
-            <p style="color: var(--accent-color); font-size: 0.9rem;">الإصدار 1.2 - جميع الحقوق محفوظة لمحقيي الإنتربول.</p>
-            <br>
-            <button class="btn-primary btn-to-menu" style="margin-top: 10px;">العودة للقائمة</button>
-        </section>
-
-    </main>
-
-    <!-- نافذة دفتر الملاحظات العائم -->
-    <div id="notebookModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:9999;">
-        <div class="desk-paper" style="width:90%; max-width:500px; height:400px; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="color:var(--accent-color);">📓 دفتر ملاحظات المحقق</h3>
-                <button class="close-modal btn-primary" style="background:#e74c3c; color:#fff; padding:3px 8px;">✕</button>
-            </div>
-            <textarea id="notebookTextArea" placeholder="اكتب ملاحظاتك، خواطرك، أو استنتاجاتك هنا أثناء التحقيق (يتم الحفظ تلقائياً)..." style="flex:1; background:#111; color:#fff; border:1px solid var(--border-color); padding:10px; border-radius:5px; resize:none; font-family:inherit;"></textarea>
         </div>
     </div>
 
-    <footer>
-        <p>جميع الحقوق محفوظة © قضايا 2026</p>
-    </footer>
-
-    <!-- ربط ملف الـ JavaScript الرئيسي -->
     <script type="module" src="script.js"></script>
+
+    <!-- تشغيل PWA Service Worker وتثبيت التطبيق -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(() => console.log('Service Worker registered successfully'))
+                    .catch(error => console.error('Service Worker registration failed:', error));
+            });
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        document.getElementById('btnInstallApp')?.addEventListener('click', () => {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            if (isIOS) {
+                alert("لتثبيت اللعبة على الآيفون:\n1. اضغط على زر المشاركة (Share) أسفل المتصفح ⎋\n2. اختر 'إضافة إلى الشاشة الرئيسية' (Add to Home Screen) ➕");
+            } else if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert("التطبيق جاهز أو يمكنك تثبيته مباشرة من إعدادات المتصفح (نقاط القائمة ثم اختيار تثبيت التطبيق).");
+            }
+        });
+    </script>
 </body>
 </html>
