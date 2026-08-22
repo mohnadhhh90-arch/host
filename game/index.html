@@ -74,6 +74,10 @@
                     <h2>مكتب التحقيقات الجنائية</h2>
                     <p>استعد لتحليل الأدلة، استجواب المشتبه بهم، وكشف الغموض في القضايا اليومية المتجددة.</p>
                     <button id="btnStartGame" class="btn-primary">🚪 دخول مكتب القضايا</button>
+                    
+                    <!-- زر طور القصة الجديد (معزول تماماً) -->
+                    <button id="btnStoryMode" class="btn-primary" style="background: #e67e22; color: #fff; margin-top: 10px;">🎬 طور القصة (Story Mode)</button>
+
                     <div class="menu-grid">
                         <button id="btnLeaderboard" class="btn-secondary">🏆 ترتيب المحققين</button>
                         <button id="btnHowToPlay" class="btn-secondary">📖 طريقة اللعب</button>
@@ -195,7 +199,6 @@
                     
                     <button id="btnLogout" class="btn-secondary" style="width:100%; margin-bottom:10px;">🚪 تسجيل الخروج</button>
                  
-                    
                     <button id="btnResetProgress" class="btn-danger">⚠️ إعادة ضبط التقدم والمحسوبات</button>
                     <br><br>
                     <button class="btn-to-menu btn-secondary">حفظ والعودة</button>
@@ -209,6 +212,17 @@
                     <p>لعبة "قضيتي" هي لعبة تحقيق وألغاز جنائية تفاعلية. يتم تحديث القضايا وإضافتها بانتظام.</p>
                     <p>تطوير وإعداد: <strong>فريق قضيتي</strong></p>
                     <button class="btn-to-menu btn-primary">العودة للرئيسية</button>
+                </div>
+            </section>
+
+            <!-- 7. Story Mode Section (شاشة طور القصة المستقلة) -->
+            <section id="storyModeSection" class="view-section hidden">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2>🎬 مكتب طور القصة والتحقيق</h2>
+                    <button class="btn-to-menu btn-small">⬅ القائمة الرئيسية</button>
+                </div>
+                <div id="storyContainer">
+                    <!-- يتم تعبئته ديناميكياً من story-mode.js -->
                 </div>
             </section>
         </main>
@@ -233,7 +247,7 @@
                 <span style="font-size: 2.5rem;">🚨</span>
                 <h3 style="color: #e74c3c; margin: 10px 0;">بلاغ عاجل من مكتب القضاه</h3>
                 <p style="font-size: 1rem; color: #fff; line-height: 1.6; margin: 15px 0;">
-        جمعه مباركه للجميع ❤️ 
+                جمع مباركه للجميع ❤️ 
                 </p>
                 
                 <!-- زرار اللينك المباشر للبوست -->
@@ -246,7 +260,11 @@
         </div>
     </div>
 
+    <!-- سكربت اللعبة الأصلي -->
     <script type="module" src="script.js"></script>
+    
+    <!-- سكربت طور القصة المنفصل الجديد -->
+    <script type="module" src="story-mode.js"></script>
 
     <!-- تشغيل PWA Service Worker وتثبيت التطبيق -->
     <script>
