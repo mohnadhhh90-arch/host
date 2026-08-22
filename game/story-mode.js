@@ -1,5 +1,5 @@
 // ==========================================
-// طور القصة الفخم والمكتبي (Story Mode - Interactive Desk)
+// ملف طور القصة المتطور والمكتبي (Story Mode - Interactive Desk)
 // ==========================================
 
 let STORY_DATA = [
@@ -191,7 +191,7 @@ window.openStoryDays = function(storyId) {
     container.innerHTML = html;
 };
 
-// شاشة إحاطة المحقق (Briefing) قبل دخول اللوحة (تعطي جو بوليسي فخم جداً!)
+// شاشة إحاطة المحقق (Briefing) قبل دخول اللوحة
 window.showStoryBriefing = function(storyId, dayId) {
     activeStory = STORY_DATA.find(s => s.id === storyId);
     if (!activeStory) return;
@@ -216,7 +216,7 @@ window.showStoryBriefing = function(storyId, dayId) {
     `;
 };
 
-// تشغيل لوحة التحقيق التفاعلية (مطابقة للقضايا العادية مع الاحتفاظ بأجواء القصة)
+// تشغيل لوحة التحقيق التفاعلية بالشكل الفخم
 window.launchInteractiveBoard = function(storyId, dayId) {
     showStoryView('caseBoardSection');
 
@@ -227,28 +227,28 @@ window.launchInteractiveBoard = function(storyId, dayId) {
     // تعبئة الشخصيات
     const charGrid = document.getElementById('charactersGrid');
     charGrid.innerHTML = activeDayObj.characters.map(c => `
-        <div class="desk-paper" style="margin:0;">
-            <h4 style="color: #8b4513;">${c.name}</h4>
-            <p style="font-size:0.8rem; color:#666;">${c.role}</p>
-            <p style="font-size:0.85rem; margin-top:5px;">${c.bio}</p>
+        <div class="desk-paper" style="margin:0; padding: 12px;">
+            <h4 style="color: #8b4513; margin-bottom: 4px;">👤 ${c.name}</h4>
+            <p style="font-size:0.8rem; color:#666; font-weight:bold;">${c.role}</p>
+            <p style="font-size:0.85rem; margin-top:6px; line-height: 1.4;">${c.bio}</p>
         </div>
     `).join('');
 
     // تعبئة الأدلة
     const evGrid = document.getElementById('evidenceGrid');
     evGrid.innerHTML = activeDayObj.evidences.map(e => `
-        <div class="desk-paper" style="margin:0;">
-            <h4 style="color: #2c3e50;">🔍 ${e.title}</h4>
-            <p style="font-size:0.85rem; margin-top:5px;">${e.desc}</p>
+        <div class="desk-paper" style="margin:0; padding: 12px;">
+            <h4 style="color: #2c3e50; margin-bottom: 4px;">🔍 ${e.title}</h4>
+            <p style="font-size:0.85rem; margin-top:6px; line-height: 1.4;">${e.desc}</p>
         </div>
     `).join('');
 
     // التسلسل الزمني
     const timeline = document.getElementById('timelineContainer');
     timeline.innerHTML = activeDayObj.timeline.map(t => `
-        <div style="border-right: 3px solid #8b4513; padding-right: 10px; margin-bottom: 10px;">
-            <strong style="color: #8b4513;">${t.time}</strong>
-            <p style="font-size: 0.9rem; margin-top: 2px;">${t.event}</p>
+        <div style="margin-bottom: 8px;">
+            <strong style="color: #e2c08d; font-size: 0.9rem;">⏰ ${t.time}</strong>
+            <p style="font-size: 0.9rem; margin-top: 2px; color: #f4e8c1;">${t.event}</p>
         </div>
     `).join('');
 
@@ -257,12 +257,12 @@ window.launchInteractiveBoard = function(storyId, dayId) {
     if (activeDayObj.puzzle) {
         let p = activeDayObj.puzzle;
         puzzleContainer.innerHTML = `
-            <div class="desk-paper">
-                <h4 style="color: #c0392b;">⚖️ سؤال الاستنتاج الحاسم:</h4>
-                <p style="font-size:0.95rem; margin: 10px 0; font-weight:bold;">${p.question}</p>
+            <div class="desk-paper" style="padding: 15px;">
+                <h4 style="color: #c0392b; margin-bottom: 8px;">⚖️ سؤال الاستنتاج الحاسم:</h4>
+                <p style="font-size:0.95rem; margin: 10px 0; font-weight:bold; color: #2c221e;">${p.question}</p>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     ${p.options.map((opt, idx) => `
-                        <label style="background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                             <input type="radio" name="storyPuzzleOpt" value="${idx}">
                             <span style="font-size: 0.9rem;">${opt}</span>
                         </label>
