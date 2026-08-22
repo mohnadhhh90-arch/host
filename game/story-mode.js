@@ -1,10 +1,70 @@
 // ==========================================
-// ملف طور القصة المتطور (Story Mode - Interactive)
+// طور القصة الفخم والمكتبي (Story Mode - Interactive Desk)
 // ==========================================
 
-const GITHUB_STORY_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/host/refs/heads/main/game/story.json";
+let STORY_DATA = [
+    {
+        "id": "STORY-001",
+        "title": "قضية: سر الشقة 17",
+        "description": "ملف سري للغاية: جريمة غامضة وقعت في منتصف الليل. تتطلب مهارات تحليل فائقة.",
+        "days": [
+            {
+                "id": "STORY-001-DAY-1",
+                "day": 1,
+                "title": "البداية وبلاغ الحادثة",
+                "briefing": "رن جرس الهاتف في قسم الشرطة الساعة 4:00 فجراً.. بلاغ يفيد بوقوع حادثة غامضة داخل الشقة 17. ارتدِ معطفك وتوجه لمسرح الجريمة فوراً.",
+                "overview": "وصل بلاغ يفيد بوقوع حادثة غامضة داخل الشقة 17. باب الشقة مغلق من الداخل ولا توجد آثار خلع، وساعة اليد متوقفة بطريقة مريبة.",
+                "characters": [
+                    { "id": "c1", "name": "سامح (الجار)", "role": "جار الضحية", "status": "suspect", "bio": "يدعي أنه كان نائماً طوال الليل ولم يسمع أي أصوات غريبة." },
+                    { "id": "c2", "name": "منى (الصديقة)", "role": "صديقة الضحية", "status": "innocent", "bio": "تؤكد أن الضحية تلقت تهديدات غامضة في الأيام الأخيرة." }
+                ],
+                "evidences": [
+                    { "id": "e1", "title": "ساعة اليد المكسورة", "desc": "ساعة يد متوقفة تماماً عند الساعة 3:15 صباحاً." },
+                    { "id": "e2", "title": "تقرير المعمل الجنائي", "desc": "لا توجد أي آثار خلع أو كسر على قفل باب الشقة الرئيسي." }
+                ],
+                "timeline": [
+                    { "time": "02:00 ص", "event": "آخر ظهور للضحية على شرفة الشقة." },
+                    { "time": "03:15 ص", "event": "توقف عقارب ساعة اليد في ظروف غامضة." }
+                ],
+                "puzzle": {
+                    "question": "بما أن باب الشقة لم يتعرض لأي آثار خلع أو كسر، فما هو الاستنتاج الأقرب للمنطق؟",
+                    "options": [
+                        "الجاني تسلل عبر نافذة الشرفة العالية",
+                        "المجني عليها فتحت الباب بنفسها لشخص تعرفه وتثق به",
+                        "تم تغيير قفل الباب بعد ارتكاب الجريمة"
+                    ],
+                    "correctIndex": 1
+                }
+            },
+            {
+                "id": "STORY-001-DAY-2",
+                "day": 2,
+                "title": "خيوط جديدة والتناقض",
+                "briefing": "التحقيق مستمر.. ظهر اليوم شاهد عيان جديد يدلي بأقوال تغير مسار القضية تماماً.",
+                "overview": "تطور مثير في القضية، ظهرت أدلة مادية جديدة تكذب أقوال أحد المشتبه بهم.",
+                "characters": [
+                    { "id": "c1", "name": "سامح (الجار)", "role": "جار الضحية", "status": "suspect", "bio": "تغيرت أقواله بعد مواجهته بالأدلة وأكد رؤية شخص يرتدي معطفاً أسود." }
+                ],
+                "evidences": [
+                    { "id": "e3", "title": "فاتورة مطعم مشبوهة", "desc": "فاتورة مطعم تحمل توقيت 3:30 صباحاً ومكتوب عليها اسم سامح الشخصي بالقرب من المبنى." }
+                ],
+                "timeline": [
+                    { "time": "03:30 ص", "event": "العثور على فاتورة مطعم سهر قريبة من موقع الجريمة." }
+                ],
+                "puzzle": {
+                    "question": "الجار سامح ادعى سابقاً أنه كان نائماً طوال الليل، فما هو الدليل القاطع الذي يكذب أقواله؟",
+                    "options": [
+                        "ساعة اليد المتوقفة",
+                        "فاتورة المطعم التي تثبت تواجده قرب المبنى في هذا الوقت",
+                        "عدم وجود آثار خلع على الباب"
+                    ],
+                    "correctIndex": 1
+                }
+            }
+        ]
+    }
+];
 
-let STORY_DATA = [];
 let activeStory = null;
 let activeDayObj = null;
 
@@ -25,29 +85,12 @@ function saveStoryProgress(progress) {
     }
 }
 
-async function loadStoryFromGitHub() {
-    try {
-        const response = await fetch(GITHUB_STORY_URL);
-        if (!response.ok) throw new Error("تعذر جلب ملف القصة من GitHub");
-        
-        const data = await response.json();
-        STORY_DATA = data.stories || [];
-        renderStoriesList();
-    } catch (error) {
-        console.error("خطأ في جلب القصة:", error);
-        const container = document.getElementById('storyContainer');
-        if (container) {
-            container.innerHTML = `<div class="desk-paper" style="text-align: center; color: #e74c3c;"> تحت الصيانه</div>`;
-        }
-    }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const btnStory = document.getElementById('btnStoryMode');
     if (btnStory) {
         btnStory.addEventListener('click', () => {
             showStoryView('storyModeSection');
-            loadStoryFromGitHub();
+            renderStoriesList();
         });
     }
 
@@ -68,16 +111,18 @@ function showStoryView(viewId) {
     document.getElementById(viewId)?.classList.remove('hidden');
 }
 
+// عرض قائمة القضايا بطابع المكاتب السرية
 function renderStoriesList() {
     const container = document.getElementById('storyContainer');
     if (!container) return;
 
-    if (STORY_DATA.length === 0) {
-        container.innerHTML = `<div class="desk-paper" style="text-align: center;">لا توجد قضايا متاحة في القصة حالياً.</div>`;
-        return;
-    }
+    let html = `
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="color: #f4e8c1; font-size: 1.3rem;">📋 أرشيف القضايا الكبرى</h3>
+            <p style="color: #bbb; font-size: 0.85rem;">اختر قضية للتحقيق واكشف غموضها يوماً بعد يوم.</p>
+        </div>
+    `;
 
-    let html = '';
     const progress = getStoryProgress();
 
     STORY_DATA.forEach(story => {
@@ -87,15 +132,15 @@ function renderStoriesList() {
         const percent = Math.round((finishedCount / totalDays) * 100);
 
         html += `
-            <div class="detective-case-file" style="margin-bottom: 20px;">
-                <span class="case-tag">${story.id}</span>
-                <h3 style="margin: 8px 0; color: #8b4513;">${story.title}</h3>
-                <p style="font-size: 0.9rem; color: #555; margin-bottom: 12px;">${story.description}</p>
-                <div style="font-size: 0.85rem; margin-bottom: 12px; font-weight: bold;">
-                    التقدم: ${percent}% (${finishedCount}/${totalDays} أيام منجزة)
+            <div class="detective-desk-file">
+                <span class="case-tag" style="background: #8b4513; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem;">${story.id}</span>
+                <h3 style="margin: 10px 0 5px 0; color: #2c221e;">${story.title}</h3>
+                <p style="font-size: 0.9rem; color: #555; margin-bottom: 12px; line-height: 1.5;">${story.description}</p>
+                <div style="font-size: 0.85rem; margin-bottom: 15px; font-weight: bold; color: #8b4513;">
+                    📊 نسبة إنجاز القضية: ${percent}% (${finishedCount}/${totalDays} أيام مكتملة)
                 </div>
-                <button class="btn-primary" onclick="window.openStoryDays('${story.id}')" style="background: #2c3e50; color: #fff; width: 100%;">
-                    📂 فتح ملف القضية
+                <button class="btn-detective" onclick="window.openStoryDays('${story.id}')" style="width: 100%;">
+                    📂 فتح ملف القضية على المكتب
                 </button>
             </div>
         `;
@@ -104,6 +149,7 @@ function renderStoriesList() {
     container.innerHTML = html;
 }
 
+// عرض أيام القضية
 window.openStoryDays = function(storyId) {
     activeStory = STORY_DATA.find(s => s.id === storyId);
     if (!activeStory) return;
@@ -114,26 +160,27 @@ window.openStoryDays = function(storyId) {
 
     let html = `
         <div style="margin-bottom: 15px;">
-            <button class="btn-secondary btn-small" onclick="renderStoriesList()">⬅ رجوع لقائمة القضايا</button>
+            <button class="btn-detective" onclick="renderStoriesList()" style="font-size: 0.8rem; padding: 6px 12px;">⬅ رجوع للأرشيف</button>
         </div>
-        <div class="detective-case-file">
-            <h2 style="color: #8b4513; margin-bottom: 5px;">${activeStory.title}</h2>
-            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">اختر اليوم لبدء التحقيق التفاعلي:</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="detective-desk-file">
+            <h2 style="color: #2c221e; margin-bottom: 5px;">${activeStory.title}</h2>
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">تسلسل أيام التحقيق:</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
     `;
 
     activeStory.days.forEach((dayObj, index) => {
         const isUnlocked = index === 0 || storyProg.completedDays.includes(activeStory.days[index - 1].id);
         const isCompleted = storyProg.completedDays.includes(dayObj.id);
 
-        let statusText = isCompleted ? "✅ مكتمل" : (isUnlocked ? "🔓 متاح للتحقيق" : "🔒 مقفل");
-        let btnStyle = isUnlocked ? "background: #fff8e8; cursor: pointer;" : "background: #e0e0e0; opacity: 0.6; cursor: not-allowed;";
+        let statusText = isCompleted ? "✅ تم كشف اللغز" : (isUnlocked ? "🔓 متاح للتحقيق" : "🔒 ملف مقفل");
+        let itemBg = isUnlocked ? "#fff" : "#f4f1ea";
+        let cursorStyle = isUnlocked ? "cursor: pointer;" : "opacity: 0.6; cursor: not-allowed;";
 
         html += `
-            <div style="border: 1px solid #d4c5a9; padding: 12px; border-radius: 5px; ${btnStyle}" 
-                 ${isUnlocked ? `onclick="window.launchStoryDay('${storyId}', '${dayObj.id}')"` : ''}>
+            <div style="border: 1px solid #d4c5a9; background: ${itemBg}; padding: 12px; border-radius: 5px; ${cursorStyle}" 
+                 ${isUnlocked ? `onclick="window.showStoryBriefing('${storyId}', '${dayObj.id}')"` : ''}>
                 <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
-                    <span>Day ${dayObj.day}: ${dayObj.title}</span>
+                    <span style="color: #2c221e;">Day ${dayObj.day}: ${dayObj.title}</span>
                     <span style="font-size: 0.8rem; color: ${isCompleted ? '#27ae60' : (isUnlocked ? '#2980b9' : '#c0392b')}">${statusText}</span>
                 </div>
             </div>
@@ -144,17 +191,35 @@ window.openStoryDays = function(storyId) {
     container.innerHTML = html;
 };
 
-// تشغيل يوم القصة داخل شاشة اللعبة الأصلية (Board) بنفس الأسلوب تماماً!
-window.launchStoryDay = function(storyId, dayId) {
+// شاشة إحاطة المحقق (Briefing) قبل دخول اللوحة (تعطي جو بوليسي فخم جداً!)
+window.showStoryBriefing = function(storyId, dayId) {
     activeStory = STORY_DATA.find(s => s.id === storyId);
     if (!activeStory) return;
     activeDayObj = activeStory.days.find(d => d.id === dayId);
     if (!activeDayObj) return;
 
-    // الانتقال لشاشة الـ Board الخاصة باللعبة الأصلية
+    const container = document.getElementById('storyContainer');
+    container.innerHTML = `
+        <div style="margin-bottom: 15px;">
+            <button class="btn-detective" onclick="window.openStoryDays('${storyId}')" style="font-size: 0.8rem; padding: 6px 12px;">⬅ رجوع للأيام</button>
+        </div>
+        <div class="detective-desk-file" style="text-align: center; padding: 30px 20px;">
+            <span style="font-size: 2.5rem;">🕵️‍♂️</span>
+            <h2 style="color: #8b4513; margin: 15px 0;">إحاطة اليوم ${activeDayObj.day}: ${activeDayObj.title}</h2>
+            <p style="font-size: 1.05rem; color: #333; line-height: 1.8; margin-bottom: 25px; background: #fffdf9; padding: 15px; border-radius: 5px; border: 1px dashed #d4c5a9;">
+                ${activeDayObj.briefing}
+            </p>
+            <button class="btn-primary" onclick="window.launchInteractiveBoard('${storyId}', '${dayId}')" style="background: #2c3e50; color: #fff; padding: 12px 30px; font-size: 1rem; width: 100%;">
+                🔍 بدء التحقيق الميداني على اللوحة
+            </button>
+        </div>
+    `;
+};
+
+// تشغيل لوحة التحقيق التفاعلية (مطابقة للقضايا العادية مع الاحتفاظ بأجواء القصة)
+window.launchInteractiveBoard = function(storyId, dayId) {
     showStoryView('caseBoardSection');
 
-    // تعبئة البيانات في واجهة الـ Board
     document.getElementById('boardCaseId').innerText = `Day ${activeDayObj.day}`;
     document.getElementById('boardCaseTitle').innerText = activeDayObj.title;
     document.getElementById('caseOverviewText').innerText = activeDayObj.overview;
@@ -163,7 +228,7 @@ window.launchStoryDay = function(storyId, dayId) {
     const charGrid = document.getElementById('charactersGrid');
     charGrid.innerHTML = activeDayObj.characters.map(c => `
         <div class="desk-paper" style="margin:0;">
-            <h4>${c.name}</h4>
+            <h4 style="color: #8b4513;">${c.name}</h4>
             <p style="font-size:0.8rem; color:#666;">${c.role}</p>
             <p style="font-size:0.85rem; margin-top:5px;">${c.bio}</p>
         </div>
@@ -173,12 +238,12 @@ window.launchStoryDay = function(storyId, dayId) {
     const evGrid = document.getElementById('evidenceGrid');
     evGrid.innerHTML = activeDayObj.evidences.map(e => `
         <div class="desk-paper" style="margin:0;">
-            <h4>🔍 ${e.title}</h4>
+            <h4 style="color: #2c3e50;">🔍 ${e.title}</h4>
             <p style="font-size:0.85rem; margin-top:5px;">${e.desc}</p>
         </div>
     `).join('');
 
-    // تعبئة التسلسل الزمني
+    // التسلسل الزمني
     const timeline = document.getElementById('timelineContainer');
     timeline.innerHTML = activeDayObj.timeline.map(t => `
         <div style="border-right: 3px solid #8b4513; padding-right: 10px; margin-bottom: 10px;">
@@ -187,19 +252,19 @@ window.launchStoryDay = function(storyId, dayId) {
         </div>
     `).join('');
 
-    // تعبئة سؤال الاستنتاج (Puzzle)
+    // سؤال الاستنتاج الحاسم
     const puzzleContainer = document.getElementById('deductionPuzzlesContainer');
     if (activeDayObj.puzzle) {
         let p = activeDayObj.puzzle;
         puzzleContainer.innerHTML = `
             <div class="desk-paper">
-                <h4>⚖️ سؤال الاستنتاج الحاسم:</h4>
+                <h4 style="color: #c0392b;">⚖️ سؤال الاستنتاج الحاسم:</h4>
                 <p style="font-size:0.95rem; margin: 10px 0; font-weight:bold;">${p.question}</p>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     ${p.options.map((opt, idx) => `
                         <label style="background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer; display: flex; align-items: center; gap: 10px;">
                             <input type="radio" name="storyPuzzleOpt" value="${idx}">
-                            <span>${opt}</span>
+                            <span style="font-size: 0.9rem;">${opt}</span>
                         </label>
                     `).join('')}
                 </div>
@@ -207,29 +272,27 @@ window.launchStoryDay = function(storyId, dayId) {
         `;
     }
 
-    // زر العودة من الـ Board لأيام القصة
+    // زر العودة من اللوحة لأيام القصة
     const backBtn = document.querySelector('.btn-to-cases');
     if (backBtn) {
-        // نعدل مؤقتاً وظيفة زر العودة ليرجع لأيام القصة بدل قائمة القضايا العادية
         backBtn.onclick = () => {
             showStoryView('storyModeSection');
             window.openStoryDays(storyId);
         };
     }
 
-    // زر إصدار القرار والتحقق من صحة الإجابة
+    // زر إصدار القرار والتحقق
     const submitBtn = document.getElementById('btnSubmitDeduction');
     if (submitBtn) {
         submitBtn.onclick = () => {
             const selectedOpt = document.querySelector('input[name="storyPuzzleOpt"]:checked');
             if (!selectedOpt) {
-                alert("الرجاء اختيار الإجابة الصحيحة أولاً قبل إصدار القرار!");
+                alert("الرجاء اختيار الإجابة الصحيحة وتحديد الاستنتاج قبل إصدار القرار!");
                 return;
             }
 
             const chosenIndex = parseInt(selectedOpt.value);
             if (chosenIndex === activeDayObj.puzzle.correctIndex) {
-                // حفظ الإنجاز
                 const progress = getStoryProgress();
                 if (!progress[storyId]) progress[storyId] = { completedDays: [] };
                 if (!progress[storyId].completedDays.includes(dayId)) {
@@ -237,7 +300,7 @@ window.launchStoryDay = function(storyId, dayId) {
                     saveStoryProgress(progress);
                 }
 
-                alert("🎉 إجابة صحيحة وصائبة يا محقق! تم إنجاز مهام هذا اليوم بنجاح.");
+                alert("🎉 استنتاج عبقري يا محقق! تم حل لغز اليوم بنجاح وفتح اليوم التالي.");
                 showStoryView('storyModeSection');
                 window.openStoryDays(storyId);
             } else {
@@ -245,4 +308,4 @@ window.launchStoryDay = function(storyId, dayId) {
             }
         };
     }
-}
+};
