@@ -1,9 +1,8 @@
 // ==========================================
-// ملف طور القصة المكتبي والسيبراني (Story Mode - GitHub Fetch)
+// ملف طور القصة المكتبي - دعم الـ 30 يوماً وتتبع الهكر
 // ==========================================
 
-// رابط ملف الـ JSON على جيت هاب الخاص بك (تأكد من تحديثه إذا لزم الأمر)
-const GITHUB_STORY_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/host/refs/heads/main/game/story.json";
+const GITHUB_STORY_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/refs/heads/main/story.json";
 
 let STORY_DATA = [];
 let activeStory = null;
@@ -26,11 +25,10 @@ function saveStoryProgress(progress) {
     }
 }
 
-// دالة جلب القصة من جيت هاب
 async function loadStoryFromGitHub() {
     try {
         const response = await fetch(GITHUB_STORY_URL);
-        if (!response.ok) throw new Error("تعذر جلب ملف القصة من الخادم");
+        if (!response.ok) throw new Error("تعذر جلب ملف القصة من جيت هاب");
         
         const data = await response.json();
         STORY_DATA = data.stories || [];
@@ -42,7 +40,7 @@ async function loadStoryFromGitHub() {
             container.innerHTML = `
                 <div class="detective-desk-file" style="text-align: center; color: #c0392b;">
                     <h3>⚠️ خطأ في الاتصال بالأرشيف السيبراني</h3>
-                    <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">تعذر تحميل القضايا من جيت هاب. تأكد من صحة الرابط وانترنت الجهاز.</p>
+                    <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">تعذر تحميل القصة (30 يوماً) من جيت هاب. تأكد من رفع ملف الـ JSON.</p>
                 </div>
             `;
         }
@@ -75,20 +73,20 @@ function showStoryView(viewId) {
     document.getElementById(viewId)?.classList.remove('hidden');
 }
 
-// عرض قائمة القضايا بطابع المكاتب السرية
+// عرض قائمة القضايا
 function renderStoriesList() {
     const container = document.getElementById('storyContainer');
     if (!container) return;
 
     if (STORY_DATA.length === 0) {
-        container.innerHTML = `<div class="detective-desk-file" style="text-align: center;">لا توجد قضايا متاحة في الأرشيف حالياً.</div>`;
+        container.innerHTML = `<div class="detective-desk-file" style="text-align: center;">جاري مزامنة الـ 30 يوماً من الأرشيف...</div>`;
         return;
     }
 
     let html = `
         <div style="text-align: center; margin-bottom: 20px;">
-            <h3 style="color: #f4e8c1; font-size: 1.3rem;">📋 أرشيف القضايا السيبرانية الكبرى</h3>
-            <p style="color: #bbb; font-size: 0.85rem;">تتبع الخيوط الرقمية وأغلق ثغرات الهكر يوماً بعد يوم.</p>
+            <h3 style="color: #f4e8c1; font-size: 1.3rem;">🚨 أرشيف مطاردة الشبح (30 يوماً)</h3>
+            <p style="color: #bbb; font-size: 0.85rem;">كل يوم رسالة جديدة، فخ جديد، وخطوة أقرب للإيقاع بالهكر.</p>
         </div>
     `;
 
@@ -102,14 +100,14 @@ function renderStoriesList() {
 
         html += `
             <div class="detective-desk-file">
-                <span class="case-tag" style="background: #8b4513; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem;">${story.id}</span>
+                <span class="case-tag" style="background: #c0392b; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem;">عملية أمنية كبرى</span>
                 <h3 style="margin: 10px 0 5px 0; color: #2c221e;">${story.title}</h3>
                 <p style="font-size: 0.9rem; color: #555; margin-bottom: 12px; line-height: 1.5;">${story.description}</p>
                 <div style="font-size: 0.85rem; margin-bottom: 15px; font-weight: bold; color: #8b4513;">
-                    📊 نسبة إنجاز القضية: ${percent}% (${finishedCount}/${totalDays} أيام مكتملة)
+                    📊 نسبة إنجاز المطاردة: ${percent}% (${finishedCount}/${totalDays} يوماً مكتملة)
                 </div>
-                <button class="btn-detective" onclick="window.openStoryDays('${story.id}')" style="width: 100%;">
-                    📂 فتح ملف القضية على المكتب
+                <button class="btn-detective" onclick="window.openStoryDays('${story.id}')" style="width: 100%; background: #2c3e50; color: #fff;">
+                    📂 فتح ملف الـ 30 يوماً على المكتب
                 </button>
             </div>
         `;
@@ -118,7 +116,7 @@ function renderStoriesList() {
     container.innerHTML = html;
 };
 
-// عرض أيام القضية
+// عرض الأيام (متوافقة لـ 30 يوماً بشكل منظم وقابل للتمرير)
 window.openStoryDays = function(storyId) {
     activeStory = STORY_DATA.find(s => s.id === storyId);
     if (!activeStory) return;
@@ -133,24 +131,26 @@ window.openStoryDays = function(storyId) {
         </div>
         <div class="detective-desk-file">
             <h2 style="color: #2c221e; margin-bottom: 5px;">${activeStory.title}</h2>
-            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">تسلسل أيام التحقيق:</p>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">سجل أيام المطاردة (من اليوم 1 إلى اليوم 30):</p>
+            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
     `;
 
     activeStory.days.forEach((dayObj, index) => {
         const isUnlocked = index === 0 || storyProg.completedDays.includes(activeStory.days[index - 1].id);
         const isCompleted = storyProg.completedDays.includes(dayObj.id);
 
-        let statusText = isCompleted ? "✅ تم كشف الثغرة" : (isUnlocked ? "🔓 متاح للتحقيق" : "🔒 ملف مقفل");
+        let statusText = isCompleted ? "✅ تم تجاوز اليوم" : (isUnlocked ? "🔓 متاح للتحقيق" : "🔒 مقفل");
         let itemBg = isUnlocked ? "#fff" : "#f4f1ea";
-        let cursorStyle = isUnlocked ? "cursor: pointer;" : "opacity: 0.6; cursor: not-allowed;";
+        let cursorStyle = isUnlocked ? "cursor: pointer;" : "opacity: 0.5; cursor: not-allowed;";
+
+        let dayBadge = dayObj.day === 30 ? "👑 اليوم الـ 30 (المواجهة الكبرى)" : `Day ${dayObj.day}`;
 
         html += `
-            <div style="border: 1px solid #d4c5a9; background: ${itemBg}; padding: 12px; border-radius: 5px; ${cursorStyle}" 
+            <div style="border: 1px solid #d4c5a9; background: ${itemBg}; padding: 10px 12px; border-radius: 5px; ${cursorStyle}" 
                  ${isUnlocked ? `onclick="window.showStoryBriefing('${storyId}', '${dayObj.id}')"` : ''}>
                 <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
-                    <span style="color: #2c221e;">Day ${dayObj.day}: ${dayObj.title}</span>
-                    <span style="font-size: 0.8rem; color: ${isCompleted ? '#27ae60' : (isUnlocked ? '#2980b9' : '#c0392b')}">${statusText}</span>
+                    <span style="color: #2c221e; font-size: 0.9rem;">${dayBadge}: ${dayObj.title}</span>
+                    <span style="font-size: 0.75rem; color: ${isCompleted ? '#27ae60' : (isUnlocked ? '#2980b9' : '#c0392b')}">${statusText}</span>
                 </div>
             </div>
         `;
@@ -160,7 +160,7 @@ window.openStoryDays = function(storyId) {
     container.innerHTML = html;
 };
 
-// شاشة إحاطة المحقق (Briefing)
+// شاشة إحاطة المحقق قبل دخول اللوحة
 window.showStoryBriefing = function(storyId, dayId) {
     activeStory = STORY_DATA.find(s => s.id === storyId);
     if (!activeStory) return;
@@ -172,20 +172,20 @@ window.showStoryBriefing = function(storyId, dayId) {
         <div style="margin-bottom: 15px;">
             <button class="btn-detective" onclick="window.openStoryDays('${storyId}')" style="font-size: 0.8rem; padding: 6px 12px;">⬅ رجوع للأيام</button>
         </div>
-        <div class="detective-desk-file" style="text-align: center; padding: 30px 20px;">
-            <span style="font-size: 2.5rem;">💻</span>
-            <h2 style="color: #8b4513; margin: 15px 0;">إحاطة اليوم ${activeDayObj.day}: ${activeDayObj.title}</h2>
-            <p style="font-size: 1.05rem; color: #333; line-height: 1.8; margin-bottom: 25px; background: #fffdf9; padding: 15px; border-radius: 5px; border: 1px dashed #d4c5a9;">
+        <div class="detective-desk-file" style="text-align: center; padding: 25px 20px;">
+            <span style="font-size: 2.2rem;">📩</span>
+            <h2 style="color: #8b4513; margin: 12px 0;">رسالة اليوم ${activeDayObj.day}: ${activeDayObj.title}</h2>
+            <p style="font-size: 1rem; color: #333; line-height: 1.7; margin-bottom: 20px; background: #fffdf9; padding: 15px; border-radius: 5px; border: 1px dashed #d4c5a9; text-align: right;">
                 ${activeDayObj.briefing}
             </p>
             <button class="btn-primary" onclick="window.launchInteractiveBoard('${storyId}', '${dayId}')" style="background: #2c3e50; color: #fff; padding: 12px 30px; font-size: 1rem; width: 100%;">
-                🔍 بدء التحقيق الميداني على اللوحة
+                🔍 فحص الأدلة على مكتب التحقيق
             </button>
         </div>
     `;
 };
 
-// تشغيل لوحة التحقيق التفاعلية بالشكل الفخم
+// تشغيل لوحة التحقيق التفاعلية الفخمة
 window.launchInteractiveBoard = function(storyId, dayId) {
     showStoryView('caseBoardSection');
 
@@ -193,7 +193,6 @@ window.launchInteractiveBoard = function(storyId, dayId) {
     document.getElementById('boardCaseTitle').innerText = activeDayObj.title;
     document.getElementById('caseOverviewText').innerText = activeDayObj.overview;
 
-    // تعبئة الشخصيات
     const charGrid = document.getElementById('charactersGrid');
     charGrid.innerHTML = activeDayObj.characters.map(c => `
         <div class="desk-paper" style="margin:0; padding: 12px;">
@@ -203,7 +202,6 @@ window.launchInteractiveBoard = function(storyId, dayId) {
         </div>
     `).join('');
 
-    // تعبئة الأدلة الرقمية
     const evGrid = document.getElementById('evidenceGrid');
     evGrid.innerHTML = activeDayObj.evidences.map(e => `
         <div class="desk-paper" style="margin:0; padding: 12px;">
@@ -212,7 +210,6 @@ window.launchInteractiveBoard = function(storyId, dayId) {
         </div>
     `).join('');
 
-    // التسلسل الزمني
     const timeline = document.getElementById('timelineContainer');
     timeline.innerHTML = activeDayObj.timeline.map(t => `
         <div style="margin-bottom: 8px;">
@@ -221,13 +218,12 @@ window.launchInteractiveBoard = function(storyId, dayId) {
         </div>
     `).join('');
 
-    // سؤال الاستنتاج الحاسم
     const puzzleContainer = document.getElementById('deductionPuzzlesContainer');
     if (activeDayObj.puzzle) {
         let p = activeDayObj.puzzle;
         puzzleContainer.innerHTML = `
             <div class="desk-paper" style="padding: 15px;">
-                <h4 style="color: #c0392b; margin-bottom: 8px;">⚖️ سؤال الاستنتاج الحاسم:</h4>
+                <h4 style="color: #c0392b; margin-bottom: 8px;">⚖️ فخ الهكر والاستنتاج الحاسم:</h4>
                 <p style="font-size:0.95rem; margin: 10px 0; font-weight:bold; color: #2c221e;">${p.question}</p>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     ${p.options.map((opt, idx) => `
@@ -241,7 +237,6 @@ window.launchInteractiveBoard = function(storyId, dayId) {
         `;
     }
 
-    // زر العودة من اللوحة لأيام القصة
     const backBtn = document.querySelector('.btn-to-cases');
     if (backBtn) {
         backBtn.onclick = () => {
@@ -250,13 +245,12 @@ window.launchInteractiveBoard = function(storyId, dayId) {
         };
     }
 
-    // زر إصدار القرار والتحقق
     const submitBtn = document.getElementById('btnSubmitDeduction');
     if (submitBtn) {
         submitBtn.onclick = () => {
             const selectedOpt = document.querySelector('input[name="storyPuzzleOpt"]:checked');
             if (!selectedOpt) {
-                alert("الرجاء اختيار الإجابة الصحيحة وتحديد الاستنتاج السيبراني قبل إصدار القرار!");
+                alert("اختر الاستنتاج المناسب لتفادي الفخ الرقمي قبل اعتماد القرار!");
                 return;
             }
 
@@ -269,11 +263,15 @@ window.launchInteractiveBoard = function(storyId, dayId) {
                     saveStoryProgress(progress);
                 }
 
-                alert("🎉 استنتاج عبقري يا مهندسنا! تم كشف ثغرة هذا اليوم بنجاح وفتح الملف التالي.");
+                if (activeDayObj.day === 30) {
+                    alert("🏆 مبروك يا بطل! تم القبض على الشبح وإغلاق الـ 30 يوماً بنجاح باهر وأعدت الأمان للشبكة!");
+                } else {
+                    alert(`🎉 تم تجاوز اليوم ${activeDayObj.day} بنجاح وتفادي فخ الهكر! استعد لرسالة الغد.`);
+                }
                 showStoryView('storyModeSection');
                 window.openStoryDays(storyId);
             } else {
-                alert("❌ استنتاج خاطئ! راجع سجلات السيرفر والأدلة الرقمية جيداً وحاول مرة أخرى.");
+                alert("❌ وقعت في فخ الهكر! استنتاجك خاطئ، راجع الأدلة ورسائل التحدي جيداً وحاول مرة أخرى.");
             }
         };
     }
