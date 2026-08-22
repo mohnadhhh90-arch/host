@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserId = user.uid;
             await loadUserData(currentUserId);
             showView('mainMenu');
-            loadCasesFromGitHub(); // تحميل القضايا عند تسجيل الدخول بنجاح
+            loadCasesFromGitHub();
         } else {
             currentUserId = null;
             currentUserData = null;
@@ -212,123 +212,146 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-to-cases').forEach(btn => btn.addEventListener('click', () => showView('casesList')));
 
     // ==========================================
-    // طور القصة التفاعلية 📖
+    // طور القصة التفاعلية بنظام الأيام (Story Mode - Days System) 📖📆
     // ==========================================
+    const STORY_DAYS_DATA = [
+        {
+            day: 1,
+            title: "اليوم الأول: مسرح الجريمة والوصول",
+            brief: "تلقيت بلاغاً عن جريمة غامضة في فيلا راقية. عليك تفقد مسرح الجريمة وجمع الأدلة الأولية.",
+            tasks: [
+                { id: "t1", text: "فحص زجاجة المكسورة على المكتب", completed: false },
+                { id: "t2", text: "استجواب الحارس الشخصي وتسجيل أقواله", completed: false }
+            ],
+            evidences: [
+                { id: "se1", title: "فاتورة مطعم متأخرة", desc: "تظهر وقتاً مغايراً لما قال الحارس." },
+                { id: "se2", title: "زجاجة مكسورة وبصمات", desc: "توضح وجود شجار قبل الواقعة بدقائق." }
+            ]
+        },
+        {
+            day: 2,
+            title: "اليوم الثاني: تحليل المكالمات والمواجهة",
+            brief: "بعد فحص الأدلة الأولية، ظهرت تفاصيل جديدة تتعلق بسجل المكالمات والاشتباه بشخص مقرب.",
+            tasks: [
+                { id: "t3", text: "فحص سجل المكالمات الخاص بالضحية", completed: false },
+                { id: "t4", text: "مواجهة المشتبه به بالتناقض المرصود", completed: false }
+            ],
+            evidences: [
+                { id: "se3", title: "سجل المكالمات الصادرة", desc: "مكالمة هامة تمت في تمام الساعة 11:15 مساءً." }
+            ]
+        },
+        {
+            day: 3,
+            title: "اليوم الثالث: الاستنتاج وإغلاق الملف",
+            brief: "حان الوقت لربط الخيوط ببعضها وتحديد الجاني الرئيسي بدقة لإصدار أمر القبض.",
+            tasks: [
+                { id: "t5", text: "تحديد الدليل القاطع والجاني النهائي", completed: false }
+            ],
+            evidences: []
+        }
+    ];
+
+    let currentStoryDayIndex = 0;
+
     document.getElementById('btnStoryMode')?.addEventListener('click', () => {
         showView('storyMode');
-        startStoryNode('chapter1_start');
+        currentStoryDayIndex = 0;
+        renderStoryDay();
     });
 
-    const STORY_DATA = {
-        "chapter1_start": {
-            text: "تتلقى مكالمة هاتفية غامضة في منتصف الليل من ضابط مناوب.. 'يا محقق، لقد وقعت جريمة غامضة في الحي الراقي، والمدير يريدك أنت بالذات في مسرح الجريمة فوراً.' ما خطوتك الأولى؟",
-            choices: [
-                { text: "🚗 التحرك فوراً لمسرح الجريمة", next: "crime_scene_arrival" },
-                { text: "📞 الاتصال بمصدرك السري أولاً لجمع معلومات مسبقة", next: "secret_informer" }
-            ]
-        },
-        "crime_scene_arrival": {
-            text: "تصل إلى الفيلا الفاخرة. الأجواء متوترة والشرطة تحيط بالمكان. تجد على المكتب زجاجة مكسورة ورسالة مشفرة.",
-            choices: [
-                { text: "🔍 فحص الرسالة المشفرة بدقة", next: "decode_message" },
-                { text: "👥 استجواب الحارس الشخصي الواقف في الركن", next: "interrogate_guard" }
-            ]
-        },
-        "secret_informer": {
-            text: "يخبرك المصدر السري بصوت هامس: 'احذر يا محقق، القاتل ليس غريباً عن الضحية، وهناك من يحاول طمس الأدلة داخل المدخل الرئيسي.'",
-            choices: [
-                { text: "🚗 التوجه لمسرح الجريمة الآن مع حذر شديد", next: "crime_scene_arrival" }
-            ]
-        },
-        "decode_message": {
-            text: "باستخدام مهاراتك التحليلية، تفك شفرة الرسالة لتكتشف اسم المشتبه به الأول! لقد خطوت خطوة عملاقة نحو كشف الحقيقة.",
-            choices: [
-                { text: "🏆 إغلاق الملف واستلام مكافأة التحقيق (+15 نقطة)", action: "end_story_success" }
-            ]
-        },
-        "interrogate_guard": {
-            text: "يبدو الحارس مرتبكاً وعيناه تزيغان يميناً ويساراً.. يتلعثم في كلامه، ولكنه يرفض الإفصاح عن أي شيء مفيد. يبدو أنه يخفي سراً خطيراً، ويجب عليك جمع المزيد من الأدلة للضغط عليه لاحقاً.",
-            choices: [
-                { text: "🏆 العودة لمكتب التحقيقات (+5 نقاط)", action: "end_story_partial" }
-            ]
+    function renderStoryDay() {
+        const container = document.getElementById('storyModeSection');
+        if (!container) return;
+
+        const dayData = STORY_DAYS_DATA[currentStoryDayIndex];
+        if (!dayData) {
+            finishStoryCampaign();
+            return;
         }
-    };
 
-    let typeWriterInterval = null;
+        container.innerHTML = `
+            <div class="desk-paper" style="max-width: 700px; margin: 20px auto; text-align: right;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #444; padding-bottom: 10px; margin-bottom: 15px;">
+                    <h2 style="color: #f1c40f; margin: 0;">📅 ${dayData.title}</h2>
+                    <span style="background: #e67e22; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">اليوم ${dayData.day} من ${STORY_DAYS_DATA.length}</span>
+                </div>
+                <p style="font-size: 1rem; line-height: 1.6; color: #ddd; margin-bottom: 20px;">${dayData.brief}</p>
+                
+                <h4 style="color: #3498db; margin-bottom: 10px;">📋 المهام المطلوبة اليوم:</h4>
+                <div id="storyTasksList" style="margin-bottom: 20px;">
+                    ${dayData.tasks.map(t => `
+                        <label style="display: block; background: #222; padding: 10px; margin-bottom: 8px; border-radius: 5px; cursor: pointer; border: 1px solid #444;">
+                            <input type="checkbox" class="story-task-chk" data-id="${t.id}" ${t.completed ? 'checked' : ''} style="margin-left: 10px;">
+                            <span style="${t.completed ? 'text-decoration: line-through; color: #888;' : ''}">${t.text}</span>
+                        </label>
+                    `).join('')}
+                </div>
 
-    function startStoryNode(nodeKey) {
-        const node = STORY_DATA[nodeKey];
-        const dialogueBox = document.getElementById('storyDialogueBox');
-        const choicesContainer = document.getElementById('storyChoicesContainer');
+                <h4 style="color: #27ae60; margin-bottom: 10px;">🔍 الأدلة المكتشفة في هذا اليوم:</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 25px;">
+                    ${dayData.evidences.length > 0 ? dayData.evidences.map(e => `
+                        <div style="background: #1a1a1a; border: 1px solid #555; padding: 12px; border-radius: 6px;">
+                            <h5 style="color: #f1c40f; margin-bottom: 5px;">📄 ${e.title}</h5>
+                            <p style="font-size: 0.85rem; color: #aaa; margin: 0;">${e.desc}</p>
+                        </div>
+                    `).join('') : '<p style="color: #777; font-size: 0.9rem;">لا توجد أدلة جديدة مضافة اليوم.</p>'}
+                </div>
 
-        if (!node || !dialogueBox || !choicesContainer) return;
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <button class="btn-primary btn-to-menu" style="background: #7f8c8d; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; color:#fff;">العودة للقائمة</button>
+                    <button id="btnNextStoryDay" class="btn-primary" style="background: #27ae60; border:none; padding:10px 25px; border-radius:5px; cursor:pointer; font-weight:bold; color:#fff;">
+                        ${currentStoryDayIndex < STORY_DAYS_DATA.length - 1 ? 'الانتقال لليوم التالي ➔' : 'إنهاء وإغلاق القصة الإجمالية 🏆'}
+                    </button>
+                </div>
+            </div>
+        `;
 
-        if (typeWriterInterval) clearTimeout(typeWriterInterval);
-        dialogueBox.innerText = "";
-        choicesContainer.innerHTML = "";
+        // ربط الأحداث داخل واجهة الأيام
+        container.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
 
-        let charIndex = 0;
-        function typeWriter() {
-            if (charIndex < node.text.length) {
-                dialogueBox.innerText += node.text.charAt(charIndex);
-                charIndex++;
-                typeWriterInterval = setTimeout(typeWriter, 30);
-            } else {
-                renderChoices(node.choices, choicesContainer);
-            }
-        }
-        typeWriter();
-    }
-
-    function renderChoices(choices, container) {
-        choices.forEach(choice => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-primary';
-            btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s;";
-            btn.innerText = choice.text;
-            
-            btn.onmouseover = () => btn.style.background = "#34495e";
-            btn.onmouseleave = () => btn.style.background = "#2c3e50";
-
-            btn.addEventListener('click', async () => {
+        container.querySelectorAll('.story-task-chk').forEach(chk => {
+            chk.addEventListener('change', (e) => {
                 playSound('click');
-                if (choice.action) {
-                    await handleStoryEnding(choice.action);
-                } else if (choice.next) {
-                    startStoryNode(choice.next);
-                }
+                const taskId = e.target.getAttribute('data-id');
+                const taskObj = dayData.tasks.find(t => t.id === taskId);
+                if (taskObj) taskObj.completed = e.target.checked;
+                renderStoryDay();
             });
+        });
 
-            container.appendChild(btn);
+        document.getElementById('btnNextStoryDay')?.addEventListener('click', async () => {
+            playSound('success');
+            const allDone = dayData.tasks.every(t => t.completed);
+            if (!allDone) {
+                const proceedAnyway = confirm("لم تقم بإنجاز كافة مهام اليوم بالكامل. هل أنت متأكد من رغبتك في الانتقال لليوم التالي؟");
+                if (!proceedAnyway) return;
+            }
+
+            currentStoryDayIndex++;
+            if (currentStoryDayIndex < STORY_DAYS_DATA.length) {
+                renderStoryDay();
+            } else {
+                await finishStoryCampaign();
+            }
         });
     }
 
-    async function handleStoryEnding(actionType) {
-        let pointsToAdd = (actionType === 'end_story_success') ? 15 : 5;
-        let message = (actionType === 'end_story_success') 
-            ? "🎉 مبروك! لقد أنهيت هذا الفصل التحقيقي بنجاح تام.\n\nتمت إضافة 15 نقطة لتقييمك الإجمالي."
-            : "✔️ لقد أنهيت الفصل، لكن بمهارة جزئية.\n\nتمت إضافة 5 نقاط لتقييمك الإجمالي.";
-        
+    async function finishStoryCampaign() {
         playSound('success');
-
+        let bonusPoints = 25;
         if (currentUserData && currentUserId) {
-            let newScore = (Number(currentUserData.totalScore) || 0) + pointsToAdd;
-            currentUserData.totalScore = newScore;
-            
+            currentUserData.totalScore = (Number(currentUserData.totalScore) || 0) + bonusPoints;
             try {
                 const docRef = doc(db, "users", currentUserId);
-                await updateDoc(docRef, { totalScore: newScore });
-            } catch (err) {
-                console.error("خطأ في تحديث نقاط القصة:", err);
-            }
+                await updateDoc(docRef, { totalScore: currentUserData.totalScore });
+            } catch (err) { console.error("خطأ في تحديث نقاط القصة:", err); }
         }
-
-        alert(message);
+        alert(`🏆 تهانينا يا محقق!\n\nلقد أتممت قصة التحقيق بجميع أيامها بنجاح تام.\nتمت إضافة +${bonusPoints} نقطة لرصيدك العام.`);
         showView('mainMenu');
     }
 
     // ==========================================
-    // نظام القضايا والتحقيق 🕵️‍♂️
+    // نظام القضايا والتحقيق الرئيسي 🕵️‍♂️
     // ==========================================
     const GITHUB_CASES_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/main/cases.json";
     let CASES_DATA = [];
