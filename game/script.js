@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserId = user.uid;
             await loadUserData(currentUserId);
             showView('mainMenu');
+            loadCasesFromGitHub(); // تحميل القضايا عند تسجيل الدخول بنجاح
         } else {
             currentUserId = null;
             currentUserData = null;
@@ -148,7 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserData = {
                 username: username,
                 solvedCases: [],
-                completedStoryDays: [],
                 rank: "مساعد محقق 🕵️‍♂️",
                 totalScore: 0
             };
@@ -183,14 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (docSnap.exists()) {
                 currentUserData = docSnap.data();
                 if (!currentUserData.solvedCases) currentUserData.solvedCases = [];
-                if (!currentUserData.completedStoryDays) currentUserData.completedStoryDays = [];
                 if (currentUserData.totalScore === undefined) currentUserData.totalScore = 0;
                 updateRankDisplay();
             } else {
                 currentUserData = {
                     username: auth.currentUser?.email?.split('@')[0] || "محقق",
                     solvedCases: [],
-                    completedStoryDays: [],
                     rank: "مساعد محقق 🕵️‍♂️",
                     totalScore: 0
                 };
@@ -213,175 +211,91 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
     document.querySelectorAll('.btn-to-cases').forEach(btn => btn.addEventListener('click', () => showView('casesList')));
 
-
     // ==========================================
-    // طور القصة (مكتب التحقيق الخشبي والأوراق التفاعلية)
+    // طور القصة التفاعلية 📖
     // ==========================================
-    let storyData = {};
-
-    async function loadStoryDataExternal() {
-        try {
-            const response = await fetch('story.json');
-            storyData = await response.json();
-        } catch (error) {
-            console.error("تعذر تحميل ملف القصة الخارجي story.json:", error);
-        }
-    }
-
-    function getCompletedStoryDays() {
-        if (currentUserData && currentUserData.completedStoryDays) return currentUserData.completedStoryDays;
-        return JSON.parse(localStorage.getItem('detective_completed_story_days') || '[]');
-    }
-
-    async function markDayAsCompleted(dayNumber, pointsToAdd) {
-        let completedDays = getCompletedStoryDays();
-        if (!completedDays.includes(dayNumber)) {
-            completedDays.push(dayNumber);
-        }
-
-        let newTotalScore = (Number(currentUserData?.totalScore) || 0) + pointsToAdd;
-
-        if (!currentUserData) currentUserData = {};
-        currentUserData.completedStoryDays = completedDays;
-        currentUserData.totalScore = newTotalScore;
-
-        const activeUser = auth.currentUser;
-        if (activeUser) {
-            try {
-                const docRef = doc(db, "users", activeUser.uid);
-                await updateDoc(docRef, {
-                    completedStoryDays: completedDays,
-                    totalScore: newTotalScore
-                });
-            } catch (err) {
-                console.error("خطأ في حفظ أيام القصة في فايربيز:", err);
-            }
-        } else {
-            localStorage.setItem('detective_completed_story_days', JSON.stringify(completedDays));
-        }
-    }
-
-    document.getElementById('btnStoryMode')?.addEventListener('click', async () => {
+    document.getElementById('btnStoryMode')?.addEventListener('click', () => {
         showView('storyMode');
-        await loadStoryDataExternal();
-        renderStoryDaysMenu();
+        startStoryNode('chapter1_start');
     });
 
-    function renderStoryDaysMenu() {
-        const dialogueBox = document.getElementById('storyDialogueBox');
-        const choicesContainer = document.getElementById('storyChoicesContainer');
-
-        if (!dialogueBox || !choicesContainer) return;
-
-        // تحويل صندوق القائمة لشكل ملف ورقي على المكتب الخشبي
-        dialogueBox.className = "detective-case-file";
-        dialogueBox.innerHTML = "<h3 style='margin-bottom:10px; color:#8b4513;'>📁 أرشيف ملفات التحقيق الميداني</h3><p>اختر يوم التحقيق لبدء فحص الأدلة واستجواب المشتبه بهم:</p>";
-        choicesContainer.innerHTML = "";
-
-        const completedDays = getCompletedStoryDays();
-
-        const daysList = [
-            { id: 1, title: "اليوم الأول: لغز الساعات الأولى في النادي", startNode: "day1_start", points: 15 },
-            { id: 2, title: "اليوم الثاني: لغز اختراق شاشة الملعب العملاقة", startNode: "day2_start", points: 20 }
-        ];
-
-        daysList.forEach((day, index) => {
-            const isUnlocked = (index === 0) || completedDays.includes(daysList[index - 1].id);
-            const isCompleted = completedDays.includes(day.id);
-
-            const btn = document.createElement('button');
-            btn.className = 'story-evidence-btn';
-            btn.style.opacity = isUnlocked ? "1" : "0.5";
-            btn.style.cursor = isUnlocked ? "pointer" : "not-allowed";
-
-            let statusText = "";
-            if (isCompleted) statusText = " ✅ (مكتمل ومغلق)";
-            else if (!isUnlocked) statusText = " 🔒 (مغلق - أنهِ اليوم السابق أولاً)";
-            else statusText = " 🔍 (ابدأ التحقيق الآن)";
-
-            btn.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>${day.title}</span><span style="font-size:0.8rem; color:#666;">${statusText}</span></div>`;
-
-            if (isUnlocked) {
-                btn.addEventListener('click', () => {
-                    playSound('click');
-                    startStoryNode(day.startNode, day.id, day.points);
-                });
-            } else {
-                btn.addEventListener('click', () => {
-                    playSound('error');
-                    alert(`⚠️ عذراً يا محقق!\nيجب عليك إنهاء (${daysList[index - 1].title}) أولاً لفتح هذا الملف.`);
-                });
-            }
-
-            choicesContainer.appendChild(btn);
-        });
-
-        const backBtn = document.createElement('button');
-        backBtn.className = 'btn-primary';
-        backBtn.style.cssText = "background: #c0392b; border: none; padding: 12px; width: 100%; margin-top: 15px; border-radius: 5px; cursor: pointer; color: #fff; font-family: inherit;";
-        backBtn.innerText = "⬅️ العودة للقائمة الرئيسية";
-        backBtn.addEventListener('click', () => showView('mainMenu'));
-        choicesContainer.appendChild(backBtn);
-    }
+    const STORY_DATA = {
+        "chapter1_start": {
+            text: "تتلقى مكالمة هاتفية غامضة في منتصف الليل من ضابط مناوب.. 'يا محقق، لقد وقعت جريمة غامضة في الحي الراقي، والمدير يريدك أنت بالذات في مسرح الجريمة فوراً.' ما خطوتك الأولى؟",
+            choices: [
+                { text: "🚗 التحرك فوراً لمسرح الجريمة", next: "crime_scene_arrival" },
+                { text: "📞 الاتصال بمصدرك السري أولاً لجمع معلومات مسبقة", next: "secret_informer" }
+            ]
+        },
+        "crime_scene_arrival": {
+            text: "تصل إلى الفيلا الفاخرة. الأجواء متوترة والشرطة تحيط بالمكان. تجد على المكتب زجاجة مكسورة ورسالة مشفرة.",
+            choices: [
+                { text: "🔍 فحص الرسالة المشفرة بدقة", next: "decode_message" },
+                { text: "👥 استجواب الحارس الشخصي الواقف في الركن", next: "interrogate_guard" }
+            ]
+        },
+        "secret_informer": {
+            text: "يخبرك المصدر السري بصوت هامس: 'احذر يا محقق، القاتل ليس غريباً عن الضحية، وهناك من يحاول طمس الأدلة داخل المدخل الرئيسي.'",
+            choices: [
+                { text: "🚗 التوجه لمسرح الجريمة الآن مع حذر شديد", next: "crime_scene_arrival" }
+            ]
+        },
+        "decode_message": {
+            text: "باستخدام مهاراتك التحليلية، تفك شفرة الرسالة لتكتشف اسم المشتبه به الأول! لقد خطوت خطوة عملاقة نحو كشف الحقيقة.",
+            choices: [
+                { text: "🏆 إغلاق الملف واستلام مكافأة التحقيق (+15 نقطة)", action: "end_story_success" }
+            ]
+        },
+        "interrogate_guard": {
+            text: "يبدو الحارس مرتبكاً وعيناه تزيغان يميناً ويساراً.. يتلعثم في كلامه، ولكنه يرفض الإفصاح عن أي شيء مفيد. يبدو أنه يخفي سراً خطيراً، ويجب عليك جمع المزيد من الأدلة للضغط عليه لاحقاً.",
+            choices: [
+                { text: "🏆 العودة لمكتب التحقيقات (+5 نقاط)", action: "end_story_partial" }
+            ]
+        }
+    };
 
     let typeWriterInterval = null;
 
-    function startStoryNode(nodeKey, dayId, dayPoints) {
-        const node = storyData[nodeKey];
+    function startStoryNode(nodeKey) {
+        const node = STORY_DATA[nodeKey];
         const dialogueBox = document.getElementById('storyDialogueBox');
         const choicesContainer = document.getElementById('storyChoicesContainer');
 
         if (!node || !dialogueBox || !choicesContainer) return;
 
         if (typeWriterInterval) clearTimeout(typeWriterInterval);
-        
-        // تفعيل الستايل الورقي المخصص للمكتب الخشبي
-        dialogueBox.className = "detective-case-file";
-        dialogueBox.innerHTML = "";
+        dialogueBox.innerText = "";
         choicesContainer.innerHTML = "";
 
         let charIndex = 0;
-        const textParagraph = document.createElement('p');
-        textParagraph.style.cssText = "font-size: 1.05rem; line-height: 1.7; white-space: pre-line;";
-        dialogueBox.appendChild(textParagraph);
-
         function typeWriter() {
             if (charIndex < node.text.length) {
-                textParagraph.innerHTML += node.text.charAt(charIndex);
+                dialogueBox.innerText += node.text.charAt(charIndex);
                 charIndex++;
-                typeWriterInterval = setTimeout(typeWriter, 12);
+                typeWriterInterval = setTimeout(typeWriter, 30);
             } else {
-                renderStoryChoices(node.choices, dayId, dayPoints, choicesContainer);
+                renderChoices(node.choices, choicesContainer);
             }
         }
         typeWriter();
     }
 
-    function renderStoryChoices(choices, dayId, dayPoints, container) {
-        container.innerHTML = "<h4 style='color: #f1c40f; margin-bottom: 10px; font-family: inherit;'>🔎 خيارات التحقيق المتاحة في الملف:</h4>";
-        
+    function renderChoices(choices, container) {
         choices.forEach(choice => {
             const btn = document.createElement('button');
-            btn.className = 'story-evidence-btn';
-            btn.innerHTML = `<span>📂 ${choice.text}</span>`;
+            btn.className = 'btn-primary';
+            btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s;";
+            btn.innerText = choice.text;
             
+            btn.onmouseover = () => btn.style.background = "#34495e";
+            btn.onmouseleave = () => btn.style.background = "#2c3e50";
+
             btn.addEventListener('click', async () => {
                 playSound('click');
-                if (choice.consequence) {
-                    const feedback = document.createElement('div');
-                    feedback.style.cssText = "background: #e9d8a6; padding: 12px; margin-top: 10px; border-right: 4px solid #b5838d; color: #333; font-weight: bold; border-radius: 3px;";
-                    feedback.innerHTML = `💡 <strong>نتيجة الفحص الميداني:</strong> ${choice.consequence}`;
-                    container.appendChild(feedback);
-                    
-                    container.querySelectorAll('button').forEach(b => b.disabled = true);
-                    
-                    setTimeout(() => {
-                        if (choice.action) handleStoryDayEnding(dayId, dayPoints);
-                        else startStoryNode(choice.next, dayId, dayPoints);
-                    }, 2200);
-                } else {
-                    if (choice.action) handleStoryDayEnding(dayId, dayPoints);
-                    else startStoryNode(choice.next, dayId, dayPoints);
+                if (choice.action) {
+                    await handleStoryEnding(choice.action);
+                } else if (choice.next) {
+                    startStoryNode(choice.next);
                 }
             });
 
@@ -389,17 +303,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function handleStoryDayEnding(dayId, pointsToAdd) {
+    async function handleStoryEnding(actionType) {
+        let pointsToAdd = (actionType === 'end_story_success') ? 15 : 5;
+        let message = (actionType === 'end_story_success') 
+            ? "🎉 مبروك! لقد أنهيت هذا الفصل التحقيقي بنجاح تام.\n\nتمت إضافة 15 نقطة لتقييمك الإجمالي."
+            : "✔️ لقد أنهيت الفصل، لكن بمهارة جزئية.\n\nتمت إضافة 5 نقاط لتقييمك الإجمالي.";
+        
         playSound('success');
-        await markDayAsCompleted(dayId, pointsToAdd);
 
-        alert(`🎉 مبروك! لقد أنهيت مهام هذا اليوم بنجاح ووثقت الأدلة.\n\nتمت إضافة (${pointsToAdd} نقطة) لتقييمك وإلغاء قفل الخطوات اللاحقة.`);
-        renderStoryDaysMenu();
+        if (currentUserData && currentUserId) {
+            let newScore = (Number(currentUserData.totalScore) || 0) + pointsToAdd;
+            currentUserData.totalScore = newScore;
+            
+            try {
+                const docRef = doc(db, "users", currentUserId);
+                await updateDoc(docRef, { totalScore: newScore });
+            } catch (err) {
+                console.error("خطأ في تحديث نقاط القصة:", err);
+            }
+        }
+
+        alert(message);
+        showView('mainMenu');
     }
 
-
     // ==========================================
-    // إدارة القضايا العادية من GitHub
+    // نظام القضايا والتحقيق 🕵️‍♂️
     // ==========================================
     const GITHUB_CASES_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/main/cases.json";
     let CASES_DATA = [];
@@ -419,14 +348,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let solved = getSolvedCases();
         let isNewCase = !solved.includes(caseId);
 
-        if (isNewCase) {
-            solved.push(caseId);
-        }
+        if (isNewCase) solved.push(caseId);
 
         let newTotalScore = Number(currentUserData?.totalScore || 0);
-        if (isNewCase) {
-            newTotalScore += earnedScore;
-        }
+        if (isNewCase) newTotalScore += earnedScore;
 
         let rank = "مساعد محقق 🕵️‍♂️";
         if (solved.length >= 5) rank = "خبير أدلة جنائية 🏅";
@@ -750,13 +675,79 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             playSound('error');
             mistakes++;
-            const mistakesDisplay = document.getElementById('mistakesDisplay');
-            if (mistakesDisplay) mistakesDisplay.innerText = mistakes;
+            score = Math.max(0, score - 200);
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('mistakesDisplay').innerText = mistakes;
+            
+            if (currentUserId && currentUserData) {
+                currentUserData.totalScore = Math.max(0, (Number(currentUserData.totalScore) || 0) - 1);
+                try {
+                    const docRef = doc(db, "users", currentUserId);
+                    await updateDoc(docRef, { totalScore: currentUserData.totalScore });
+                } catch (e) { console.error("خطأ في تحديث الخصم:", e); }
+            }
 
-            alert('❌ إدانة خاطئة! استراجع الأدلة وتأكد من أقوال المشتبه بهم.');
+            alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.\n(تم خصم نقطة من تقييمك الإجمالي)');
             startCooldownPenalty();
         }
     });
 
-    loadCasesFromGitHub();
+    // ==========================================
+    // قائمة المتصدرين (Leaderboard) 🏆
+    // ==========================================
+    async function renderLeaderboard() {
+        const container = document.getElementById('leaderboardList');
+        const myScoreEl = document.getElementById('myScoreDisplay');
+        const myRankEl = document.getElementById('myRankDisplay');
+
+        if (!container) return;
+        container.innerHTML = '<p style="text-align:center; color:#aaa;">جاري البحث في ملفات الإنتربول...</p>';
+
+        try {
+            const q = query(collection(db, "users"), orderBy("totalScore", "desc"), limit(50));
+            const querySnapshot = await getDocs(q);
+            
+            container.innerHTML = '';
+            let rank = 1;
+            let myFoundRank = "خارج القمة";
+            let myScore = currentUserData ? (currentUserData.totalScore || 0) : 0;
+
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                
+                if (docSnap.id === currentUserId) {
+                    myFoundRank = `#${rank}`;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'leaderboard-row';
+                item.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 8px; background: #222; border: 1px solid #444; border-radius: 5px;";
+                
+                let medal = `#${rank}`;
+                if (rank === 1) medal = '🥇';
+                else if (rank === 2) medal = '🥈';
+                else if (rank === 3) medal = '🥉';
+
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: bold; color: #f1c40f; width: 30px; text-align: center;">${medal}</span>
+                        <span>${data.username || 'محقق مجهول'}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 0.85rem; color: #aaa;">${data.rank || 'مساعد محقق 🕵️‍♂️'}</span>
+                        <span style="font-weight: bold; color: #27ae60;">${data.totalScore || 0} نقطة</span>
+                    </div>
+                `;
+                container.appendChild(item);
+                rank++;
+            });
+
+            if (myScoreEl) myScoreEl.innerText = myScore;
+            if (myRankEl) myRankEl.innerText = myFoundRank;
+
+        } catch (error) {
+            console.error("خطأ في جلب المتصدرين:", error);
+            container.innerHTML = '<p style="text-align:center; color:#e74c3c;">تعذر الاتصال بقاعدة البيانات لجلب المتصدرين.</p>';
+        }
+    }
 });
