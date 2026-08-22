@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -229,13 +228,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // جلب الأيام المكتملة للمستخدم الحالي
     function getCompletedStoryDays() {
         if (currentUserData && currentUserData.completedStoryDays) return currentUserData.completedStoryDays;
         return JSON.parse(localStorage.getItem('detective_completed_story_days') || '[]');
     }
 
-    // حفظ اليوم المكتمل وتحديث قاعدة البيانات
     async function markDayAsCompleted(dayNumber, pointsToAdd) {
         let completedDays = getCompletedStoryDays();
         if (!completedDays.includes(dayNumber)) {
@@ -270,7 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderStoryDaysMenu();
     });
 
-    // رسم قائمة الأيام (اليوم الأول مفتوح، وبقية الأيام تشترط انهاء ما قبلها)
     function renderStoryDaysMenu() {
         const dialogueBox = document.getElementById('storyDialogueBox');
         const choicesContainer = document.getElementById('storyChoicesContainer');
@@ -282,7 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const completedDays = getCompletedStoryDays();
 
-        // قائمة الأيام المتاحة في القصة
         const daysList = [
             { id: 1, title: "اليوم الأول: بداية الغموض", startNode: "day1_start", points: 15 },
             { id: 2, title: "اليوم الثاني: خيوط متشابكة", startNode: "day2_start", points: 20 }
@@ -327,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
             choicesContainer.appendChild(btn);
         });
 
-        // زر العودة للقائمة الرئيسية من صفحة اختيار الأيام
         const backBtn = document.createElement('button');
         backBtn.className = 'btn-primary';
         backBtn.style.cssText = "background: #c0392b; border: none; padding: 10px; width: 100%; margin-top: 10px; border-radius: 5px; cursor: pointer; color: #fff; font-family: inherit;";
@@ -363,21 +357,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderStoryChoices(choices, dayId, dayPoints, container) {
+        container.innerHTML = "";
         choices.forEach(choice => {
             const btn = document.createElement('button');
             btn.className = 'btn-primary';
             btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s; width: 100%; margin-bottom: 8px;";
-            btn.innerText = choice.text;
+            btn.innerHTML = `<span>${choice.text}</span>`;
             
             btn.onmouseover = () => btn.style.background = "#34495e";
             btn.onmouseleave = () => btn.style.background = "#2c3e50";
 
             btn.addEventListener('click', async () => {
                 playSound('click');
-                if (choice.action) {
-                    await handleStoryDayEnding(dayId, dayPoints);
-                } else if (choice.next) {
-                    startStoryNode(choice.next, dayId, dayPoints);
+                if (choice.consequence) {
+                    const feedback = document.createElement('div');
+                    feedback.style.cssText = "color: #f1c40f; margin-bottom: 15px; font-weight: bold;";
+                    feedback.innerText = `💡 ${choice.consequence}`;
+                    container.prepend(feedback);
+                    container.querySelectorAll('button').forEach(b => b.disabled = true);
+                    
+                    setTimeout(() => {
+                        if (choice.action) handleStoryDayEnding(dayId, dayPoints);
+                        else startStoryNode(choice.next, dayId, dayPoints);
+                    }, 1500);
+                } else {
+                    if (choice.action) handleStoryDayEnding(dayId, dayPoints);
+                    else startStoryNode(choice.next, dayId, dayPoints);
                 }
             });
 
@@ -746,76 +751,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             playSound('error');
             mistakes++;
-            score = Math.max(0, score - 200);
-            document.getElementById('scoreDisplay').innerText = score;
-            document.getElementById('mistakesDisplay').innerText = mistakes;
-            
-            if (currentUserId && currentUserData) {
-                currentUserData.totalScore = Math.max(0, (Number(currentUserData.totalScore) || 0) - 1);
-                try {
-                    const docRef = doc(db, "users", currentUserId);
-                    await updateDoc(docRef, { totalScore: currentUserData.totalScore });
-                } catch (e) { console.error("خطأ في تحديث الخصم:", e); }
-            }
+            const mistakesDisplay = document.getElementById('mistakesDisplay');
+            if (mistakesDisplay) mistakesDisplay.innerText = mistakes;
 
-            alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.\n(تم خصم نقطة من تقييمك الإجمالي)');
+            alert('❌ إدانة خاطئة! استراجع الأدلة وتأكد من أقوال المشتبه بهم.');
             startCooldownPenalty();
         }
     });
 
-    async function renderLeaderboard() {
-        const container = document.getElementById('leaderboardList');
-        const myScoreEl = document.getElementById('myScoreDisplay');
-        const myRankEl = document.getElementById('myRankDisplay');
-
-        if (!container) return;
-        container.innerHTML = '<p style="text-align:center;">جاري البحث في ملفات الإنتربول...</p>';
-
-        try {
-            const q = query(collection(db, "users"), orderBy("totalScore", "desc"), limit(50));
-            const querySnapshot = await getDocs(q);
-            
-            container.innerHTML = '';
-            let rank = 1;
-
-            let myScore = currentUserData ? (currentUserData.totalScore || 0) : 0;
-            let myFoundRank = "خارج القمة";
-
-            querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                
-                if (docSnap.id === currentUserId) {
-                    myFoundRank = `#${rank}`;
-                }
-
-                const item = document.createElement('div');
-                item.className = 'leaderboard-row';
-                
-                let medal = `#${rank}`;
-                if(rank === 1) medal = '🥇';
-                if(rank === 2) medal = '🥈';
-                if(rank === 3) medal = '🥉';
-
-                item.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="font-weight:bold; min-width:30px;">${medal}</span>
-                        <span>${data.username || "محقق مجهول"}</span>
-                    </div>
-                    <span style="color:var(--accent-color); font-weight:bold;">${data.totalScore || 0} نقطة</span>
-                `;
-                container.appendChild(item);
-                rank++;
-            });
-
-            if (myScoreEl) myScoreEl.innerText = myScore;
-            if (myRankEl) myRankEl.innerText = myFoundRank;
-
-        } catch (e) {
-            console.error("خطأ في جلب لوحة الشرف:", e);
-            container.innerHTML = '<p style="text-align:center; color:#e74c3c;">تعذر الاتصال بقاعدة البيانات لإحضار لوحة الشرف.</p>';
-        }
-    }
-
-    // جلب القضايا عند تشغيل النظام
     loadCasesFromGitHub();
 });
