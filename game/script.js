@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settings: document.getElementById('settingsSection'),
         about: document.getElementById('aboutSection'),
         leaderboard: document.getElementById('leaderboardSection'),
-        storyMode: document.getElementById('storyModeSection') // تمت إضافة شاشة القصة
+        storyMode: document.getElementById('storyModeSection')
     };
 
     function showView(viewKey) {
@@ -207,71 +207,43 @@ document.addEventListener('DOMContentLoaded', () => {
         await renderLeaderboard();
     });
 
-    // أحداث زر العودة
     document.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
     document.querySelectorAll('.btn-to-cases').forEach(btn => btn.addEventListener('click', () => showView('casesList')));
 
 
     // ==========================================
-    // بدايـــة أجزاء طـــور القصـــة 📖
+    // طور القصة (يجلب البيانات خارجياً من story.json)
     // ==========================================
+    let storyData = {};
 
-    document.getElementById('btnStoryMode')?.addEventListener('click', () => {
-        showView('storyMode');
-        startStoryNode('chapter1_start'); // بدء العقدة الأولى للقصة
-    });
-
-    // بيانات القصة التفاعلية
-    const STORY_DATA = {
-        "chapter1_start": {
-            text: "تتلقى مكالمة هاتفية غامضة في منتصف الليل من ضابط مناوب.. 'يا محقق، لقد وقعت جريمة غامضة في الحي الراقي، والمدير يريدك أنت بالذات في مسرح الجريمة فوراً.' ما خطوتك الأولى؟",
-            choices: [
-                { text: "🚗 التحرك فوراً لمسرح الجريمة", next: "crime_scene_arrival" },
-                { text: "📞 الاتصال بمصدرك السري أولاً لجمع معلومات مسبقة", next: "secret_informer" }
-            ]
-        },
-        "crime_scene_arrival": {
-            text: "تصل إلى الفيلا الفاخرة. الأجواء متوترة والشرطة تحيط بالمكان. تجد على المكتب زجاجة مكسورة ورسالة مشفرة.",
-            choices: [
-                { text: "🔍 فحص الرسالة المشفرة بدقة", next: "decode_message" },
-                { text: "👥 استجواب الحارس الشخصي الواقف في الركن", next: "interrogate_guard" }
-            ]
-        },
-        "secret_informer": {
-            text: "يخبرك المصدر السري بصوت هامس: 'احذر يا محقق، القاتل ليس غريباً عن الضحية، وهناك من يحاول طمس الأدلة داخل المدخل الرئيسي.'",
-            choices: [
-                { text: "🚗 التوجه لمسرح الجريمة الآن مع حذر شديد", next: "crime_scene_arrival" }
-            ]
-        },
-        "decode_message": {
-            text: "باستخدام مهاراتك التحليلية، تفك شفرة الرسالة لتكتشف اسم المشتبه به الأول! لقد خطوت خطوة عملاقة نحو كشف الحقيقة.",
-            choices: [
-                { text: "🏆 إغلاق الملف واستلام مكافأة التحقيق (+15 نقطة)", action: "end_story_success" }
-            ]
-        },
-        "interrogate_guard": {
-            text: "يبدو الحارس مرتبكاً وعيناه تزيغان يميناً ويساراً.. يتلعثم في كلامه، ولكنه يرفض الإفصاح عن أي شيء مفيد. يبدو أنه يخفي سراً خطيراً، ويجب عليك جمع المزيد من الأدلة للضغط عليه لاحقاً.",
-            choices: [
-                { text: "🏆 العودة لمكتب التحقيقات (+5 نقاط)", action: "end_story_partial" }
-            ]
+    async function loadStoryDataExternal() {
+        try {
+            const response = await fetch('story.json');
+            storyData = await response.json();
+        } catch (error) {
+            console.error("تعذر تحميل ملف القصة الخارجي story.json:", error);
         }
-    };
+    }
+
+    document.getElementById('btnStoryMode')?.addEventListener('click', async () => {
+        showView('storyMode');
+        await loadStoryDataExternal();
+        startStoryNode('start'); 
+    });
 
     let typeWriterInterval = null;
 
     function startStoryNode(nodeKey) {
-        const node = STORY_DATA[nodeKey];
+        const node = storyData[nodeKey];
         const dialogueBox = document.getElementById('storyDialogueBox');
         const choicesContainer = document.getElementById('storyChoicesContainer');
 
         if (!node || !dialogueBox || !choicesContainer) return;
 
-        // تفريغ المحتوى وتصفير الأنيميشن
-        if(typeWriterInterval) clearTimeout(typeWriterInterval);
+        if (typeWriterInterval) clearTimeout(typeWriterInterval);
         dialogueBox.innerText = "";
         choicesContainer.innerHTML = "";
 
-        // تأثير الآلة الكاتبة لعرض النص
         let charIndex = 0;
         function typeWriter() {
             if (charIndex < node.text.length) {
@@ -279,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 charIndex++;
                 typeWriterInterval = setTimeout(typeWriter, 30);
             } else {
-                // إظهار الأزرار بعد انتهاء الكتابة
                 renderChoices(node.choices, choicesContainer);
             }
         }
@@ -290,16 +261,17 @@ document.addEventListener('DOMContentLoaded', () => {
         choices.forEach(choice => {
             const btn = document.createElement('button');
             btn.className = 'btn-primary';
-            btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s;";
+            btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s; width: 100%; margin-bottom: 8px;";
             btn.innerText = choice.text;
             
-            // تأثير حركي عند المرور بالماوس
             btn.onmouseover = () => btn.style.background = "#34495e";
             btn.onmouseleave = () => btn.style.background = "#2c3e50";
 
             btn.addEventListener('click', async () => {
                 playSound('click');
-                if (choice.action) {
+                if (choice.next === 'restart') {
+                    showView('mainMenu');
+                } else if (choice.action) {
                     await handleStoryEnding(choice.action);
                 } else if (choice.next) {
                     startStoryNode(choice.next);
@@ -324,7 +296,6 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('success');
         }
 
-        // تحديث النقاط في الداتا بيس إذا كان اللاعب مسجل
         if (currentUserData && currentUserId) {
             let newScore = (Number(currentUserData.totalScore) || 0) + pointsToAdd;
             currentUserData.totalScore = newScore;
@@ -341,11 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showView('mainMenu');
     }
 
-    // ==========================================
-    // نهايـــة أجزاء طـــور القصـــة 📖
-    // ==========================================
 
-
+    // ==========================================
+    // إدارة القضايا من GitHub
+    // ==========================================
     const GITHUB_CASES_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/main/cases.json";
     let CASES_DATA = [];
     let currentCase = null;
@@ -370,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let newTotalScore = Number(currentUserData?.totalScore || 0);
         if (isNewCase) {
-            newTotalScore += earnedScore; // إضافة نقاط فقط للقضايا الجديدة
+            newTotalScore += earnedScore;
         }
 
         let rank = "مساعد محقق 🕵️‍♂️";
@@ -684,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSuspectCorrect && isEvidenceCorrect) {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
-            const earnedPoints = 10; // 10 نقاط ثابتة عند الحل الصحيح
+            const earnedPoints = 10;
             
             await saveSolvedCase(currentCase.id, noHintsUsed, earnedPoints);
             
@@ -746,9 +716,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(rank === 3) medal = '🥉';
 
                 item.innerHTML = `
-                    <div class="lb-rank">${medal}</div>
-                    <div class="lb-name">${data.username} <span style="font-size: 0.7rem; color: #888; display:block;">${data.rank}</span></div>
-                    <div class="lb-score">${data.totalScore || 0} نقطة</div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-weight:bold; min-width:30px;">${medal}</span>
+                        <span>${data.username || "محقق مجهول"}</span>
+                    </div>
+                    <span style="color:var(--accent-color); font-weight:bold;">${data.totalScore || 0} نقطة</span>
                 `;
                 container.appendChild(item);
                 rank++;
@@ -757,55 +729,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (myScoreEl) myScoreEl.innerText = myScore;
             if (myRankEl) myRankEl.innerText = myFoundRank;
 
-        } catch (error) {
-            console.error("خطأ في تحميل الترتيب:", error);
-            container.innerHTML = '<p style="text-align:center; color:red;">تعذر الاتصال بالخادم لجلب الترتيب.</p>';
+        } catch (e) {
+            console.error("خطأ في جلب لوحة الشرف:", e);
+            container.innerHTML = '<p style="text-align:center; color:#e74c3c;">تعذر الاتصال بقاعدة البيانات لإحضار لوحة الشرف.</p>';
         }
     }
 
-    const notebookModal = document.getElementById('notebookModal');
-    const notebookBtn = document.getElementById('notebookToggleBtn');
-    const notebookText = document.getElementById('notebookTextArea');
-
-    if (notebookText) {
-        notebookText.value = localStorage.getItem('detective_notebook') || '';
-        notebookText.addEventListener('input', () => {
-            localStorage.setItem('detective_notebook', notebookText.value);
-        });
-    }
-
-    notebookBtn?.addEventListener('click', () => { playSound('click'); notebookModal?.classList.remove('hidden'); });
-
-    document.querySelectorAll('.close-modal').forEach(btn => {
-        btn.addEventListener('click', () => {
-            playSound('click');
-            notebookModal?.classList.add('hidden');
-        });
-    });
-
-    document.getElementById('btnResetProgress')?.addEventListener('click', async () => {
-        if (confirm('هل أنت متأكد من مسح جميع التقدم وتصفير النقاط والقضايا؟')) {
-            playSound('click');
-            
-            localStorage.removeItem('detective_solved_cases');
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('badge_strict_')) localStorage.removeItem(key);
-            });
-
-            if (currentUserId && currentUserData) {
-                currentUserData.solvedCases = [];
-                currentUserData.totalScore = 0;
-                currentUserData.rank = "مساعد محقق 🕵️‍♂️";
-                try {
-                    const docRef = doc(db, "users", currentUserId);
-                    await setDoc(docRef, currentUserData);
-                } catch (e) { console.error("خطأ أثناء تحديث الخادم:", e); }
-            }
-
-            alert('✅ تم إعادة تعيين جميع القضايا وتصفير النقاط بنجاح!');
-            location.reload();
-        }
-    });
-
+    // جلب القضايا عند تشغيل النظام
     loadCasesFromGitHub();
 });
