@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -148,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserData = {
                 username: username,
                 solvedCases: [],
+                completedStoryDays: [],
                 rank: "مساعد محقق 🕵️‍♂️",
                 totalScore: 0
             };
@@ -182,12 +184,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (docSnap.exists()) {
                 currentUserData = docSnap.data();
                 if (!currentUserData.solvedCases) currentUserData.solvedCases = [];
+                if (!currentUserData.completedStoryDays) currentUserData.completedStoryDays = [];
                 if (currentUserData.totalScore === undefined) currentUserData.totalScore = 0;
                 updateRankDisplay();
             } else {
                 currentUserData = {
                     username: auth.currentUser?.email?.split('@')[0] || "محقق",
                     solvedCases: [],
+                    completedStoryDays: [],
                     rank: "مساعد محقق 🕵️‍♂️",
                     totalScore: 0
                 };
@@ -212,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // طور القصة (يجلب البيانات خارجياً من story.json)
+    // طور القصة (نظام الأيام والمراحل المقفولة)
     // ==========================================
     let storyData = {};
 
@@ -225,15 +229,116 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // جلب الأيام المكتملة للمستخدم الحالي
+    function getCompletedStoryDays() {
+        if (currentUserData && currentUserData.completedStoryDays) return currentUserData.completedStoryDays;
+        return JSON.parse(localStorage.getItem('detective_completed_story_days') || '[]');
+    }
+
+    // حفظ اليوم المكتمل وتحديث قاعدة البيانات
+    async function markDayAsCompleted(dayNumber, pointsToAdd) {
+        let completedDays = getCompletedStoryDays();
+        if (!completedDays.includes(dayNumber)) {
+            completedDays.push(dayNumber);
+        }
+
+        let newTotalScore = (Number(currentUserData?.totalScore) || 0) + pointsToAdd;
+
+        if (!currentUserData) currentUserData = {};
+        currentUserData.completedStoryDays = completedDays;
+        currentUserData.totalScore = newTotalScore;
+
+        const activeUser = auth.currentUser;
+        if (activeUser) {
+            try {
+                const docRef = doc(db, "users", activeUser.uid);
+                await updateDoc(docRef, {
+                    completedStoryDays: completedDays,
+                    totalScore: newTotalScore
+                });
+            } catch (err) {
+                console.error("خطأ في حفظ أيام القصة في فايربيز:", err);
+            }
+        } else {
+            localStorage.setItem('detective_completed_story_days', JSON.stringify(completedDays));
+        }
+    }
+
     document.getElementById('btnStoryMode')?.addEventListener('click', async () => {
         showView('storyMode');
         await loadStoryDataExternal();
-        startStoryNode('start'); 
+        renderStoryDaysMenu();
     });
+
+    // رسم قائمة الأيام (اليوم الأول مفتوح، وبقية الأيام تشترط انهاء ما قبلها)
+    function renderStoryDaysMenu() {
+        const dialogueBox = document.getElementById('storyDialogueBox');
+        const choicesContainer = document.getElementById('storyChoicesContainer');
+
+        if (!dialogueBox || !choicesContainer) return;
+
+        dialogueBox.innerText = "📁 ملفات التحقيق الميداني (اختر اليوم لبدء التحقيق):";
+        choicesContainer.innerHTML = "";
+
+        const completedDays = getCompletedStoryDays();
+
+        // قائمة الأيام المتاحة في القصة
+        const daysList = [
+            { id: 1, title: "اليوم الأول: بداية الغموض", startNode: "day1_start", points: 15 },
+            { id: 2, title: "اليوم الثاني: خيوط متشابكة", startNode: "day2_start", points: 20 }
+        ];
+
+        daysList.forEach((day, index) => {
+            const isUnlocked = (index === 0) || completedDays.includes(daysList[index - 1].id);
+            const isCompleted = completedDays.includes(day.id);
+
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary';
+            btn.style.cssText = `
+                background: ${isUnlocked ? (isCompleted ? '#27ae60' : '#2c3e50') : '#1e1e1e'};
+                border: 1px solid ${isUnlocked ? '#f1c40f' : '#444'};
+                padding: 12px; text-align: right; cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
+                border-radius: 5px; color: ${isUnlocked ? '#fff' : '#666'}; font-family: inherit;
+                transition: 0.2s; width: 100%; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+            `;
+
+            let statusText = "";
+            if (isCompleted) statusText = " ✅ (مكتمل)";
+            else if (!isUnlocked) statusText = " 🔒 (مغلق - أنهِ اليوم السابق أولاً)";
+            else statusText = " 🔍 (ابدأ التحقيق)";
+
+            btn.innerHTML = `<span>${day.title}</span><span style="font-size:0.8rem;">${statusText}</span>`;
+
+            if (isUnlocked) {
+                btn.onmouseover = () => btn.style.background = "#34495e";
+                btn.onmouseleave = () => btn.style.background = isCompleted ? '#27ae60' : '#2c3e50';
+
+                btn.addEventListener('click', () => {
+                    playSound('click');
+                    startStoryNode(day.startNode, day.id, day.points);
+                });
+            } else {
+                btn.addEventListener('click', () => {
+                    playSound('error');
+                    alert(`⚠️ عذراً يا محقق!\nيجب عليك إنهاء (${daysList[index - 1].title}) أولاً لفتح هذا اليوم.`);
+                });
+            }
+
+            choicesContainer.appendChild(btn);
+        });
+
+        // زر العودة للقائمة الرئيسية من صفحة اختيار الأيام
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn-primary';
+        backBtn.style.cssText = "background: #c0392b; border: none; padding: 10px; width: 100%; margin-top: 10px; border-radius: 5px; cursor: pointer; color: #fff; font-family: inherit;";
+        backBtn.innerText = "⬅️ العودة للقائمة الرئيسية";
+        backBtn.addEventListener('click', () => showView('mainMenu'));
+        choicesContainer.appendChild(backBtn);
+    }
 
     let typeWriterInterval = null;
 
-    function startStoryNode(nodeKey) {
+    function startStoryNode(nodeKey, dayId, dayPoints) {
         const node = storyData[nodeKey];
         const dialogueBox = document.getElementById('storyDialogueBox');
         const choicesContainer = document.getElementById('storyChoicesContainer');
@@ -249,15 +354,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (charIndex < node.text.length) {
                 dialogueBox.innerText += node.text.charAt(charIndex);
                 charIndex++;
-                typeWriterInterval = setTimeout(typeWriter, 30);
+                typeWriterInterval = setTimeout(typeWriter, 25);
             } else {
-                renderChoices(node.choices, choicesContainer);
+                renderStoryChoices(node.choices, dayId, dayPoints, choicesContainer);
             }
         }
         typeWriter();
     }
 
-    function renderChoices(choices, container) {
+    function renderStoryChoices(choices, dayId, dayPoints, container) {
         choices.forEach(choice => {
             const btn = document.createElement('button');
             btn.className = 'btn-primary';
@@ -269,12 +374,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             btn.addEventListener('click', async () => {
                 playSound('click');
-                if (choice.next === 'restart') {
-                    showView('mainMenu');
-                } else if (choice.action) {
-                    await handleStoryEnding(choice.action);
+                if (choice.action) {
+                    await handleStoryDayEnding(dayId, dayPoints);
                 } else if (choice.next) {
-                    startStoryNode(choice.next);
+                    startStoryNode(choice.next, dayId, dayPoints);
                 }
             });
 
@@ -282,34 +385,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function handleStoryEnding(actionType) {
-        let pointsToAdd = 0;
-        let message = "";
+    async function handleStoryDayEnding(dayId, pointsToAdd) {
+        playSound('success');
+        await markDayAsCompleted(dayId, pointsToAdd);
 
-        if (actionType === 'end_story_success') {
-            pointsToAdd = 15;
-            message = "🎉 مبروك! لقد أنهيت هذا الفصل التحقيقي بنجاح تام.\n\nتمت إضافة 15 نقطة لتقييمك الإجمالي.";
-            playSound('success');
-        } else if (actionType === 'end_story_partial') {
-            pointsToAdd = 5;
-            message = "✔️ لقد أنهيت الفصل، لكن بمهارة جزئية.\n\nتمت إضافة 5 نقاط لتقييمك الإجمالي.";
-            playSound('success');
-        }
-
-        if (currentUserData && currentUserId) {
-            let newScore = (Number(currentUserData.totalScore) || 0) + pointsToAdd;
-            currentUserData.totalScore = newScore;
-            
-            try {
-                const docRef = doc(db, "users", currentUserId);
-                await updateDoc(docRef, { totalScore: newScore });
-            } catch (err) {
-                console.error("خطأ في تحديث نقاط القصة:", err);
-            }
-        }
-
-        alert(message);
-        showView('mainMenu');
+        alert(`🎉 مبروك! لقد أنهيت مهام اليوم بنجاح.\n\nتمت إضافة ${pointsToAdd} نقطة لتقييمك الإجمالي وتم فتح الأيام التالية.`);
+        renderStoryDaysMenu();
     }
 
 
