@@ -552,3 +552,81 @@ textarea {
     color: #fff;
     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }
+/* ==========================================
+   فخامة جيم‌پلاي مكتب التحقيق (Case Board Makeover)
+   ========================================== */
+
+#caseBoardSection {
+    background: radial-gradient(circle at center, #231c18 0%, #0d0a08 100%) !important;
+    border: 3px solid #6b4f3b;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.85), 0 15px 35px rgba(0,0,0,0.6);
+    padding: 25px;
+    border-radius: 10px;
+    color: #f4e8c1;
+}
+
+/* عناوين الأقسام داخل اللوحة بطابع سري */
+#caseBoardSection h3, #caseBoardSection h2 {
+    font-family: 'Tajawal', sans-serif;
+    border-bottom: 2px dashed #8b4513;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    color: #e2c08d;
+}
+
+/* بطاقات الأدلة والشخصيات كأنها أوراق حقيقية مرمية على المكتب */
+#caseBoardSection .desk-paper {
+    background: #fdfbf7 !important;
+    color: #2c221e !important;
+    border: 1px solid #d4c5a9 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 0 10px rgba(139,69,19,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#caseBoardSection .desk-paper:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.5), inset 0 0 10px rgba(139,69,19,0.1);
+}
+
+/* تصميم قسم التسلسل الزمني كأنه ملف تحقيق رسمي */
+#timelineContainer > div {
+    background: rgba(255, 255, 255, 0.05);
+    border-right: 4px solid #c0392b !important;
+    padding: 10px 15px !important;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 10px;
+}
+
+/* خيارات سؤال الاستنتاج بشكل فخم */
+#deductionPuzzlesContainer label {
+    background: #fdfbf7 !important;
+    color: #2c221e !important;
+    border: 1px solid #c2b292 !important;
+    border-radius: 6px !important;
+    padding: 12px 15px !important;
+    transition: all 0.2s ease;
+}
+
+#deductionPuzzlesContainer label:hover {
+    background: #fff5e6 !important;
+    border-color: #8b4513 !important;
+}
+
+/* زر إصدار القرار النهائي */
+#btnSubmitDeduction {
+    background: linear-gradient(135deg, #8b4513, #5c4033) !important;
+    color: #fff !important;
+    border: 1px solid #d4c5a9 !important;
+    padding: 14px 25px !important;
+    font-size: 1.05rem !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    transition: all 0.3s ease;
+}
+
+#btnSubmitDeduction:hover {
+    background: linear-gradient(135deg, #a0522d, #6b4f3b) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
