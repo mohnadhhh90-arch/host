@@ -1,70 +1,11 @@
 // ==========================================
-// ملف طور القصة المتطور والمكتبي (Story Mode - Interactive Desk)
+// ملف طور القصة المكتبي والسيبراني (Story Mode - GitHub Fetch)
 // ==========================================
 
-let STORY_DATA = [
-    {
-        "id": "STORY-001",
-        "title": "قضية: سر الشقة 17",
-        "description": "ملف سري للغاية: جريمة غامضة وقعت في منتصف الليل. تتطلب مهارات تحليل فائقة.",
-        "days": [
-            {
-                "id": "STORY-001-DAY-1",
-                "day": 1,
-                "title": "البداية وبلاغ الحادثة",
-                "briefing": "رن جرس الهاتف في قسم الشرطة الساعة 4:00 فجراً.. بلاغ يفيد بوقوع حادثة غامضة داخل الشقة 17. ارتدِ معطفك وتوجه لمسرح الجريمة فوراً.",
-                "overview": "وصل بلاغ يفيد بوقوع حادثة غامضة داخل الشقة 17. باب الشقة مغلق من الداخل ولا توجد آثار خلع، وساعة اليد متوقفة بطريقة مريبة.",
-                "characters": [
-                    { "id": "c1", "name": "سامح (الجار)", "role": "جار الضحية", "status": "suspect", "bio": "يدعي أنه كان نائماً طوال الليل ولم يسمع أي أصوات غريبة." },
-                    { "id": "c2", "name": "منى (الصديقة)", "role": "صديقة الضحية", "status": "innocent", "bio": "تؤكد أن الضحية تلقت تهديدات غامضة في الأيام الأخيرة." }
-                ],
-                "evidences": [
-                    { "id": "e1", "title": "ساعة اليد المكسورة", "desc": "ساعة يد متوقفة تماماً عند الساعة 3:15 صباحاً." },
-                    { "id": "e2", "title": "تقرير المعمل الجنائي", "desc": "لا توجد أي آثار خلع أو كسر على قفل باب الشقة الرئيسي." }
-                ],
-                "timeline": [
-                    { "time": "02:00 ص", "event": "آخر ظهور للضحية على شرفة الشقة." },
-                    { "time": "03:15 ص", "event": "توقف عقارب ساعة اليد في ظروف غامضة." }
-                ],
-                "puzzle": {
-                    "question": "بما أن باب الشقة لم يتعرض لأي آثار خلع أو كسر، فما هو الاستنتاج الأقرب للمنطق؟",
-                    "options": [
-                        "الجاني تسلل عبر نافذة الشرفة العالية",
-                        "المجني عليها فتحت الباب بنفسها لشخص تعرفه وتثق به",
-                        "تم تغيير قفل الباب بعد ارتكاب الجريمة"
-                    ],
-                    "correctIndex": 1
-                }
-            },
-            {
-                "id": "STORY-001-DAY-2",
-                "day": 2,
-                "title": "خيوط جديدة والتناقض",
-                "briefing": "التحقيق مستمر.. ظهر اليوم شاهد عيان جديد يدلي بأقوال تغير مسار القضية تماماً.",
-                "overview": "تطور مثير في القضية، ظهرت أدلة مادية جديدة تكذب أقوال أحد المشتبه بهم.",
-                "characters": [
-                    { "id": "c1", "name": "سامح (الجار)", "role": "جار الضحية", "status": "suspect", "bio": "تغيرت أقواله بعد مواجهته بالأدلة وأكد رؤية شخص يرتدي معطفاً أسود." }
-                ],
-                "evidences": [
-                    { "id": "e3", "title": "فاتورة مطعم مشبوهة", "desc": "فاتورة مطعم تحمل توقيت 3:30 صباحاً ومكتوب عليها اسم سامح الشخصي بالقرب من المبنى." }
-                ],
-                "timeline": [
-                    { "time": "03:30 ص", "event": "العثور على فاتورة مطعم سهر قريبة من موقع الجريمة." }
-                ],
-                "puzzle": {
-                    "question": "الجار سامح ادعى سابقاً أنه كان نائماً طوال الليل، فما هو الدليل القاطع الذي يكذب أقواله؟",
-                    "options": [
-                        "ساعة اليد المتوقفة",
-                        "فاتورة المطعم التي تثبت تواجده قرب المبنى في هذا الوقت",
-                        "عدم وجود آثار خلع على الباب"
-                    ],
-                    "correctIndex": 1
-                }
-            }
-        ]
-    }
-];
+// رابط ملف الـ JSON على جيت هاب الخاص بك (تأكد من تحديثه إذا لزم الأمر)
+const GITHUB_STORY_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/refs/heads/main/story.json";
 
+let STORY_DATA = [];
 let activeStory = null;
 let activeDayObj = null;
 
@@ -85,12 +26,35 @@ function saveStoryProgress(progress) {
     }
 }
 
+// دالة جلب القصة من جيت هاب
+async function loadStoryFromGitHub() {
+    try {
+        const response = await fetch(GITHUB_STORY_URL);
+        if (!response.ok) throw new Error("تعذر جلب ملف القصة من الخادم");
+        
+        const data = await response.json();
+        STORY_DATA = data.stories || [];
+        renderStoriesList();
+    } catch (error) {
+        console.error("خطأ في جلب القصة:", error);
+        const container = document.getElementById('storyContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="detective-desk-file" style="text-align: center; color: #c0392b;">
+                    <h3>⚠️ خطأ في الاتصال بالأرشيف السيبراني</h3>
+                    <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">تعذر تحميل القضايا من جيت هاب. تأكد من صحة الرابط وانترنت الجهاز.</p>
+                </div>
+            `;
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const btnStory = document.getElementById('btnStoryMode');
     if (btnStory) {
         btnStory.addEventListener('click', () => {
             showStoryView('storyModeSection');
-            renderStoriesList();
+            loadStoryFromGitHub();
         });
     }
 
@@ -116,10 +80,15 @@ function renderStoriesList() {
     const container = document.getElementById('storyContainer');
     if (!container) return;
 
+    if (STORY_DATA.length === 0) {
+        container.innerHTML = `<div class="detective-desk-file" style="text-align: center;">لا توجد قضايا متاحة في الأرشيف حالياً.</div>`;
+        return;
+    }
+
     let html = `
         <div style="text-align: center; margin-bottom: 20px;">
-            <h3 style="color: #f4e8c1; font-size: 1.3rem;">📋 أرشيف القضايا الكبرى</h3>
-            <p style="color: #bbb; font-size: 0.85rem;">اختر قضية للتحقيق واكشف غموضها يوماً بعد يوم.</p>
+            <h3 style="color: #f4e8c1; font-size: 1.3rem;">📋 أرشيف القضايا السيبرانية الكبرى</h3>
+            <p style="color: #bbb; font-size: 0.85rem;">تتبع الخيوط الرقمية وأغلق ثغرات الهكر يوماً بعد يوم.</p>
         </div>
     `;
 
@@ -147,7 +116,7 @@ function renderStoriesList() {
     });
 
     container.innerHTML = html;
-}
+};
 
 // عرض أيام القضية
 window.openStoryDays = function(storyId) {
@@ -172,7 +141,7 @@ window.openStoryDays = function(storyId) {
         const isUnlocked = index === 0 || storyProg.completedDays.includes(activeStory.days[index - 1].id);
         const isCompleted = storyProg.completedDays.includes(dayObj.id);
 
-        let statusText = isCompleted ? "✅ تم كشف اللغز" : (isUnlocked ? "🔓 متاح للتحقيق" : "🔒 ملف مقفل");
+        let statusText = isCompleted ? "✅ تم كشف الثغرة" : (isUnlocked ? "🔓 متاح للتحقيق" : "🔒 ملف مقفل");
         let itemBg = isUnlocked ? "#fff" : "#f4f1ea";
         let cursorStyle = isUnlocked ? "cursor: pointer;" : "opacity: 0.6; cursor: not-allowed;";
 
@@ -191,7 +160,7 @@ window.openStoryDays = function(storyId) {
     container.innerHTML = html;
 };
 
-// شاشة إحاطة المحقق (Briefing) قبل دخول اللوحة
+// شاشة إحاطة المحقق (Briefing)
 window.showStoryBriefing = function(storyId, dayId) {
     activeStory = STORY_DATA.find(s => s.id === storyId);
     if (!activeStory) return;
@@ -204,7 +173,7 @@ window.showStoryBriefing = function(storyId, dayId) {
             <button class="btn-detective" onclick="window.openStoryDays('${storyId}')" style="font-size: 0.8rem; padding: 6px 12px;">⬅ رجوع للأيام</button>
         </div>
         <div class="detective-desk-file" style="text-align: center; padding: 30px 20px;">
-            <span style="font-size: 2.5rem;">🕵️‍♂️</span>
+            <span style="font-size: 2.5rem;">💻</span>
             <h2 style="color: #8b4513; margin: 15px 0;">إحاطة اليوم ${activeDayObj.day}: ${activeDayObj.title}</h2>
             <p style="font-size: 1.05rem; color: #333; line-height: 1.8; margin-bottom: 25px; background: #fffdf9; padding: 15px; border-radius: 5px; border: 1px dashed #d4c5a9;">
                 ${activeDayObj.briefing}
@@ -234,11 +203,11 @@ window.launchInteractiveBoard = function(storyId, dayId) {
         </div>
     `).join('');
 
-    // تعبئة الأدلة
+    // تعبئة الأدلة الرقمية
     const evGrid = document.getElementById('evidenceGrid');
     evGrid.innerHTML = activeDayObj.evidences.map(e => `
         <div class="desk-paper" style="margin:0; padding: 12px;">
-            <h4 style="color: #2c3e50; margin-bottom: 4px;">🔍 ${e.title}</h4>
+            <h4 style="color: #2c3e50; margin-bottom: 4px;">📂 ${e.title}</h4>
             <p style="font-size:0.85rem; margin-top:6px; line-height: 1.4;">${e.desc}</p>
         </div>
     `).join('');
@@ -287,7 +256,7 @@ window.launchInteractiveBoard = function(storyId, dayId) {
         submitBtn.onclick = () => {
             const selectedOpt = document.querySelector('input[name="storyPuzzleOpt"]:checked');
             if (!selectedOpt) {
-                alert("الرجاء اختيار الإجابة الصحيحة وتحديد الاستنتاج قبل إصدار القرار!");
+                alert("الرجاء اختيار الإجابة الصحيحة وتحديد الاستنتاج السيبراني قبل إصدار القرار!");
                 return;
             }
 
@@ -300,11 +269,11 @@ window.launchInteractiveBoard = function(storyId, dayId) {
                     saveStoryProgress(progress);
                 }
 
-                alert("🎉 استنتاج عبقري يا محقق! تم حل لغز اليوم بنجاح وفتح اليوم التالي.");
+                alert("🎉 استنتاج عبقري يا مهندسنا! تم كشف ثغرة هذا اليوم بنجاح وفتح الملف التالي.");
                 showStoryView('storyModeSection');
                 window.openStoryDays(storyId);
             } else {
-                alert("❌ استنتاج خاطئ! راجع الأدلة والتسلسل الزمني جيداً وحاول مرة أخرى.");
+                alert("❌ استنتاج خاطئ! راجع سجلات السيرفر والأدلة الرقمية جيداً وحاول مرة أخرى.");
             }
         };
     }
