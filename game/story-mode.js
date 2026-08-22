@@ -2,7 +2,7 @@
 // ملف طور القصة المتطور (Story Mode - Interactive)
 // ==========================================
 
-const GITHUB_STORY_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/refs/heads/main/story.json";
+const GITHUB_STORY_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/host/refs/heads/main/game/story.json";
 
 let STORY_DATA = [];
 let activeStory = null;
