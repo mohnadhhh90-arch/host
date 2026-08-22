@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (views[viewKey]) views[viewKey].classList.remove('hidden');
     }
 
+    // تسجيل الدخول والإنشاء
     document.getElementById('btnLogin')?.addEventListener('click', async (e) => {
         const btn = e.target;
         const username = document.getElementById('authUsername')?.value.trim();
@@ -211,147 +212,482 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
     document.querySelectorAll('.btn-to-cases').forEach(btn => btn.addEventListener('click', () => showView('casesList')));
 
-    // ==========================================
-    // طور القصة التفاعلية بنظام الأيام (Story Mode - Days System) 📖📆
-    // ==========================================
-    const STORY_DAYS_DATA = [
-        {
-            day: 1,
-            title: "اليوم الأول: مسرح الجريمة والوصول",
-            brief: "تلقيت بلاغاً عن جريمة غامضة في فيلا راقية. عليك تفقد مسرح الجريمة وجمع الأدلة الأولية.",
-            tasks: [
-                { id: "t1", text: "فحص زجاجة المكسورة على المكتب", completed: false },
-                { id: "t2", text: "استجواب الحارس الشخصي وتسجيل أقواله", completed: false }
-            ],
-            evidences: [
-                { id: "se1", title: "فاتورة مطعم متأخرة", desc: "تظهر وقتاً مغايراً لما قال الحارس." },
-                { id: "se2", title: "زجاجة مكسورة وبصمات", desc: "توضح وجود شجار قبل الواقعة بدقائق." }
-            ]
-        },
-        {
-            day: 2,
-            title: "اليوم الثاني: تحليل المكالمات والمواجهة",
-            brief: "بعد فحص الأدلة الأولية، ظهرت تفاصيل جديدة تتعلق بسجل المكالمات والاشتباه بشخص مقرب.",
-            tasks: [
-                { id: "t3", text: "فحص سجل المكالمات الخاص بالضحية", completed: false },
-                { id: "t4", text: "مواجهة المشتبه به بالتناقض المرصود", completed: false }
-            ],
-            evidences: [
-                { id: "se3", title: "سجل المكالمات الصادرة", desc: "مكالمة هامة تمت في تمام الساعة 11:15 مساءً." }
-            ]
-        },
-        {
-            day: 3,
-            title: "اليوم الثالث: الاستنتاج وإغلاق الملف",
-            brief: "حان الوقت لربط الخيوط ببعضها وتحديد الجاني الرئيسي بدقة لإصدار أمر القبض.",
-            tasks: [
-                { id: "t5", text: "تحديد الدليل القاطع والجاني النهائي", completed: false }
-            ],
-            evidences: []
-        }
-    ];
+    // ==========================================================================
+    // 📖 نظام طور القصة الإحترافي (Interactive Story Mode - Days & Investigation Board)
+    // ==========================================================================
+    const STORY_CAMPAIGN = {
+        title: "قضية الليلة الغامضة: اختفاء الدكتور راشد",
+        days: [
+            {
+                dayNumber: 1,
+                title: "اليوم الأول: مسرح الجريمة والخطوات الأولى",
+                brief: "تلقينا بلاغاً باختفاء الدكتور راشد من مكتبه بالجامعة. تم العثور على مكتبه مبعثراً. عليك تفتيش المكان وجمع الأدلة والاستماع للحارس.",
+                objectives: [
+                    { id: "obj1", text: "فحص مكتب الدكتور راشد واكتشاف الدليل المخفي", done: false },
+                    { id: "obj2", text: "استجواب الحارس الشخصي (عم صابر)", done: false }
+                ],
+                evidences: [
+                    { id: "se1", title: "كوب قهوة مسموم", type: "أثر بيولوجي", details: "يحتوي على آثار مادة منوم قوية.", hidden: "مأخوذة من ماركة خاصة لا يشتريها إلا شخص مقرب." },
+                    { id: "se2", title: "فاتورة مطعم ممزقة", type: "مستند ورقي", details: "تحمل وقت 11:30 مساءً.", hidden: "تتناقض مع أقوال الحارس الذي قال إنه أغلق الأبواب الساعة 10:00 مساءً." }
+                ],
+                suspects: [
+                    { id: "ss1", name: "عم صابر (الحارس)", role: "حارس المبنى", statement: "أنا أغلقت المبنى الساعة 10 ولم يخل أحد سواي.", alibi: "غرفة الحراسة طوال الليل" }
+                ],
+                timelineEvents: [
+                    { time: "09:00 PM", event: "آخر ظهور للدكتور راشد بمكتبه." },
+                    { time: "10:00 PM", event: "إدعاء الحارس إغلاق الأبواب الرئيسية." }
+                ]
+            },
+            {
+                dayNumber: 2,
+                title: "اليوم الثاني: تحليل المكالمات والمواجهة بالتناقض",
+                brief: "بعد فحص الأدلة، ظهرت مكالمة هاتفية صادرة من هاتف الدكتور قبل اختفائه بدقائق، وهناك مشتبه به جديد يدعى (سامح) مساعده الأكاديمي.",
+                objectives: [
+                    { id: "obj3", text: "فحص سجل المكالمات في هاتف الضحية", done: false },
+                    { id: "obj4", text: "مواجهة المساعد (سامح) بالتناقض المرصود", done: false }
+                ],
+                evidences: [
+                    { id: "se3", title: "سجل مكالمات صادر", type: "إلكتروني", details: "مكالمة هاتفية مدتها 4 دقائق مع المساعد سامح الساعة 11:15 PM.", hidden: "تثبت تواجد سامح بالموقع رغم إنكاره السابق." }
+                ],
+                suspects: [
+                    { id: "ss2", name: "سامح (المساعد الأكاديمي)", role: "مساعد الباحث", statement: "كنت في منزلي نائماً ولم أتواصل مع الدكتور تلك الليلة أبداً!", alibi: "المنزل نائماً" }
+                ],
+                timelineEvents: [
+                    { time: "11:15 PM", event: "مكالمة صادرة بين هاتف الدكتور وسامح." }
+                ]
+            },
+            {
+                dayNumber: 3,
+                title: "اليوم الثالث والأخير: الاستنتاج الشامل وإغلاق الملف",
+                brief: "حان الوقت لربط خيوط القضية بالكامل، وتحديد الجاني والدليل القطعي وإصدار أمر القبض.",
+                objectives: [
+                    { id: "obj5", text: "الوصول للاستنتاج النهائي وتحديد الجاني بدقة", done: false }
+                ],
+                evidences: [],
+                suspects: [],
+                timelineEvents: []
+            }
+        ]
+    };
 
-    let currentStoryDayIndex = 0;
+    let activeStoryDay = 0;
+    let storyBoardTab = 'file'; // file, evidence, suspects, timeline, deduce
 
     document.getElementById('btnStoryMode')?.addEventListener('click', () => {
+        activeStoryDay = 0;
+        storyBoardTab = 'file';
         showView('storyMode');
-        currentStoryDayIndex = 0;
-        renderStoryDay();
+        renderStoryInvestigationDesk();
     });
 
-    function renderStoryDay() {
+    function renderStoryInvestigationDesk() {
         const container = document.getElementById('storyModeSection');
         if (!container) return;
 
-        const dayData = STORY_DAYS_DATA[currentStoryDayIndex];
-        if (!dayData) {
-            finishStoryCampaign();
+        const currentDayData = STORY_CAMPAIGN.days[activeStoryDay];
+        if (!currentDayData) {
+            finishStoryCampaignCompletely();
             return;
         }
 
         container.innerHTML = `
-            <div class="desk-paper" style="max-width: 700px; margin: 20px auto; text-align: right;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #444; padding-bottom: 10px; margin-bottom: 15px;">
-                    <h2 style="color: #f1c40f; margin: 0;">📅 ${dayData.title}</h2>
-                    <span style="background: #e67e22; padding: 3px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">اليوم ${dayData.day} من ${STORY_DAYS_DATA.length}</span>
-                </div>
-                <p style="font-size: 1rem; line-height: 1.6; color: #ddd; margin-bottom: 20px;">${dayData.brief}</p>
-                
-                <h4 style="color: #3498db; margin-bottom: 10px;">📋 المهام المطلوبة اليوم:</h4>
-                <div id="storyTasksList" style="margin-bottom: 20px;">
-                    ${dayData.tasks.map(t => `
-                        <label style="display: block; background: #222; padding: 10px; margin-bottom: 8px; border-radius: 5px; cursor: pointer; border: 1px solid #444;">
-                            <input type="checkbox" class="story-task-chk" data-id="${t.id}" ${t.completed ? 'checked' : ''} style="margin-left: 10px;">
-                            <span style="${t.completed ? 'text-decoration: line-through; color: #888;' : ''}">${t.text}</span>
-                        </label>
-                    `).join('')}
+            <div class="desk-paper" style="max-width: 850px; margin: 15px auto; text-align: right; background: #181818; border: 2px solid #333; padding: 20px; border-radius: 8px;">
+                <!-- رأس اللوحة -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #444; padding-bottom: 12px; margin-bottom: 15px;">
+                    <div>
+                        <span style="background: #e67e22; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${STORY_CAMPAIGN.title}</span>
+                        <h2 style="color: #f1c40f; margin: 5px 0 0 0; font-size: 1.25rem;">📅 ${currentDayData.title}</h2>
+                    </div>
+                    <button class="btn-primary btn-to-menu" style="background: #7f8c8d; border:none; padding:6px 14px; border-radius:4px; cursor:pointer; color:#fff; font-size:0.8rem;">الرئيسية</button>
                 </div>
 
-                <h4 style="color: #27ae60; margin-bottom: 10px;">🔍 الأدلة المكتشفة في هذا اليوم:</h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 25px;">
-                    ${dayData.evidences.length > 0 ? dayData.evidences.map(e => `
-                        <div style="background: #1a1a1a; border: 1px solid #555; padding: 12px; border-radius: 6px;">
-                            <h5 style="color: #f1c40f; margin-bottom: 5px;">📄 ${e.title}</h5>
-                            <p style="font-size: 0.85rem; color: #aaa; margin: 0;">${e.desc}</p>
-                        </div>
-                    `).join('') : '<p style="color: #777; font-size: 0.9rem;">لا توجد أدلة جديدة مضافة اليوم.</p>'}
+                <!-- تبويبات لوحة التحقيق التفاعلية -->
+                <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; flex-wrap: wrap;">
+                    <button class="story-tab-btn ${storyBoardTab === 'file' ? 'active' : ''}" data-tab="file" style="background:${storyBoardTab === 'file'?'#f1c40f':'#222'}; color:${storyBoardTab === 'file'?'#000':'#fff'}; border:1px solid #444; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.85rem;">📁 ملف اليوم</button>
+                    <button class="story-tab-btn ${storyBoardTab === 'evidence' ? 'active' : ''}" data-tab="evidence" style="background:${storyBoardTab === 'evidence'?'#f1c40f':'#222'}; color:${storyBoardTab === 'evidence'?'#000':'#fff'}; border:1px solid #444; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.85rem;">🔍 الأدلة والمستندات</button>
+                    <button class="story-tab-btn ${storyBoardTab === 'suspects' ? 'active' : ''}" data-tab="suspects" style="background:${storyBoardTab === 'suspects'?'#f1c40f':'#222'}; color:${storyBoardTab === 'suspects'?'#000':'#fff'}; border:1px solid #444; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.85rem;">👥 المشتبه بهم والشهود</button>
+                    <button class="story-tab-btn ${storyBoardTab === 'timeline' ? 'active' : ''}" data-tab="timeline" style="background:${storyBoardTab === 'timeline'?'#f1c40f':'#222'}; color:${storyBoardTab === 'timeline'?'#000':'#fff'}; border:1px solid #444; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.85rem;">⏳ خط الزمن</button>
+                    ${activeStoryDay === STORY_CAMPAIGN.days.length - 1 ? `<button class="story-tab-btn ${storyBoardTab === 'deduce' ? 'active' : ''}" data-tab="deduce" style="background:${storyBoardTab === 'deduce'?'#27ae60':'#222'}; color:#fff; border:1px solid #444; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.85rem; font-weight:bold;">⚖️ الاستنتاج النهائي</button>` : ''}
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <button class="btn-primary btn-to-menu" style="background: #7f8c8d; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; color:#fff;">العودة للقائمة</button>
-                    <button id="btnNextStoryDay" class="btn-primary" style="background: #27ae60; border:none; padding:10px 25px; border-radius:5px; cursor:pointer; font-weight:bold; color:#fff;">
-                        ${currentStoryDayIndex < STORY_DAYS_DATA.length - 1 ? 'الانتقال لليوم التالي ➔' : 'إنهاء وإغلاق القصة الإجمالية 🏆'}
+                <!-- المحتوى بناءً على التبويب النشط -->
+                <div id="storyTabContent">
+                    ${renderStoryTabContent(currentDayData)}
+                </div>
+
+                <!-- أزرار التنقل بين الأيام -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
+                    <span style="font-size: 0.85rem; color: #aaa;">اليوم رقم ${activeStoryDay + 1} من ${STORY_CAMPAIGN.days.length}</span>
+                    <button id="btnProceedNextDay" class="btn-primary" style="background: #27ae60; border:none; padding:8px 20px; border-radius:4px; cursor:pointer; font-weight:bold; color:#fff; font-size:0.9rem;">
+                        ${activeStoryDay < STORY_CAMPAIGN.days.length - 1 ? 'الانتقال لليوم التالي ➔' : 'إنهاء التحقيق وإغلاق القضية 🏆'}
                     </button>
                 </div>
             </div>
         `;
 
-        // ربط الأحداث داخل واجهة الأيام
-        container.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
+        // ربط الأحداث
+        container.querySelectorAll('.btn-to-menu').forEach(b => b.addEventListener('click', () => showView('mainMenu')));
 
-        container.querySelectorAll('.story-task-chk').forEach(chk => {
-            chk.addEventListener('change', (e) => {
+        container.querySelectorAll('.story-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 playSound('click');
-                const taskId = e.target.getAttribute('data-id');
-                const taskObj = dayData.tasks.find(t => t.id === taskId);
-                if (taskObj) taskObj.completed = e.target.checked;
-                renderStoryDay();
+                storyBoardTab = e.target.getAttribute('data-tab');
+                renderStoryInvestigationDesk();
             });
         });
 
-        document.getElementById('btnNextStoryDay')?.addEventListener('click', async () => {
+        // مهام اليوم
+        container.querySelectorAll('.story-obj-chk').forEach(chk => {
+            chk.addEventListener('change', (e) => {
+                playSound('click');
+                const id = e.target.getAttribute('data-id');
+                const obj = currentDayData.objectives.find(o => o.id === id);
+                if (obj) obj.done = e.target.checked;
+            });
+        });
+
+        // فحص الأدلة (Inspect Modal)
+        container.querySelectorAll('.inspect-evidence-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                playSound('click');
+                const eviId = e.target.getAttribute('data-id');
+                let foundEvi = null;
+                STORY_CAMPAIGN.days.forEach(d => {
+                    const match = d.evidences.find(ev => ev.id === eviId);
+                    if (match) foundEvi = match;
+                });
+                if (foundEvi) {
+                    showInspectModal(foundEvi);
+                }
+            });
+        });
+
+        // زر ربط الأدلة
+        document.getElementById('btnConnectEvidences')?.addEventListener('click', () => {
+            playSound('click');
+            showEvidenceConnectionModal(currentDayData);
+        });
+
+        // زر مواجهة المشتبه به
+        container.querySelectorAll('.confront-suspect-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                playSound('click');
+                const sId = e.target.getAttribute('data-id');
+                showConfrontModal(sId, currentDayData);
+            });
+        });
+
+        // الانتقال لليوم التالي أو إنهاء القصة
+        document.getElementById('btnProceedNextDay')?.addEventListener('click', () => {
             playSound('success');
-            const allDone = dayData.tasks.every(t => t.completed);
+            const allDone = currentDayData.objectives.every(o => o.done);
             if (!allDone) {
-                const proceedAnyway = confirm("لم تقم بإنجاز كافة مهام اليوم بالكامل. هل أنت متأكد من رغبتك في الانتقال لليوم التالي؟");
-                if (!proceedAnyway) return;
+                const proceed = confirm("لم تقم بإنجاز جميع مهام اليوم بالكامل. هل تريد الانتقال على أي حال؟");
+                if (!proceed) return;
             }
 
-            currentStoryDayIndex++;
-            if (currentStoryDayIndex < STORY_DAYS_DATA.length) {
-                renderStoryDay();
+            if (activeStoryDay < STORY_CAMPAIGN.days.length - 1) {
+                activeStoryDay++;
+                storyBoardTab = 'file';
+                renderStoryInvestigationDesk();
             } else {
-                await finishStoryCampaign();
+                // صفحة الاستنتاج النهائي إذا كنا في اليوم الأخير
+                submitFinalStoryDeduction();
             }
         });
     }
 
-    async function finishStoryCampaign() {
+    function renderStoryTabContent(dayData) {
+        if (storyBoardTab === 'file') {
+            return `
+                <div>
+                    <p style="font-size: 0.95rem; line-height: 1.6; color: #ddd; margin-bottom: 15px;">${dayData.brief}</p>
+                    <h4 style="color: #3498db; margin-bottom: 10px; font-size: 0.95rem;">📋 أهداف التحقيق اليومية:</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+                        ${dayData.objectives.map(o => `
+                            <label style="background: #222; padding: 10px; border-radius: 4px; cursor: pointer; border: 1px solid #444; display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" class="story-obj-chk" data-id="${o.id}" ${o.done ? 'checked' : ''} style="width: 18px; height: 18px;">
+                                <span style="${o.done ? 'text-decoration: line-through; color: #888;' : 'color: #fff;'} font-size: 0.9rem;">${o.text}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (storyBoardTab === 'evidence') {
+            // تجميع أدلة الأيام السابقة والحالية
+            let availableEvidences = [];
+            for(let i=0; i<=activeStoryDay; i++) {
+                availableEvidences.push(...STORY_CAMPAIGN.days[i].evidences);
+            }
+
+            return `
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="color: #f1c40f; margin: 0; font-size: 0.95rem;">🔍 الأدلة والمستندات المجمعة:</h4>
+                        <button id="btnConnectEvidences" style="background: #8e44ad; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">🔗 ربط دليلين</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;">
+                        ${availableEvidences.length > 0 ? availableEvidences.map(ev => `
+                            <div style="background: #222; border: 1px solid #444; padding: 12px; border-radius: 6px;">
+                                <span style="font-size: 0.7rem; color: #e67e22; font-weight: bold;">(${ev.type})</span>
+                                <h5 style="color: #fff; margin: 4px 0; font-size: 0.95rem;">📄 ${ev.title}</h5>
+                                <p style="font-size: 0.8rem; color: #aaa; margin: 0 0 10px 0;">${ev.details}</p>
+                                <button class="inspect-evidence-btn" data-id="${ev.id}" style="background: #3498db; color: #fff; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; font-size: 0.75rem; width: 100%;">فحص الدقيق 🔍</button>
+                            </div>
+                        `).join('') : '<p style="color: #777; font-size: 0.85rem;">لا توجد أدلة مكتشفة بعد.</p>'}
+                    </div>
+                </div>
+            `;
+        } else if (storyBoardTab === 'suspects') {
+            let availableSuspects = [];
+            for(let i=0; i<=activeStoryDay; i++) {
+                availableSuspects.push(...STORY_CAMPAIGN.days[i].suspects);
+            }
+
+            return `
+                <div>
+                    <h4 style="color: #e74c3c; margin-bottom: 12px; font-size: 0.95rem;">👥 المشتبه بهم والأقوال المرصودة:</h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        ${availableSuspects.length > 0 ? availableSuspects.map(sus => `
+                            <div style="background: #222; border: 1px solid #444; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <h5 style="color: #f1c40f; margin: 0 0 4px 0; font-size: 0.95rem;">${sus.name} <span style="font-size: 0.75rem; color: #888;">(${sus.role})</span></h5>
+                                    <p style="font-size: 0.85rem; color: #ddd; margin: 0 0 4px 0;"><strong>الأقوال:</strong> "${sus.statement}"</p>
+                                    <p style="font-size: 0.8rem; color: #aaa; margin: 0;"><strong>الأليبي:</strong> ${sus.alibi}</p>
+                                </div>
+                                <button class="confront-suspect-btn" data-id="${sus.id}" style="background: #e67e22; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">⚡ مواجهة بالدليل</button>
+                            </div>
+                        `).join('') : '<p style="color: #777; font-size: 0.85rem;">لا يوجد مشتبه بهم تم استجوابهم حتى الآن.</p>'}
+                    </div>
+                </div>
+            `;
+        } else if (storyBoardTab === 'timeline') {
+            let availableTimeline = [];
+            for(let i=0; i<=activeStoryDay; i++) {
+                availableTimeline.push(...STORY_CAMPAIGN.days[i].timelineEvents);
+            }
+
+            return `
+                <div>
+                    <h4 style="color: #2ecc71; margin-bottom: 12px; font-size: 0.95rem;">⏳ خط الزمن المتسلسل للأحداث:</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${availableTimeline.length > 0 ? availableTimeline.map(t => `
+                            <div style="background: #222; border-right: 3px solid #2ecc71; padding: 10px; border-radius: 4px;">
+                                <strong style="color: #f1c40f; font-size: 0.85rem;">${t.time}</strong>
+                                <p style="font-size: 0.85rem; color: #ddd; margin: 3px 0 0 0;">${t.event}</p>
+                            </div>
+                        `).join('') : '<p style="color: #777; font-size: 0.85rem;">لا توجد أحداث زمنية مسجلة بعد.</p>'}
+                    </div>
+                </div>
+            `;
+        } else if (storyBoardTab === 'deduce') {
+            return `
+                <div style="background: #1f1f1f; padding: 15px; border-radius: 6px; border: 1px solid #f1c40f;">
+                    <h4 style="color: #f1c40f; margin-bottom: 10px;">⚖️ لوحة الاستنتاج النهائي الشامل</h4>
+                    <p style="font-size: 0.85rem; color: #ccc; margin-bottom: 15px;">بناءً على أدلة الأيام الثلاثة، حدد هوية الجاني والدليل القاطع لإغلاق الملف تماماً.</p>
+                    
+                    <label style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 5px;">اختر الجاني الحقيقي:</label>
+                    <select id="finalStorySuspect" style="width: 100%; padding: 8px; background: #111; color: #fff; border: 1px solid #444; border-radius: 4px; margin-bottom: 12px; font-family:inherit;">
+                        <option value="">-- اختر الجاني --</option>
+                        <option value="ss1">عم صابر (الحارس)</option>
+                        <option value="ss2">سامح (المساعد الأكاديمي)</option>
+                    </select>
+
+                    <label style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 5px;">الدليل القاطع الرئيسي:</label>
+                    <select id="finalStoryEvidence" style="width: 100%; padding: 8px; background: #111; color: #fff; border: 1px solid #444; border-radius: 4px; margin-bottom: 15px; font-family:inherit;">
+                        <option value="">-- اختر الدليل --</option>
+                        <option value="se1">كوب قهوة مسموم</option>
+                        <option value="se2">فاتورة مطعم ممزقة</option>
+                        <option value="se3">سجل مكالمات صادر</option>
+                    </select>
+
+                    <button id="btnExecuteFinalVerdict" class="btn-primary" style="background: #27ae60; border: none; width: 100%; padding: 10px; border-radius: 4px; font-weight: bold; color: #fff; cursor: pointer;">إصدار الحكم وإغلاق القضية 🏛️</button>
+                </div>
+            `;
+        }
+        return '';
+    }
+
+    // نافذة فحص الدليل (Inspect Modal)
+    function showInspectModal(evi) {
+        const modal = document.createElement('div');
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:99999;";
+        modal.innerHTML = `
+            <div style="background:#1c1c1c; border:2px solid #3498db; padding:20px; border-radius:8px; max-width:400px; width:90%; color:#fff; text-align:right;">
+                <h3 style="color:#3498db; margin-top:0;">🔍 فحص تفصيلي: ${evi.title}</h3>
+                <p style="font-size:0.85rem; color:#aaa; margin-bottom:10px;">التصنيف: ${evi.type}</p>
+                <p style="font-size:0.9rem; color:#ddd; line-height:1.5; margin-bottom:15px;">${evi.details}</p>
+                <div style="background:#262626; padding:10px; border-radius:4px; border-left:3px solid #f1c40f; margin-bottom:15px;">
+                    <strong style="color:#f1c40f; font-size:0.8rem;">ملاحظة المحقق المخفية:</strong>
+                    <p style="font-size:0.85rem; color:#fff; margin:3px 0 0 0;">${evi.hidden}</p>
+                </div>
+                <button id="btnCloseInspect" style="background:#e74c3c; border:none; color:#fff; padding:8px 15px; border-radius:4px; cursor:pointer; width:100%; font-weight:bold;">إغلاق الفحص</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('#btnCloseInspect').addEventListener('click', () => {
+            playSound('click');
+            modal.remove();
+        });
+    }
+
+    // نافذة ربط الأدلة (Evidence Connection Modal)
+    function showEvidenceConnectionModal(currentDayData) {
+        let allEvidences = [];
+        for(let i=0; i<=activeStoryDay; i++) {
+            allEvidences.push(...STORY_CAMPAIGN.days[i].evidences);
+        }
+
+        if (allEvidences.length < 2) {
+            alert('تحتاج إلى دليلين على الأقل لمحاولة ربطهما معاً!');
+            return;
+        }
+
+        let optionsHtml = allEvidences.map(e => `<option value="${e.id}">${e.title}</option>`).join('');
+
+        const modal = document.createElement('div');
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:99999;";
+        modal.innerHTML = `
+            <div style="background:#1c1c1c; border:2px solid #8e44ad; padding:20px; border-radius:8px; max-width:420px; width:90%; color:#fff; text-align:right;">
+                <h3 style="color:#9b59b6; margin-top:0;">🔗 ربط الأدلة الجنائية</h3>
+                <p style="font-size:0.85rem; color:#ccc; margin-bottom:15px;">اختر دليلين لكشف التقاطع والتناقض الخفي بينهما:</p>
+                
+                <label style="font-size:0.8rem; font-weight:bold;">الدليل الأول:</label>
+                <select id="connEvi1" style="width:100%; padding:8px; background:#111; color:#fff; border:1px solid #444; border-radius:4px; margin-bottom:10px; font-family:inherit;">${optionsHtml}</select>
+                
+                <label style="font-size:0.8rem; font-weight:bold;">الدليل الثاني:</label>
+                <select id="connEvi2" style="width:100%; padding:8px; background:#111; color:#fff; border:1px solid #444; border-radius:4px; margin-bottom:15px; font-family:inherit;">${optionsHtml}</select>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btnTestConnection" style="background:#27ae60; border:none; color:#fff; padding:8px; border-radius:4px; cursor:pointer; flex:1; font-weight:bold;">اختبار الربط ⚡</button>
+                    <button id="btnCloseConn" style="background:#e74c3c; border:none; color:#fff; padding:8px 15px; border-radius:4px; cursor:pointer;">إلغاء</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.querySelector('#btnCloseConn').addEventListener('click', () => modal.remove());
+        modal.querySelector('#btnTestConnection').addEventListener('click', () => {
+            playSound('click');
+            const e1 = modal.querySelector('#connEvi1').value;
+            const e2 = modal.querySelector('#connEvi2').value;
+
+            if (e1 === e2) {
+                alert('يرجى اختيار دليلين مختلفين للربط!');
+                return;
+            }
+
+            // مثال على ربط صحيح بين فاتورة المطعم وسجل المكالمات أو الحارس
+            if ((e1 === 'se2' && e2 === 'se3') || (e1 === 'se3' && e2 === 'se2')) {
+                playSound('success');
+                alert('🎉 ربط ممتاز!\n\nاكتشفت أن وقت فاتورة المطعم يتطابق تماماً مع وقت المكالمة الصادرة للمساعد سامح، مما يسقط حجة غيابه تماماً!');
+                modal.remove();
+            } else {
+                playSound('error');
+                alert('❌ لا يوجد تناقض أو رابط منطقي مباشر بين هذين الدليلين. استمر في الفحص.');
+            }
+        });
+    }
+
+    // نافذة مواجهة المشتبه به (Confront Modal)
+    function showConfrontModal(suspectId, currentDayData) {
+        let allEvidences = [];
+        for(let i=0; i<=activeStoryDay; i++) {
+            allEvidences.push(...STORY_CAMPAIGN.days[i].evidences);
+        }
+
+        let allSuspects = [];
+        for(let i=0; i<=activeStoryDay; i++) {
+            allSuspects.push(...STORY_CAMPAIGN.days[i].suspects);
+        }
+
+        const suspect = allSuspects.find(s => s.id === suspectId);
+        if (!suspect) return;
+
+        let eviOptions = allEvidences.map(e => `<option value="${e.id}">${e.title}</option>`).join('');
+
+        const modal = document.createElement('div');
+        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:99999;";
+.innerHTML = `
+            <div style="background:#1c1c1c; border:2px solid #e67e22; padding:20px; border-radius:8px; max-width:420px; width:90%; color:#fff; text-align:right;">
+                <h3 style="color:#e67e22; margin-top:0;">⚡ استجواب ومواجهة: ${suspect.name}</h3>
+                <p style="font-size:0.85rem; color:#ccc; margin-bottom:10px;">أقواله المسجلة: "${suspect.statement}"</p>
+                <p style="font-size:0.85rem; color:#f1c40f; margin-bottom:15px;">اختر الدليل القاطع لمواجهته وكشف كذبه:</p>
+                
+                <select id="confrontEviSelect" style="width:100%; padding:8px; background:#111; color:#fff; border:1px solid #444; border-radius:4px; margin-bottom:15px; font-family:inherit;">
+                    <option value="">-- اختر الدليل للمواجهة --</option>
+                    ${eviOptions}
+                </select>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btnExecuteConfront" style="background:#27ae60; border:none; color:#fff; padding:8px; border-radius:4px; cursor:pointer; flex:1; font-weight:bold;">تنفيذ المواجهة 🎯</button>
+                    <button id="btnCloseConf" style="background:#7f8c8d; border:none; color:#fff; padding:8px 15px; border-radius:4px; cursor:pointer;">إلغاء</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.querySelector('#btnCloseConf').addEventListener('click', () => modal.remove());
+        modal.querySelector('#btnExecuteConfront').addEventListener('click', () => {
+            playSound('click');
+            const selectedEv = modal.querySelector('#confrontEviSelect').value;
+
+            // إذا كان سامح ودليله السجل أو الحارس وفاتورة المطعم
+            if ((suspectId === 'ss2' && selectedEv === 'se3') || (suspectId === 'ss1' && selectedEv === 'se2')) {
+                playSound('success');
+                alert(`🎯 مواجهة ناجحة!\n\nارتبك ${suspect.name} واعترف بوجود ثغرة في أقواله بعد أن واجهته بالدليل القاطع!`);
+                modal.remove();
+            } else {
+                playSound('error');
+                alert('❌ هذا الدليل لا يُمثل تناقضاً كافياً لدحض أقوال هذا الشخص.');
+            }
+        });
+    }
+
+    // إرسال الحكم النهائي للقصة
+    function submitFinalStoryDeduction() {
+        storyBoardTab = 'deduce';
+        renderStoryInvestigationDesk();
+
+        // ربط حدث إرسال الحكم النهائي بعد إعادة الرسم
+        setTimeout(() => {
+            document.getElementById('btnExecuteFinalVerdict')?.addEventListener('click', async () => {
+                const sSuspect = document.getElementById('finalStorySuspect')?.value;
+                const sEvidence = document.getElementById('finalStoryEvidence')?.value;
+
+                if (!sSuspect || !sEvidence) {
+                    alert('يرجى تحديد الجاني والدليل القاطع بدقة!');
+                    return;
+                }
+
+                // الجاني الصحيح هو سامح (ss2) والدليل هو سجل المكالمات (se3)
+                if (sSuspect === 'ss2' && sEvidence === 'se3') {
+                    playSound('success');
+                    await finishStoryCampaignCompletely();
+                } else {
+                    playSound('error');
+                    alert('❌ اتهام خاطئ! الجاني تمكن من الإفلات بسبب خطأ في تحديد الأدلة. راجع التحقيق جيداً.');
+                }
+            });
+        }, 100);
+    }
+
+    async function finishStoryCampaignCompletely() {
         playSound('success');
-        let bonusPoints = 25;
+        let bonus = 50;
         if (currentUserData && currentUserId) {
-            currentUserData.totalScore = (Number(currentUserData.totalScore) || 0) + bonusPoints;
+            currentUserData.totalScore = (Number(currentUserData.totalScore) || 0) + bonus;
             try {
                 const docRef = doc(db, "users", currentUserId);
                 await updateDoc(docRef, { totalScore: currentUserData.totalScore });
-            } catch (err) { console.error("خطأ في تحديث نقاط القصة:", err); }
+            } catch (err) { console.error(err); }
         }
-        alert(`🏆 تهانينا يا محقق!\n\nلقد أتممت قصة التحقيق بجميع أيامها بنجاح تام.\nتمت إضافة +${bonusPoints} نقطة لرصيدك العام.`);
+        alert(`🏆 تهانينا الكبرى يا محقق النجوم!\n\nلقد أتممت قصة "اختفاء الدكتور راشد" بجميع أيامها عبر لوحة التحقيق التفاعلية وكشفت الجاني الحقيقي بنجاح.\nتمت إضافة +${bonus} نقطة لرصيدك العام.`);
         showView('mainMenu');
     }
 
     // ==========================================
-    // نظام القضايا والتحقيق الرئيسي 🕵️‍♂️
+    // نظام القضايا الرئيسي العادي 🕵️‍♂️
     // ==========================================
     const GITHUB_CASES_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/main/cases.json";
     let CASES_DATA = [];
