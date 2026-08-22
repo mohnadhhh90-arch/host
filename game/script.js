@@ -89,7 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         howToPlay: document.getElementById('howToPlaySection'),
         settings: document.getElementById('settingsSection'),
         about: document.getElementById('aboutSection'),
-        leaderboard: document.getElementById('leaderboardSection')
+        leaderboard: document.getElementById('leaderboardSection'),
+        storyMode: document.getElementById('storyModeSection') // تمت إضافة شاشة القصة
     };
 
     function showView(viewKey) {
@@ -206,8 +207,144 @@ document.addEventListener('DOMContentLoaded', () => {
         await renderLeaderboard();
     });
 
+    // أحداث زر العودة
     document.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
     document.querySelectorAll('.btn-to-cases').forEach(btn => btn.addEventListener('click', () => showView('casesList')));
+
+
+    // ==========================================
+    // بدايـــة أجزاء طـــور القصـــة 📖
+    // ==========================================
+
+    document.getElementById('btnStoryMode')?.addEventListener('click', () => {
+        showView('storyMode');
+        startStoryNode('chapter1_start'); // بدء العقدة الأولى للقصة
+    });
+
+    // بيانات القصة التفاعلية
+    const STORY_DATA = {
+        "chapter1_start": {
+            text: "تتلقى مكالمة هاتفية غامضة في منتصف الليل من ضابط مناوب.. 'يا محقق، لقد وقعت جريمة غامضة في الحي الراقي، والمدير يريدك أنت بالذات في مسرح الجريمة فوراً.' ما خطوتك الأولى؟",
+            choices: [
+                { text: "🚗 التحرك فوراً لمسرح الجريمة", next: "crime_scene_arrival" },
+                { text: "📞 الاتصال بمصدرك السري أولاً لجمع معلومات مسبقة", next: "secret_informer" }
+            ]
+        },
+        "crime_scene_arrival": {
+            text: "تصل إلى الفيلا الفاخرة. الأجواء متوترة والشرطة تحيط بالمكان. تجد على المكتب زجاجة مكسورة ورسالة مشفرة.",
+            choices: [
+                { text: "🔍 فحص الرسالة المشفرة بدقة", next: "decode_message" },
+                { text: "👥 استجواب الحارس الشخصي الواقف في الركن", next: "interrogate_guard" }
+            ]
+        },
+        "secret_informer": {
+            text: "يخبرك المصدر السري بصوت هامس: 'احذر يا محقق، القاتل ليس غريباً عن الضحية، وهناك من يحاول طمس الأدلة داخل المدخل الرئيسي.'",
+            choices: [
+                { text: "🚗 التوجه لمسرح الجريمة الآن مع حذر شديد", next: "crime_scene_arrival" }
+            ]
+        },
+        "decode_message": {
+            text: "باستخدام مهاراتك التحليلية، تفك شفرة الرسالة لتكتشف اسم المشتبه به الأول! لقد خطوت خطوة عملاقة نحو كشف الحقيقة.",
+            choices: [
+                { text: "🏆 إغلاق الملف واستلام مكافأة التحقيق (+15 نقطة)", action: "end_story_success" }
+            ]
+        },
+        "interrogate_guard": {
+            text: "يبدو الحارس مرتبكاً وعيناه تزيغان يميناً ويساراً.. يتلعثم في كلامه، ولكنه يرفض الإفصاح عن أي شيء مفيد. يبدو أنه يخفي سراً خطيراً، ويجب عليك جمع المزيد من الأدلة للضغط عليه لاحقاً.",
+            choices: [
+                { text: "🏆 العودة لمكتب التحقيقات (+5 نقاط)", action: "end_story_partial" }
+            ]
+        }
+    };
+
+    let typeWriterInterval = null;
+
+    function startStoryNode(nodeKey) {
+        const node = STORY_DATA[nodeKey];
+        const dialogueBox = document.getElementById('storyDialogueBox');
+        const choicesContainer = document.getElementById('storyChoicesContainer');
+
+        if (!node || !dialogueBox || !choicesContainer) return;
+
+        // تفريغ المحتوى وتصفير الأنيميشن
+        if(typeWriterInterval) clearTimeout(typeWriterInterval);
+        dialogueBox.innerText = "";
+        choicesContainer.innerHTML = "";
+
+        // تأثير الآلة الكاتبة لعرض النص
+        let charIndex = 0;
+        function typeWriter() {
+            if (charIndex < node.text.length) {
+                dialogueBox.innerText += node.text.charAt(charIndex);
+                charIndex++;
+                typeWriterInterval = setTimeout(typeWriter, 30);
+            } else {
+                // إظهار الأزرار بعد انتهاء الكتابة
+                renderChoices(node.choices, choicesContainer);
+            }
+        }
+        typeWriter();
+    }
+
+    function renderChoices(choices, container) {
+        choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary';
+            btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s;";
+            btn.innerText = choice.text;
+            
+            // تأثير حركي عند المرور بالماوس
+            btn.onmouseover = () => btn.style.background = "#34495e";
+            btn.onmouseleave = () => btn.style.background = "#2c3e50";
+
+            btn.addEventListener('click', async () => {
+                playSound('click');
+                if (choice.action) {
+                    await handleStoryEnding(choice.action);
+                } else if (choice.next) {
+                    startStoryNode(choice.next);
+                }
+            });
+
+            container.appendChild(btn);
+        });
+    }
+
+    async function handleStoryEnding(actionType) {
+        let pointsToAdd = 0;
+        let message = "";
+
+        if (actionType === 'end_story_success') {
+            pointsToAdd = 15;
+            message = "🎉 مبروك! لقد أنهيت هذا الفصل التحقيقي بنجاح تام.\n\nتمت إضافة 15 نقطة لتقييمك الإجمالي.";
+            playSound('success');
+        } else if (actionType === 'end_story_partial') {
+            pointsToAdd = 5;
+            message = "✔️ لقد أنهيت الفصل، لكن بمهارة جزئية.\n\nتمت إضافة 5 نقاط لتقييمك الإجمالي.";
+            playSound('success');
+        }
+
+        // تحديث النقاط في الداتا بيس إذا كان اللاعب مسجل
+        if (currentUserData && currentUserId) {
+            let newScore = (Number(currentUserData.totalScore) || 0) + pointsToAdd;
+            currentUserData.totalScore = newScore;
+            
+            try {
+                const docRef = doc(db, "users", currentUserId);
+                await updateDoc(docRef, { totalScore: newScore });
+            } catch (err) {
+                console.error("خطأ في تحديث نقاط القصة:", err);
+            }
+        }
+
+        alert(message);
+        showView('mainMenu');
+    }
+
+    // ==========================================
+    // نهايـــة أجزاء طـــور القصـــة 📖
+    // ==========================================
+
 
     const GITHUB_CASES_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/main/cases.json";
     let CASES_DATA = [];
@@ -233,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let newTotalScore = Number(currentUserData?.totalScore || 0);
         if (isNewCase) {
-            newTotalScore += earnedScore; // إضافة 10 نقاط فقط للقضايا الجديدة
+            newTotalScore += earnedScore; // إضافة نقاط فقط للقضايا الجديدة
         }
 
         let rank = "مساعد محقق 🕵️‍♂️";
