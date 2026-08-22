@@ -7,12 +7,12 @@
     <style>
         :root {
             --bg-color: #121212;
-            --paper-bg: #1e1e1e;
+            --paper-bg: #1a1a1a;
             --text-color: #e0e0e0;
             --accent-color: #f1c40f;
             --border-color: #333;
-            --danger-color: #e74c3c;
-            --success-color: #2ecc71;
+            --danger-color: #c0392b;
+            --success-color: #27ae60;
         }
 
         * {
@@ -71,19 +71,34 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
+        /* تصميم موحد واحترافي لجميع الأزرار */
         .btn-primary {
-            background: var(--accent-color);
-            color: #121212;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
+            background: linear-gradient(135deg, #2c3e50, #1a252f);
+            color: #fff;
+            border: 1px solid #444;
+            padding: 11px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-primary:hover {
-            opacity: 0.9;
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(241, 196, 15, 0.15);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
         }
 
         /* شاشة تسجيل الدخول */
@@ -120,9 +135,9 @@
         #mainMenuSection button {
             display: block;
             width: 100%;
-            margin: 15px 0;
-            padding: 12px;
-            font-size: 1.1rem;
+            margin: 12px 0;
+            padding: 13px;
+            font-size: 1.05rem;
         }
 
         /* قائمة القضايا */
@@ -146,18 +161,26 @@
         }
 
         .tab-btn {
-            background: #2a2a2a;
-            color: #fff;
+            background: #222;
+            color: #ccc;
             border: 1px solid var(--border-color);
-            padding: 8px 15px;
-            border-radius: 5px;
+            padding: 9px 16px;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--accent-color);
+            color: #fff;
         }
 
         .tab-btn.active {
             background: var(--accent-color);
             color: #121212;
             font-weight: bold;
+            border-color: var(--accent-color);
         }
 
         .tab-pane {
@@ -181,14 +204,20 @@
         }
 
         .btn-eliminate {
-            background: var(--danger-color);
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
+            background: rgba(192, 57, 43, 0.2);
+            color: #e74c3c;
+            border: 1px solid var(--danger-color);
+            padding: 6px 12px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 0.8rem;
             margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-eliminate:hover {
+            background: var(--danger-color);
+            color: #fff;
         }
 
         /* المتصدرين */
@@ -239,7 +268,7 @@
             <div id="authError" style="color: var(--danger-color); font-size: 0.85rem; margin: 5px 0;"></div>
             <div class="auth-buttons">
                 <button id="btnLogin" class="btn-primary">دخول</button>
-                <button id="btnRegister" class="btn-primary" style="background:#2c3e50; color:#fff;">إنشاء حساب</button>
+                <button id="btnRegister" class="btn-primary">إنشاء حساب</button>
             </div>
         </section>
 
@@ -248,12 +277,12 @@
             <h2>مكتب التحقيقات الرئيسي</h2>
             <p style="color: #aaa; margin: 10px 0 20px 0;">اختر وجهتك التالية يا محقق:</p>
             <button id="btnStartGame" class="btn-primary">📂 قضايا التحقيق</button>
-            <button id="btnStoryMode" class="btn-primary" style="background: #8e44ad; color: #fff; border-color: #9b59b6;">📖 طور القصة</button>
-            <button id="btnLeaderboard" class="btn-primary" style="background: #27ae60; color: #fff;">🏆 لوحة الشرف</button>
-            <button id="btnHowToPlay" class="btn-primary" style="background: #2980b9; color: #fff;">❓ كيف تلعب؟</button>
-            <button id="btnSettings" class="btn-primary" style="background: #7f8c8d; color: #fff;">⚙️ الإعدادات</button>
-            <button id="btnAbout" class="btn-primary" style="background: #d35400; color: #fff;">ℹ️ عن اللعبة</button>
-            <button id="btnLogout" class="btn-primary" style="background: #c0392b; color: #fff; margin-top: 30px;">🚪 تسجيل الخروج</button>
+            <button id="btnStoryMode" class="btn-primary" style="border-color: #8e44ad; color: #e0b0ff;">📖 طور القصة</button>
+            <button id="btnLeaderboard" class="btn-primary" style="border-color: #27ae60; color: #2ecc71;">🏆 لوحة الشرف</button>
+            <button id="btnHowToPlay" class="btn-primary">❓ كيف تلعب؟</button>
+            <button id="btnSettings" class="btn-primary">⚙️ الإعدادات</button>
+            <button id="btnAbout" class="btn-primary">ℹ️ عن اللعبة</button>
+            <button id="btnLogout" class="btn-primary" style="border-color: var(--danger-color); color: #e74c3c; margin-top: 25px;">🚪 تسجيل الخروج</button>
         </section>
 
         <!-- قسم طور القصة -->
@@ -261,7 +290,7 @@
             <div class="desk-paper" style="position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #444; padding-bottom: 10px;">
                     <h2 style="color: #f1c40f; margin: 0;">📖 طور القصة: خيوط الجريمة الكبرى</h2>
-                    <button class="btn-primary btn-to-menu" style="background: #e74c3c; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; color: #fff;">العودة للقائمة</button>
+                    <button class="btn-primary btn-to-menu" style="padding: 6px 14px; font-size: 0.85rem;">العودة للقائمة</button>
                 </div>
                 
                 <!-- صندوق عرض الحوار أو القصة -->
@@ -280,7 +309,7 @@
         <section id="casesListSection" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>ملفات القضايا المتاحة</h2>
-                <button class="btn-primary btn-to-menu" style="background: #444; color:#fff;">القائمة الرئيسية</button>
+                <button class="btn-primary btn-to-menu">القائمة الرئيسية</button>
             </div>
             <div id="casesContainer" class="cases-grid">
                 <!-- توليد القضايا ديناميكياً من الجافاسكريبت -->
@@ -294,21 +323,21 @@
                     <span id="boardCaseId" style="color:var(--accent-color); font-weight:bold;"></span>
                     <h2 id="boardCaseTitle" style="display:inline; margin-right:10px;"></h2>
                 </div>
-                <div>
-                    <button id="notebookToggleBtn" class="btn-primary" style="background:#f39c12; margin-left:5px;">📓 الدفتـر</button>
-                    <button class="btn-primary btn-to-cases" style="background:#444; color:#fff;">قائمة القضايا</button>
+                <div style="display: flex; gap: 8px;">
+                    <button id="notebookToggleBtn" class="btn-primary" style="border-color: #d35400; color: #f39c12;">📓 الدفتـر</button>
+                    <button class="btn-primary btn-to-cases">قائمة القضايا</button>
                 </div>
             </div>
 
-            <div class="desk-paper" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding: 10px 20px;">
+            <div class="desk-paper" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding: 12px 20px;">
                 <div>⭐ النقاط: <span id="scoreDisplay" style="color:var(--accent-color); font-weight:bold;">1000</span></div>
                 <div>❌ الأخطاء: <span id="mistakesDisplay" style="color:var(--danger-color); font-weight:bold;">0</span></div>
                 <div>💡 التلميحات المتبقية: <span id="hintsLeftDisplay" style="color:var(--success-color); font-weight:bold;">3</span></div>
-                <button id="btnUseHint" class="btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">طلب تلميح</button>
+                <button id="btnUseHint" class="btn-primary" style="padding: 6px 14px; font-size: 0.85rem;">طلب تلميح</button>
             </div>
 
             <!-- عداد العقوبة عند الخطأ -->
-            <div id="cooldownTimerDisplay" class="desk-paper hidden" style="background: rgba(231, 76, 60, 0.2); border-color: var(--danger-color); text-align: center; color: var(--danger-color);">
+            <div id="cooldownTimerDisplay" class="desk-paper hidden" style="background: rgba(192, 57, 43, 0.15); border-color: var(--danger-color); text-align: center; color: #e74c3c;">
                 ⚠️ محاولة خاطئة! تم حظر تقديم الحلول لمدة <span id="cooldownSeconds">15</span> ثانية.
             </div>
 
@@ -345,7 +374,7 @@
                 <!-- قرار الاتهام -->
                 <div id="tabDeduction" class="tab-pane">
                     <div id="deductionPuzzlesContainer"></div>
-                    <button id="btnSubmitDeduction" class="btn-primary" style="width:100%; margin-top:15px; background:var(--success-color); color:#fff; padding:12px;">⚖️ إصدار مذكرة إدانة نهائية</button>
+                    <button id="btnSubmitDeduction" class="btn-primary" style="width:100%; margin-top:15px; border-color: var(--success-color); color: var(--success-color); padding: 13px;">⚖️ إصدار مذكرة إدانة نهائية</button>
                 </div>
             </div>
         </section>
@@ -354,7 +383,7 @@
         <section id="leaderboardSection" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>🏆 لوحة شرف المحققين (Top 50)</h2>
-                <button class="btn-primary btn-to-menu" style="background: #444; color:#fff;">القائمة الرئيسية</button>
+                <button class="btn-primary btn-to-menu">القائمة الرئيسية</button>
             </div>
             <div class="desk-paper" style="margin-bottom: 15px; display: flex; justify-content: space-around; text-align: center;">
                 <div>نقاطك: <span id="myScoreDisplay" style="color:var(--accent-color); font-weight:bold;">0</span></div>
@@ -385,7 +414,7 @@
                 <label for="settingSoundToggle" style="cursor:pointer;">تفعيل المؤثرات الصوتية والموسيقى</label>
             </div>
             <hr style="border:0; border-top:1px solid #444; margin: 20px 0;">
-            <button id="btnResetProgress" class="btn-primary" style="background:var(--danger-color); color:#fff;">⚠️ مسح جميع التقدم وتصفير النقاط</button>
+            <button id="btnResetProgress" class="btn-primary" style="border-color: var(--danger-color); color: #e74c3c;">⚠️ مسح جميع التقدم وتصفير النقاط</button>
             <br><br>
             <button class="btn-primary btn-to-menu" style="margin-top: 10px;">العودة للقائمة</button>
         </section>
@@ -406,7 +435,7 @@
         <div class="desk-paper" style="width:90%; max-width:500px; height:400px; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 style="color:var(--accent-color);">📓 دفتر ملاحظات المحقق</h3>
-                <button class="close-modal btn-primary" style="background:#e74c3c; color:#fff; padding:3px 8px;">✕</button>
+                <button class="close-modal btn-primary" style="padding: 4px 10px;">✕</button>
             </div>
             <textarea id="notebookTextArea" placeholder="اكتب ملاحظاتك، خواطرك، أو استنتاجاتك هنا أثناء التحقيق (يتم الحفظ تلقائياً)..." style="flex:1; background:#111; color:#fff; border:1px solid var(--border-color); padding:10px; border-radius:5px; resize:none; font-family:inherit;"></textarea>
         </div>
