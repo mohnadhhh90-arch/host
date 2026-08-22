@@ -219,19 +219,15 @@ window.launchInteractiveBoard = function(storyId, dayId) {
     `).join('');
 
     const puzzleContainer = document.getElementById('deductionPuzzlesContainer');
-    if (activeDayObj.puzzle) {
-        let p = activeDayObj.puzzle;
+    if (activeDayObj.challenge) {
+        let ch = activeDayObj.challenge;
         puzzleContainer.innerHTML = `
             <div class="desk-paper" style="padding: 15px;">
-                <h4 style="color: #c0392b; margin-bottom: 8px;">⚖️ فخ الهكر والاستنتاج الحاسم:</h4>
-                <p style="font-size:0.95rem; margin: 10px 0; font-weight:bold; color: #2c221e;">${p.question}</p>
+                <h4 style="color: #c0392b; margin-bottom: 8px;">⚖️ تحدي الاستنتاج الأمني:</h4>
+                <p style="font-size:0.95rem; margin: 10px 0; font-weight:bold; color: #2c221e;">${ch.prompt}</p>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    ${p.options.map((opt, idx) => `
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="radio" name="storyPuzzleOpt" value="${idx}">
-                            <span style="font-size: 0.9rem;">${opt}</span>
-                        </label>
-                    `).join('')}
+                    <input type="text" id="storyAnswerInput" placeholder="اكتب الإجابة أو الاستنتاج هنا..." style="padding: 10px; border: 1px solid #d4c5a9; border-radius: 4px; font-size: 0.9rem; width: 100%; font-family: inherit;">
+                    <span style="font-size: 0.75rem; color: #777;">💡 تلميح: ${ch.hint}</span>
                 </div>
             </div>
         `;
@@ -248,14 +244,17 @@ window.launchInteractiveBoard = function(storyId, dayId) {
     const submitBtn = document.getElementById('btnSubmitDeduction');
     if (submitBtn) {
         submitBtn.onclick = () => {
-            const selectedOpt = document.querySelector('input[name="storyPuzzleOpt"]:checked');
-            if (!selectedOpt) {
-                alert("اختر الاستنتاج المناسب لتفادي الفخ الرقمي قبل اعتماد القرار!");
+            const answerInput = document.getElementById('storyAnswerInput');
+            if (!answerInput) return;
+
+            const userAnswer = answerInput.value.trim();
+            if (!userAnswer) {
+                alert("اكتب الإجابة في حقل الإدخال لتجاوز التحدي الأمني!");
                 return;
             }
 
-            const chosenIndex = parseInt(selectedOpt.value);
-            if (chosenIndex === activeDayObj.puzzle.correctIndex) {
+            const expected = activeDayObj.challenge.expectedAnswer.trim();
+            if (userAnswer.toLowerCase() === expected.toLowerCase()) {
                 const progress = getStoryProgress();
                 if (!progress[storyId]) progress[storyId] = { completedDays: [] };
                 if (!progress[storyId].completedDays.includes(dayId)) {
@@ -271,7 +270,7 @@ window.launchInteractiveBoard = function(storyId, dayId) {
                 showStoryView('storyModeSection');
                 window.openStoryDays(storyId);
             } else {
-                alert("❌ وقعت في فخ الهكر! استنتاجك خاطئ، راجع الأدلة ورسائل التحدي جيداً وحاول مرة أخرى.");
+                alert("❌ الإجابة غير دقيقة أو خاطئة! راجع الأدلة ورسائل التحدي جيداً وحاول مرة أخرى.");
             }
         };
     }
