@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // طور القصة (نظام الأيام والمراحل المقفولة)
+    // طور القصة (مكتب التحقيق الخشبي والأوراق التفاعلية)
     // ==========================================
     let storyData = {};
 
@@ -273,14 +273,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!dialogueBox || !choicesContainer) return;
 
-        dialogueBox.innerText = "📁 ملفات التحقيق الميداني (اختر اليوم لبدء التحقيق):";
+        // تحويل صندوق القائمة لشكل ملف ورقي على المكتب الخشبي
+        dialogueBox.className = "detective-case-file";
+        dialogueBox.innerHTML = "<h3 style='margin-bottom:10px; color:#8b4513;'>📁 أرشيف ملفات التحقيق الميداني</h3><p>اختر يوم التحقيق لبدء فحص الأدلة واستجواب المشتبه بهم:</p>";
         choicesContainer.innerHTML = "";
 
         const completedDays = getCompletedStoryDays();
 
         const daysList = [
-            { id: 1, title: "اليوم الأول: بداية الغموض", startNode: "day1_start", points: 15 },
-            { id: 2, title: "اليوم الثاني: خيوط متشابكة", startNode: "day2_start", points: 20 }
+            { id: 1, title: "اليوم الأول: لغز الساعات الأولى في النادي", startNode: "day1_start", points: 15 },
+            { id: 2, title: "اليوم الثاني: لغز اختراق شاشة الملعب العملاقة", startNode: "day2_start", points: 20 }
         ];
 
         daysList.forEach((day, index) => {
@@ -288,26 +290,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const isCompleted = completedDays.includes(day.id);
 
             const btn = document.createElement('button');
-            btn.className = 'btn-primary';
-            btn.style.cssText = `
-                background: ${isUnlocked ? (isCompleted ? '#27ae60' : '#2c3e50') : '#1e1e1e'};
-                border: 1px solid ${isUnlocked ? '#f1c40f' : '#444'};
-                padding: 12px; text-align: right; cursor: ${isUnlocked ? 'pointer' : 'not-allowed'};
-                border-radius: 5px; color: ${isUnlocked ? '#fff' : '#666'}; font-family: inherit;
-                transition: 0.2s; width: 100%; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-            `;
+            btn.className = 'story-evidence-btn';
+            btn.style.opacity = isUnlocked ? "1" : "0.5";
+            btn.style.cursor = isUnlocked ? "pointer" : "not-allowed";
 
             let statusText = "";
-            if (isCompleted) statusText = " ✅ (مكتمل)";
+            if (isCompleted) statusText = " ✅ (مكتمل ومغلق)";
             else if (!isUnlocked) statusText = " 🔒 (مغلق - أنهِ اليوم السابق أولاً)";
-            else statusText = " 🔍 (ابدأ التحقيق)";
+            else statusText = " 🔍 (ابدأ التحقيق الآن)";
 
-            btn.innerHTML = `<span>${day.title}</span><span style="font-size:0.8rem;">${statusText}</span>`;
+            btn.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>${day.title}</span><span style="font-size:0.8rem; color:#666;">${statusText}</span></div>`;
 
             if (isUnlocked) {
-                btn.onmouseover = () => btn.style.background = "#34495e";
-                btn.onmouseleave = () => btn.style.background = isCompleted ? '#27ae60' : '#2c3e50';
-
                 btn.addEventListener('click', () => {
                     playSound('click');
                     startStoryNode(day.startNode, day.id, day.points);
@@ -315,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 btn.addEventListener('click', () => {
                     playSound('error');
-                    alert(`⚠️ عذراً يا محقق!\nيجب عليك إنهاء (${daysList[index - 1].title}) أولاً لفتح هذا اليوم.`);
+                    alert(`⚠️ عذراً يا محقق!\nيجب عليك إنهاء (${daysList[index - 1].title}) أولاً لفتح هذا الملف.`);
                 });
             }
 
@@ -324,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const backBtn = document.createElement('button');
         backBtn.className = 'btn-primary';
-        backBtn.style.cssText = "background: #c0392b; border: none; padding: 10px; width: 100%; margin-top: 10px; border-radius: 5px; cursor: pointer; color: #fff; font-family: inherit;";
+        backBtn.style.cssText = "background: #c0392b; border: none; padding: 12px; width: 100%; margin-top: 15px; border-radius: 5px; cursor: pointer; color: #fff; font-family: inherit;";
         backBtn.innerText = "⬅️ العودة للقائمة الرئيسية";
         backBtn.addEventListener('click', () => showView('mainMenu'));
         choicesContainer.appendChild(backBtn);
@@ -340,15 +334,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!node || !dialogueBox || !choicesContainer) return;
 
         if (typeWriterInterval) clearTimeout(typeWriterInterval);
-        dialogueBox.innerText = "";
+        
+        // تفعيل الستايل الورقي المخصص للمكتب الخشبي
+        dialogueBox.className = "detective-case-file";
+        dialogueBox.innerHTML = "";
         choicesContainer.innerHTML = "";
 
         let charIndex = 0;
+        const textParagraph = document.createElement('p');
+        textParagraph.style.cssText = "font-size: 1.05rem; line-height: 1.7; white-space: pre-line;";
+        dialogueBox.appendChild(textParagraph);
+
         function typeWriter() {
             if (charIndex < node.text.length) {
-                dialogueBox.innerText += node.text.charAt(charIndex);
+                textParagraph.innerHTML += node.text.charAt(charIndex);
                 charIndex++;
-                typeWriterInterval = setTimeout(typeWriter, 25);
+                typeWriterInterval = setTimeout(typeWriter, 12);
             } else {
                 renderStoryChoices(node.choices, dayId, dayPoints, choicesContainer);
             }
@@ -357,29 +358,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderStoryChoices(choices, dayId, dayPoints, container) {
-        container.innerHTML = "";
+        container.innerHTML = "<h4 style='color: #f1c40f; margin-bottom: 10px; font-family: inherit;'>🔎 خيارات التحقيق المتاحة في الملف:</h4>";
+        
         choices.forEach(choice => {
             const btn = document.createElement('button');
-            btn.className = 'btn-primary';
-            btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s; width: 100%; margin-bottom: 8px;";
-            btn.innerHTML = `<span>${choice.text}</span>`;
+            btn.className = 'story-evidence-btn';
+            btn.innerHTML = `<span>📂 ${choice.text}</span>`;
             
-            btn.onmouseover = () => btn.style.background = "#34495e";
-            btn.onmouseleave = () => btn.style.background = "#2c3e50";
-
             btn.addEventListener('click', async () => {
                 playSound('click');
                 if (choice.consequence) {
                     const feedback = document.createElement('div');
-                    feedback.style.cssText = "color: #f1c40f; margin-bottom: 15px; font-weight: bold;";
-                    feedback.innerText = `💡 ${choice.consequence}`;
-                    container.prepend(feedback);
+                    feedback.style.cssText = "background: #e9d8a6; padding: 12px; margin-top: 10px; border-right: 4px solid #b5838d; color: #333; font-weight: bold; border-radius: 3px;";
+                    feedback.innerHTML = `💡 <strong>نتيجة الفحص الميداني:</strong> ${choice.consequence}`;
+                    container.appendChild(feedback);
+                    
                     container.querySelectorAll('button').forEach(b => b.disabled = true);
                     
                     setTimeout(() => {
                         if (choice.action) handleStoryDayEnding(dayId, dayPoints);
                         else startStoryNode(choice.next, dayId, dayPoints);
-                    }, 1500);
+                    }, 2200);
                 } else {
                     if (choice.action) handleStoryDayEnding(dayId, dayPoints);
                     else startStoryNode(choice.next, dayId, dayPoints);
@@ -394,13 +393,13 @@ document.addEventListener('DOMContentLoaded', () => {
         playSound('success');
         await markDayAsCompleted(dayId, pointsToAdd);
 
-        alert(`🎉 مبروك! لقد أنهيت مهام اليوم بنجاح.\n\nتمت إضافة ${pointsToAdd} نقطة لتقييمك الإجمالي وتم فتح الأيام التالية.`);
+        alert(`🎉 مبروك! لقد أنهيت مهام هذا اليوم بنجاح ووثقت الأدلة.\n\nتمت إضافة (${pointsToAdd} نقطة) لتقييمك وإلغاء قفل الخطوات اللاحقة.`);
         renderStoryDaysMenu();
     }
 
 
     // ==========================================
-    // إدارة القضايا من GitHub
+    // إدارة القضايا العادية من GitHub
     // ==========================================
     const GITHUB_CASES_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/main/cases.json";
     let CASES_DATA = [];
