@@ -1,451 +1,811 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قضايا - لعبة التحقيق الجنائي</title>
-    <style>
-        :root {
-            --bg-color: #121212;
-            --paper-bg: #1a1a1a;
-            --text-color: #e0e0e0;
-            --accent-color: #f1c40f;
-            --border-color: #333;
-            --danger-color: #c0392b;
-            --success-color: #27ae60;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// إعدادات Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyDLOklvLUPBa8IqM3-4xaswdMMqqAdqzXY",
+    authDomain: "mohnad2-bfb02.firebaseapp.com",
+    projectId: "mohnad2-bfb02",
+    storageBucket: "mohnad2-bfb02.firebasestorage.app",
+    messagingSenderId: "846017797996",
+    appId: "1:846017797996:web:518f9eaa546004cd631d49",
+    measurementId: "G-QKG96L42XB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUserId = null;
+let currentUserData = null;
+
+function usernameToEmail(username) {
+    return `${username.toLowerCase().trim()}@qadayati.game`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    let audioCtx = null;
+
+    const secretNoticeModal = document.getElementById('secretNoticeModal');
+    const btnCloseSecretNotice = document.getElementById('btnCloseSecretNotice');
+    
+    if (secretNoticeModal) secretNoticeModal.classList.remove('hidden');
+
+    btnCloseSecretNotice?.addEventListener('click', () => {
+        playSound('click');
+        secretNoticeModal?.classList.add('hidden');
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            await loadUserData(currentUserId);
+            showView('mainMenu');
+        } else {
+            currentUserId = null;
+            currentUserData = null;
+            showView('auth');
+        }
+    });
+
+    function playSound(type) {
+        try {
+            if (!document.getElementById('settingSoundToggle')?.checked) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.frequency.value = 400;
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'success') {
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'error') {
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        } catch (e) { console.log("Audio play error:", e); }
+    }
+
+    const views = {
+        auth: document.getElementById('authSection'),
+        mainMenu: document.getElementById('mainMenuSection'),
+        casesList: document.getElementById('casesListSection'),
+        caseBoard: document.getElementById('caseBoardSection'),
+        howToPlay: document.getElementById('howToPlaySection'),
+        settings: document.getElementById('settingsSection'),
+        about: document.getElementById('aboutSection'),
+        leaderboard: document.getElementById('leaderboardSection'),
+        storyMode: document.getElementById('storyModeSection') // تمت إضافة شاشة القصة
+    };
+
+    function showView(viewKey) {
+        playSound('click');
+        Object.values(views).forEach(v => { if (v) v.classList.add('hidden'); });
+        if (views[viewKey]) views[viewKey].classList.remove('hidden');
+    }
+
+    document.getElementById('btnLogin')?.addEventListener('click', async (e) => {
+        const btn = e.target;
+        const username = document.getElementById('authUsername')?.value.trim();
+        const password = document.getElementById('authPassword')?.value.trim();
+        const errorDiv = document.getElementById('authError');
+
+        if (!username || !password) {
+            if (errorDiv) errorDiv.innerText = "يرجى كتابة اسم المستخدم وكلمة السر";
+            return;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        btn.disabled = true;
+        btn.innerText = "جاري الدخول...";
+
+        try {
+            const email = usernameToEmail(username);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            currentUserId = userCredential.user.uid;
+            await loadUserData(currentUserId);
+            showView('mainMenu');
+        } catch (err) {
+            if (errorDiv) errorDiv.innerText = "اسم المستخدم أو كلمة السر غير صحيحة!";
+            btn.disabled = false;
+            btn.innerText = "دخول";
+        }
+    });
+
+    document.getElementById('btnRegister')?.addEventListener('click', async (e) => {
+        const btn = e.target;
+        const username = document.getElementById('authUsername')?.value.trim();
+        const password = document.getElementById('authPassword')?.value.trim();
+        const errorDiv = document.getElementById('authError');
+
+        if (username.length < 3 || password.length < 6) {
+            if (errorDiv) errorDiv.innerText = "اسم المستخدم 3 حروف على الأقل، وكلمة السر 6 أرقام/حروف";
+            return;
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        btn.disabled = true;
+        btn.innerText = "جاري الإنشاء...";
+
+        try {
+            const email = usernameToEmail(username);
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            currentUserId = userCredential.user.uid;
+
+            currentUserData = {
+                username: username,
+                solvedCases: [],
+                rank: "مساعد محقق 🕵️‍♂️",
+                totalScore: 0
+            };
+
+            await setDoc(doc(db, "users", currentUserId), currentUserData);
+            alert('تم إنشاء حسابك بنجاح! مرحباً بك يا محقق.');
+            updateRankDisplay();
+            showView('mainMenu');
+        } catch (err) {
+            if (errorDiv) {
+                if (err.code === 'auth/email-already-in-use') errorDiv.innerText = "اسم المستخدم هذا مستخدم بالفعل!";
+                else errorDiv.innerText = "حدث خطأ أثناء إنشاء الحساب!";
+            }
+            btn.disabled = false;
+            btn.innerText = "إنشاء حساب";
+        }
+    });
+
+    document.getElementById('btnLogout')?.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            currentUserId = null;
+            currentUserData = null;
+            showView('auth');
+        } catch (error) { console.error("خطأ أثناء تسجيل الخروج:", error); }
+    });
+
+    async function loadUserData(uid) {
+        try {
+            const docRef = doc(db, "users", uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                currentUserData = docSnap.data();
+                if (!currentUserData.solvedCases) currentUserData.solvedCases = [];
+                if (currentUserData.totalScore === undefined) currentUserData.totalScore = 0;
+                updateRankDisplay();
+            } else {
+                currentUserData = {
+                    username: auth.currentUser?.email?.split('@')[0] || "محقق",
+                    solvedCases: [],
+                    rank: "مساعد محقق 🕵️‍♂️",
+                    totalScore: 0
+                };
+                await setDoc(docRef, currentUserData);
+            }
+        } catch (e) { console.error("خطأ في تحميل بيانات المستخدم:", e); }
+    }
+
+    document.getElementById('btnStartGame')?.addEventListener('click', () => { renderCasesList(); showView('casesList'); });
+    document.getElementById('btnHowToPlay')?.addEventListener('click', () => showView('howToPlay'));
+    document.getElementById('btnSettings')?.addEventListener('click', () => showView('settings'));
+    document.getElementById('btnAbout')?.addEventListener('click', () => showView('about'));
+    
+    document.getElementById('btnLeaderboard')?.addEventListener('click', async () => {
+        if (currentUserId) await loadUserData(currentUserId);
+        showView('leaderboard');
+        await renderLeaderboard();
+    });
+
+    // أحداث زر العودة
+    document.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
+    document.querySelectorAll('.btn-to-cases').forEach(btn => btn.addEventListener('click', () => showView('casesList')));
+
+
+    // ==========================================
+    // بدايـــة أجزاء طـــور القصـــة 📖
+    // ==========================================
+
+    document.getElementById('btnStoryMode')?.addEventListener('click', () => {
+        showView('storyMode');
+        startStoryNode('chapter1_start'); // بدء العقدة الأولى للقصة
+    });
+
+    // بيانات القصة التفاعلية
+    const STORY_DATA = {
+        "chapter1_start": {
+            text: "تتلقى مكالمة هاتفية غامضة في منتصف الليل من ضابط مناوب.. 'يا محقق، لقد وقعت جريمة غامضة في الحي الراقي، والمدير يريدك أنت بالذات في مسرح الجريمة فوراً.' ما خطوتك الأولى؟",
+            choices: [
+                { text: "🚗 التحرك فوراً لمسرح الجريمة", next: "crime_scene_arrival" },
+                { text: "📞 الاتصال بمصدرك السري أولاً لجمع معلومات مسبقة", next: "secret_informer" }
+            ]
+        },
+        "crime_scene_arrival": {
+            text: "تصل إلى الفيلا الفاخرة. الأجواء متوترة والشرطة تحيط بالمكان. تجد على المكتب زجاجة مكسورة ورسالة مشفرة.",
+            choices: [
+                { text: "🔍 فحص الرسالة المشفرة بدقة", next: "decode_message" },
+                { text: "👥 استجواب الحارس الشخصي الواقف في الركن", next: "interrogate_guard" }
+            ]
+        },
+        "secret_informer": {
+            text: "يخبرك المصدر السري بصوت هامس: 'احذر يا محقق، القاتل ليس غريباً عن الضحية، وهناك من يحاول طمس الأدلة داخل المدخل الرئيسي.'",
+            choices: [
+                { text: "🚗 التوجه لمسرح الجريمة الآن مع حذر شديد", next: "crime_scene_arrival" }
+            ]
+        },
+        "decode_message": {
+            text: "باستخدام مهاراتك التحليلية، تفك شفرة الرسالة لتكتشف اسم المشتبه به الأول! لقد خطوت خطوة عملاقة نحو كشف الحقيقة.",
+            choices: [
+                { text: "🏆 إغلاق الملف واستلام مكافأة التحقيق (+15 نقطة)", action: "end_story_success" }
+            ]
+        },
+        "interrogate_guard": {
+            text: "يبدو الحارس مرتبكاً وعيناه تزيغان يميناً ويساراً.. يتلعثم في كلامه، ولكنه يرفض الإفصاح عن أي شيء مفيد. يبدو أنه يخفي سراً خطيراً، ويجب عليك جمع المزيد من الأدلة للضغط عليه لاحقاً.",
+            choices: [
+                { text: "🏆 العودة لمكتب التحقيقات (+5 نقاط)", action: "end_story_partial" }
+            ]
+        }
+    };
+
+    let typeWriterInterval = null;
+
+    function startStoryNode(nodeKey) {
+        const node = STORY_DATA[nodeKey];
+        const dialogueBox = document.getElementById('storyDialogueBox');
+        const choicesContainer = document.getElementById('storyChoicesContainer');
+
+        if (!node || !dialogueBox || !choicesContainer) return;
+
+        // تفريغ المحتوى وتصفير الأنيميشن
+        if(typeWriterInterval) clearTimeout(typeWriterInterval);
+        dialogueBox.innerText = "";
+        choicesContainer.innerHTML = "";
+
+        // تأثير الآلة الكاتبة لعرض النص
+        let charIndex = 0;
+        function typeWriter() {
+            if (charIndex < node.text.length) {
+                dialogueBox.innerText += node.text.charAt(charIndex);
+                charIndex++;
+                typeWriterInterval = setTimeout(typeWriter, 30);
+            } else {
+                // إظهار الأزرار بعد انتهاء الكتابة
+                renderChoices(node.choices, choicesContainer);
+            }
+        }
+        typeWriter();
+    }
+
+    function renderChoices(choices, container) {
+        choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary';
+            btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s;";
+            btn.innerText = choice.text;
+            
+            // تأثير حركي عند المرور بالماوس
+            btn.onmouseover = () => btn.style.background = "#34495e";
+            btn.onmouseleave = () => btn.style.background = "#2c3e50";
+
+            btn.addEventListener('click', async () => {
+                playSound('click');
+                if (choice.action) {
+                    await handleStoryEnding(choice.action);
+                } else if (choice.next) {
+                    startStoryNode(choice.next);
+                }
+            });
+
+            container.appendChild(btn);
+        });
+    }
+
+    async function handleStoryEnding(actionType) {
+        let pointsToAdd = 0;
+        let message = "";
+
+        if (actionType === 'end_story_success') {
+            pointsToAdd = 15;
+            message = "🎉 مبروك! لقد أنهيت هذا الفصل التحقيقي بنجاح تام.\n\nتمت إضافة 15 نقطة لتقييمك الإجمالي.";
+            playSound('success');
+        } else if (actionType === 'end_story_partial') {
+            pointsToAdd = 5;
+            message = "✔️ لقد أنهيت الفصل، لكن بمهارة جزئية.\n\nتمت إضافة 5 نقاط لتقييمك الإجمالي.";
+            playSound('success');
         }
 
-        .hidden {
-            display: none !important;
+        // تحديث النقاط في الداتا بيس إذا كان اللاعب مسجل
+        if (currentUserData && currentUserId) {
+            let newScore = (Number(currentUserData.totalScore) || 0) + pointsToAdd;
+            currentUserData.totalScore = newScore;
+            
+            try {
+                const docRef = doc(db, "users", currentUserId);
+                await updateDoc(docRef, { totalScore: newScore });
+            } catch (err) {
+                console.error("خطأ في تحديث نقاط القصة:", err);
+            }
         }
 
-        header {
-            background: #181818;
-            border-bottom: 2px solid var(--border-color);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        alert(message);
+        showView('mainMenu');
+    }
+
+    // ==========================================
+    // نهايـــة أجزاء طـــور القصـــة 📖
+    // ==========================================
+
+
+    const GITHUB_CASES_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/main/cases.json";
+    let CASES_DATA = [];
+    let currentCase = null;
+    let score = 1000;
+    let mistakes = 0;
+    let hintsLeft = 3;
+    let eliminatedSuspects = new Set();
+    let isCooldown = false;
+
+    function getSolvedCases() {
+        if (currentUserData && currentUserData.solvedCases) return currentUserData.solvedCases;
+        return JSON.parse(localStorage.getItem('detective_solved_cases') || '[]');
+    }
+
+    async function saveSolvedCase(caseId, noHintsUsed, earnedScore) {
+        let solved = getSolvedCases();
+        let isNewCase = !solved.includes(caseId);
+
+        if (isNewCase) {
+            solved.push(caseId);
         }
 
-        header h1 {
-            color: var(--accent-color);
-            font-size: 1.5rem;
+        let newTotalScore = Number(currentUserData?.totalScore || 0);
+        if (isNewCase) {
+            newTotalScore += earnedScore; // إضافة نقاط فقط للقضايا الجديدة
         }
 
-        .user-status {
-            font-size: 0.9rem;
-            color: #aaa;
+        let rank = "مساعد محقق 🕵️‍♂️";
+        if (solved.length >= 5) rank = "خبير أدلة جنائية 🏅";
+        else if (solved.length >= 3) rank = "رئيس مباحث 🎖️";
+        else if (solved.length >= 1) rank = "محقق موهوب 🔍";
+
+        if (!currentUserData) currentUserData = {};
+        currentUserData.solvedCases = solved;
+        currentUserData.totalScore = newTotalScore;
+        currentUserData.rank = rank;
+
+        const activeUser = auth.currentUser;
+        if (activeUser) {
+            try {
+                const docRef = doc(db, "users", activeUser.uid);
+                await setDoc(docRef, {
+                    username: currentUserData.username || activeUser.email.split('@')[0],
+                    solvedCases: solved,
+                    rank: rank,
+                    totalScore: newTotalScore
+                }, { merge: true });
+            } catch (err) { console.error("❌ خطأ من فايربيز أثناء الحفظ:", err); }
+        } else {
+            localStorage.setItem('detective_solved_cases', JSON.stringify(solved));
         }
 
-        main {
-            flex: 1;
-            padding: 20px;
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
+        if (noHintsUsed) {
+            localStorage.setItem(`badge_strict_${caseId}`, 'true');
         }
+        updateRankDisplay();
+    }
 
-        .desk-paper {
-            background: var(--paper-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
+    function updateRankDisplay() {
+        const solvedCount = getSolvedCases().length;
+        let rank = "مساعد محقق 🕵️‍♂️";
+        if (solvedCount >= 5) rank = "خبير أدلة جنائية 🏅";
+        else if (solvedCount >= 3) rank = "رئيس مباحث 🎖️";
+        else if (solvedCount >= 1) rank = "محقق موهوب 🔍";
 
-        /* تصميم موحد واحترافي لجميع الأزرار */
-        .btn-primary {
-            background: linear-gradient(135deg, #2c3e50, #1a252f);
-            color: #fff;
-            border: 1px solid #444;
-            padding: 11px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+        if (currentUserData) currentUserData.rank = rank;
+        const rankEl = document.getElementById('userRankDisplay');
+        if (rankEl) rankEl.innerText = rank;
+    }
 
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #34495e, #2c3e50);
-            border-color: var(--accent-color);
-            color: var(--accent-color);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(241, 196, 15, 0.15);
-        }
+    async function loadCasesFromGitHub() {
+        try {
+            const response = await fetch(GITHUB_CASES_URL, { cache: 'no-cache' });
+            if (!response.ok) throw new Error("تعذر جلب القضايا");
+            CASES_DATA = await response.json();
+            updateRankDisplay();
+            renderCasesList();
+        } catch (error) { console.error("خطأ في التحميل:", error); }
+    }
 
-        .btn-primary:active {
-            transform: translateY(0);
-        }
+    function renderCasesList() {
+        const container = document.getElementById('casesContainer');
+        if (!container) return;
+        container.innerHTML = '';
 
-        /* شاشة تسجيل الدخول */
-        #authSection {
-            max-width: 400px;
-            margin: 50px auto;
-            text-align: center;
-        }
+        const solvedCases = getSolvedCases();
 
-        #authSection input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background: #111;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            border-radius: 5px;
-        }
+        CASES_DATA.forEach((c, index) => {
+            const isSolved = solvedCases.includes(c.id);
+            const isUnlocked = index === 0 || solvedCases.includes(CASES_DATA[index - 1].id);
+            const strictBadge = localStorage.getItem(`badge_strict_${c.id}`) ? ' 🏆 (بدون تلميح)' : '';
 
-        .auth-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-        }
+            const card = document.createElement('div');
+            card.className = `desk-paper ${!isUnlocked ? 'locked' : ''}`;
+            
+            if (isUnlocked) {
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <span class="case-tag">${c.id}</span>
+                        <span style="font-size:0.8rem; color:#f1c40f;">${c.difficulty}${strictBadge}</span>
+                    </div>
+                    <h3>${c.title}</h3>
+                    <p style="font-size:0.85rem; color:#aaa; margin:8px 0;">${c.description.substring(0, 90)}...</p>
+                    <button class="btn-primary btn-open-case" data-id="${c.id}">
+                        ${isSolved ? '✅ مراجعة الملف' : '🔍 فتح التحقيق'}
+                    </button>
+                `;
+            } else {
+                card.innerHTML = `
+                    <div style="text-align: center; padding: 10px 0;">
+                        <span class="lock-icon">🔒</span>
+                        <h3>قضية مغلقة</h3>
+                        <p style="font-size: 0.8rem; color: #888;">يجب إغلاق القضية رقم (${CASES_DATA[index - 1]?.id || ''}) أولاً.</p>
+                    </div>
+                `;
+            }
+            container.appendChild(card);
+        });
 
-        /* القائمة الرئيسية */
-        #mainMenuSection {
-            text-align: center;
-            max-width: 500px;
-            margin: 40px auto;
-        }
+        document.querySelectorAll('.btn-open-case').forEach(btn => {
+            btn.addEventListener('click', (e) => { loadCase(e.target.getAttribute('data-id')); });
+        });
+    }
 
-        #mainMenuSection button {
-            display: block;
-            width: 100%;
-            margin: 12px 0;
-            padding: 13px;
-            font-size: 1.05rem;
-        }
+    function loadCase(caseId) {
+        currentCase = CASES_DATA.find(c => c.id === caseId);
+        if (!currentCase) return;
 
-        /* قائمة القضايا */
-        .cases-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
+        score = 1000;
+        mistakes = 0;
+        hintsLeft = 3;
+        eliminatedSuspects.clear();
+        isCooldown = false;
 
-        .locked {
-            opacity: 0.5;
-            filter: grayscale(1);
-        }
+        document.getElementById('boardCaseId').innerText = currentCase.id;
+        document.getElementById('boardCaseTitle').innerText = currentCase.title;
+        document.getElementById('caseOverviewText').innerText = currentCase.description;
+        document.getElementById('scoreDisplay').innerText = score;
+        document.getElementById('mistakesDisplay').innerText = mistakes;
+        document.getElementById('hintsLeftDisplay').innerText = hintsLeft;
+        
+        const submitBtn = document.getElementById('btnSubmitDeduction');
+        if (submitBtn) submitBtn.disabled = false;
+        document.getElementById('cooldownTimerDisplay')?.classList.add('hidden');
 
-        /* لوحة التحقيق */
-        .board-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
+        renderCharacters();
+        renderEvidences();
+        renderTimeline();
+        setupDeductionForm();
 
-        .tab-btn {
-            background: #222;
-            color: #ccc;
-            border: 1px solid var(--border-color);
-            padding: 9px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
+        showView('caseBoard');
+    }
 
-        .tab-btn:hover {
-            border-color: var(--accent-color);
-            color: #fff;
-        }
+    function renderCharacters() {
+        const grid = document.getElementById('charactersGrid');
+        if (!grid || !currentCase) return;
+        grid.innerHTML = '';
 
-        .tab-btn.active {
-            background: var(--accent-color);
-            color: #121212;
-            font-weight: bold;
-            border-color: var(--accent-color);
-        }
+        currentCase.characters.forEach(char => {
+            const isEliminated = eliminatedSuspects.has(char.id);
+            const card = document.createElement('div');
+            card.className = `desk-paper ${isEliminated ? 'eliminated' : ''}`;
+            card.innerHTML = `
+                <h4>${char.name}</h4>
+                <p style="color:var(--accent-color); font-size:0.8rem; margin-bottom:5px;">${char.role}</p>
+                <p><strong>الأقوال:</strong> "${char.statement}"</p>
+                <p><strong>الدافع:</strong> ${char.motive}</p>
+                <button class="btn-eliminate" data-char="${char.id}">
+                    ${isEliminated ? '🔄 إلغاء الاستبعاد' : '❌ استبعاد المشتبه به'}
+                </button>
+            `;
+            grid.appendChild(card);
+        });
 
-        .tab-pane {
-            display: none;
-        }
+        document.querySelectorAll('.btn-eliminate').forEach(btn => {
+            btn.addEventListener('click', (e) => { toggleEliminate(e.target.getAttribute('data-char')); });
+        });
+    }
 
-        .tab-pane.active {
-            display: block;
-        }
+    function toggleEliminate(charId) {
+        playSound('click');
+        if (eliminatedSuspects.has(charId)) eliminatedSuspects.delete(charId);
+        else eliminatedSuspects.add(charId);
+        renderCharacters();
+    }
 
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
+    function renderEvidences() {
+        const grid = document.getElementById('evidenceGrid');
+        if (!grid || !currentCase) return;
+        grid.innerHTML = '';
 
-        .eliminated {
-            text-decoration: line-through;
-            opacity: 0.5;
-            border-color: var(--danger-color);
-        }
+        currentCase.evidences.forEach(evi => {
+            const card = document.createElement('div');
+            card.className = 'desk-paper';
+            card.innerHTML = `
+                <h4>${evi.title} <span style="font-size:0.75rem; color:#e67e22;">(${evi.type})</span></h4>
+                <p style="margin-top:5px; font-size:0.9rem;">${evi.description}</p>
+            `;
+            grid.appendChild(card);
+        });
+    }
 
-        .btn-eliminate {
-            background: rgba(192, 57, 43, 0.2);
-            color: #e74c3c;
-            border: 1px solid var(--danger-color);
-            padding: 6px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 10px;
-            transition: 0.2s;
-        }
+    function renderTimeline() {
+        const container = document.getElementById('timelineContainer');
+        if (!container || !currentCase) return;
+        container.innerHTML = '';
 
-        .btn-eliminate:hover {
-            background: var(--danger-color);
-            color: #fff;
-        }
+        currentCase.timeline.forEach(t => {
+            const item = document.createElement('div');
+            item.className = 'desk-paper';
+            item.innerHTML = `<strong>${t.time}:</strong> ${t.event}`;
+            container.appendChild(item);
+        });
+    }
 
-        /* المتصدرين */
-        .leaderboard-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
+    function setupDeductionForm() {
+        const container = document.getElementById('deductionPuzzlesContainer');
+        if (!container || !currentCase) return;
 
-        .leaderboard-row:nth-child(even) {
-            background: rgba(255,255,255,0.02);
-        }
+        let suspectOptions = `<option value="">-- اختر المشتبه به الرئيسي --</option>`;
+        currentCase.characters.forEach(c => suspectOptions += `<option value="${c.id}">${c.name}</option>`);
 
-        footer {
-            text-align: center;
-            padding: 15px;
-            font-size: 0.8rem;
-            color: #777;
-            border-top: 1px solid var(--border-color);
-        }
-    </style>
-</head>
-<body>
+        let evidenceOptions = `<option value="">-- اختر الدليل القاطع --</option>`;
+        currentCase.evidences.forEach(e => evidenceOptions += `<option value="${e.id}">${e.title}</option>`);
 
-    <!-- إشعار هام عند بدء اللعبة -->
-    <div id="secretNoticeModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:99999;">
-        <div class="desk-paper" style="max-width:400px; width:90%; text-align:center;">
-            <h3 style="color:var(--accent-color); margin-bottom:10px;">🚨 تنبيه أمني</h3>
-            <p style="font-size:0.9rem; line-height:1.6; margin-bottom:15px;">أهلاً بك يا محقق في ملفات قضايا الإنتربول. ركّز جيداً، تفحص الأدلة، ولا تدع أي تفصيل يفوتك.</p>
-            <button id="btnCloseSecretNotice" class="btn-primary">فهمت، ابدأ</button>
-        </div>
-    </div>
-
-    <header>
-        <h1>🕵️‍♂️ قضايا: لعبة التحقيق</h1>
-        <div id="userRankDisplay" class="user-status">مساعد محقق 🕵️‍♂️</div>
-    </header>
-
-    <main>
-        <!-- قسم تسجيل الدخول -->
-        <section id="authSection" class="desk-paper">
-            <h2>تسجيل دخول المحققين</h2>
-            <p style="font-size: 0.85rem; color: #aaa; margin: 10px 0;">أدخل اسم المستخدم وكلمة السر للمتابعة</p>
-            <input type="text" id="authUsername" placeholder="اسم المستخدم">
-            <input type="password" id="authPassword" placeholder="كلمة السر (6 رموز على الأقل)">
-            <div id="authError" style="color: var(--danger-color); font-size: 0.85rem; margin: 5px 0;"></div>
-            <div class="auth-buttons">
-                <button id="btnLogin" class="btn-primary">دخول</button>
-                <button id="btnRegister" class="btn-primary">إنشاء حساب</button>
+        container.innerHTML = `
+            <div class="desk-paper">
+                <h4 style="margin-bottom:10px;">⚖️ قرار الاتهام والتحليل</h4>
+                <label style="font-size:0.85rem; font-weight:bold;">1. الجاني الرئيسي:</label>
+                <select id="selectSuspect" style="width:100%; padding:8px; margin:5px 0 12px 0; background:#111; color:#fff; border:1px solid #444; border-radius:5px;">${suspectOptions}</select>
+                <label style="font-size:0.85rem; font-weight:bold;">2. الدليل الإداني القاطع:</label>
+                <select id="selectEvidence" style="width:100%; padding:8px; margin:5px 0 12px 0; background:#111; color:#fff; border:1px solid #444; border-radius:5px;">${evidenceOptions}</select>
+                <label style="font-size:0.85rem; font-weight:bold;">3. الثغرة في أقوال المتهم:</label>
+                <input type="text" id="alibiInput" placeholder="أدخل الكلمة/التناقض الأساسي..." style="width:100%; padding:8px; margin-top:5px; background:#111; color:#fff; border:1px solid #444; border-radius:5px; font-family:inherit;">
             </div>
-        </section>
+        `;
+    }
 
-        <!-- القائمة الرئيسية -->
-        <section id="mainMenuSection" class="desk-paper hidden">
-            <h2>مكتب التحقيقات الرئيسي</h2>
-            <p style="color: #aaa; margin: 10px 0 20px 0;">اختر وجهتك التالية يا محقق:</p>
-            <button id="btnStartGame" class="btn-primary">📂 قضايا التحقيق</button>
-            <button id="btnStoryMode" class="btn-primary" style="border-color: #8e44ad; color: #e0b0ff;">📖(مش شغاله لسه) طور القصة</button>
-            <button id="btnLeaderboard" class="btn-primary" style="border-color: #27ae60; color: #2ecc71;">🏆 لوحة الشرف</button>
-            <button id="btnHowToPlay" class="btn-primary">❓ كيف تلعب؟</button>
-            <button id="btnSettings" class="btn-primary">⚙️ الإعدادات</button>
-            <button id="btnAbout" class="btn-primary">ℹ️ عن اللعبة</button>
-            <button id="btnLogout" class="btn-primary" style="border-color: var(--danger-color); color: #e74c3c; margin-top: 25px;">🚪 تسجيل الخروج</button>
-        </section>
+    document.querySelectorAll('.board-tabs .tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            playSound('click');
+            document.querySelectorAll('.board-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.board-content .tab-pane').forEach(p => p.classList.remove('active'));
 
-        <!-- قسم طور القصة -->
-        <section id="storyModeSection" class="hidden" style="padding: 20px; max-width: 800px; margin: 0 auto; font-family: inherit;">
-            <div class="desk-paper" style="position: relative;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #444; padding-bottom: 10px;">
-                    <h2 style="color: #f1c40f; margin: 0;">📖 طور القصة: خيوط الجريمة الكبرى</h2>
-                    <button class="btn-primary btn-to-menu" style="padding: 6px 14px; font-size: 0.85rem;">العودة للقائمة</button>
+            e.target.classList.add('active');
+            const targetTab = document.getElementById(e.target.getAttribute('data-tab'));
+            if (targetTab) targetTab.classList.add('active');
+        });
+    });
+
+    document.getElementById('btnUseHint')?.addEventListener('click', () => {
+        if (!currentCase) return;
+        if (hintsLeft > 0 && currentCase.hints && currentCase.hints.length > 0) {
+            playSound('click');
+            const hintText = currentCase.hints[hintsLeft - 1] || currentCase.hints[0];
+            hintsLeft--;
+            document.getElementById('hintsLeftDisplay').innerText = hintsLeft;
+            alert(`💡 تلميح المحقق:\n\n${hintText}`);
+        } else {
+            alert('لا توجد تلميحات إضافية لهذه القضية.');
+        }
+    });
+
+    function startCooldownPenalty() {
+        isCooldown = true;
+        const submitBtn = document.getElementById('btnSubmitDeduction');
+        const cooldownBanner = document.getElementById('cooldownTimerDisplay');
+        const timerSecs = document.getElementById('cooldownSeconds');
+        
+        if (submitBtn) submitBtn.disabled = true;
+        if (cooldownBanner) cooldownBanner.classList.remove('hidden');
+
+        let timeLeft = 15;
+        if (timerSecs) timerSecs.innerText = timeLeft;
+
+        const interval = setInterval(() => {
+            timeLeft--;
+            if (timerSecs) timerSecs.innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                isCooldown = false;
+                if (submitBtn) submitBtn.disabled = false;
+                if (cooldownBanner) cooldownBanner.classList.add('hidden');
+            }
+        }, 1000);
+    }
+
+    function showWinModal(message) {
+        let existingModal = document.getElementById('customWinModal');
+        if (existingModal) existingModal.remove();
+
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'customWinModal';
+        modalOverlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center;
+            align-items: center; z-index: 99999; font-family: inherit;
+        `;
+
+        modalOverlay.innerHTML = `
+            <div style="background: #1a1a1a; border: 2px solid #f1c40f; padding: 25px; border-radius: 10px; max-width: 450px; width: 90%; text-align: center; color: #fff; box-shadow: 0 0 20px rgba(241,196,15, 0.4);">
+                <h3 style="color: #f1c40f; margin-bottom: 15px; font-size: 1.4rem;">🎉 تهانينا يا محقق!</h3>
+                <p style="margin-bottom: 20px; line-height: 1.6; white-space: pre-line; font-size: 0.95rem; color: #ddd;">${message}</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="btnSaveAndExit" class="btn-primary" style="background: #27ae60; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold; color: #fff;">💾 حفظ ومتابعة</button>
                 </div>
+            </div>
+        `;
+
+        document.body.appendChild(modalOverlay);
+
+        document.getElementById('btnSaveAndExit').addEventListener('click', () => {
+            playSound('click');
+            modalOverlay.remove();
+            showView('casesList');
+            renderCasesList();
+        });
+    }
+
+    document.getElementById('btnSubmitDeduction')?.addEventListener('click', async () => {
+        if (!currentCase || isCooldown) return;
+
+        const selectedSuspect = document.getElementById('selectSuspect')?.value;
+        const selectedEvidence = document.getElementById('selectEvidence')?.value;
+        const alibiText = document.getElementById('alibiInput')?.value.trim();
+
+        if (!selectedSuspect || !selectedEvidence || !alibiText) {
+            alert('يرجى ملء جميع خانات الاتهام والدليل والثغرة!');
+            return;
+        }
+
+        const sol = currentCase.solution;
+        const isSuspectCorrect = selectedSuspect === sol.correctSuspectId;
+        const isEvidenceCorrect = selectedEvidence === sol.keyEvidenceId;
+
+        if (isSuspectCorrect && isEvidenceCorrect) {
+            playSound('success');
+            const noHintsUsed = (hintsLeft === 3);
+            const earnedPoints = 10; // 10 نقاط ثابتة عند الحل الصحيح
+            
+            await saveSolvedCase(currentCase.id, noHintsUsed, earnedPoints);
+            
+            let winMsg = `إدانة صحيحة وقاطعة!\n\n${sol.explanation}\n\n(+${earnedPoints} نقطة أضيفت لرصيدك!)`;
+            if (noHintsUsed) winMsg += `\n\n🏆 حصلت على وسام "المحقق الصارم"!`;
+            
+            showWinModal(winMsg);
+        } else {
+            playSound('error');
+            mistakes++;
+            score = Math.max(0, score - 200);
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('mistakesDisplay').innerText = mistakes;
+            
+            if (currentUserId && currentUserData) {
+                currentUserData.totalScore = Math.max(0, (Number(currentUserData.totalScore) || 0) - 1);
+                try {
+                    const docRef = doc(db, "users", currentUserId);
+                    await updateDoc(docRef, { totalScore: currentUserData.totalScore });
+                } catch (e) { console.error("خطأ في تحديث الخصم:", e); }
+            }
+
+            alert('❌ اتهام غير صحيح! راجع الأدلة جيداً.\n(تم خصم نقطة من تقييمك الإجمالي)');
+            startCooldownPenalty();
+        }
+    });
+
+    async function renderLeaderboard() {
+        const container = document.getElementById('leaderboardList');
+        const myScoreEl = document.getElementById('myScoreDisplay');
+        const myRankEl = document.getElementById('myRankDisplay');
+
+        if (!container) return;
+        container.innerHTML = '<p style="text-align:center;">جاري البحث في ملفات الإنتربول...</p>';
+
+        try {
+            const q = query(collection(db, "users"), orderBy("totalScore", "desc"), limit(50));
+            const querySnapshot = await getDocs(q);
+            
+            container.innerHTML = '';
+            let rank = 1;
+
+            let myScore = currentUserData ? (currentUserData.totalScore || 0) : 0;
+            let myFoundRank = "خارج القمة";
+
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
                 
-                <!-- صندوق عرض الحوار أو القصة -->
-                <div id="storyDialogueBox" style="background: #111; border: 1px solid #444; padding: 20px; border-radius: 8px; min-height: 180px; margin-bottom: 20px; line-height: 1.7; font-size: 1.05rem; color: #eee;">
-                    <!-- النص يظهر هنا ديناميكياً -->
-                </div>
+                if (docSnap.id === currentUserId) {
+                    myFoundRank = `#${rank}`;
+                }
 
-                <!-- خيارات اللاعب التفاعلية -->
-                <div id="storyChoicesContainer" style="display: flex; flex-direction: column; gap: 10px;">
-                    <!-- الأزرار تتولد هنا -->
-                </div>
-            </div>
-        </section>
+                const item = document.createElement('div');
+                item.className = 'leaderboard-row';
+                
+                let medal = `#${rank}`;
+                if(rank === 1) medal = '🥇';
+                if(rank === 2) medal = '🥈';
+                if(rank === 3) medal = '🥉';
 
-        <!-- قائمة القضايا -->
-        <section id="casesListSection" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>ملفات القضايا المتاحة</h2>
-                <button class="btn-primary btn-to-menu">القائمة الرئيسية</button>
-            </div>
-            <div id="casesContainer" class="cases-grid">
-                <!-- توليد القضايا ديناميكياً من الجافاسكريبت -->
-            </div>
-        </section>
+                item.innerHTML = `
+                    <div class="lb-rank">${medal}</div>
+                    <div class="lb-name">${data.username} <span style="font-size: 0.7rem; color: #888; display:block;">${data.rank}</span></div>
+                    <div class="lb-score">${data.totalScore || 0} نقطة</div>
+                `;
+                container.appendChild(item);
+                rank++;
+            });
 
-        <!-- لوحة تفاصيل القضية -->
-        <section id="caseBoardSection" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <div>
-                    <span id="boardCaseId" style="color:var(--accent-color); font-weight:bold;"></span>
-                    <h2 id="boardCaseTitle" style="display:inline; margin-right:10px;"></h2>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button id="notebookToggleBtn" class="btn-primary" style="border-color: #d35400; color: #f39c12;">📓 الدفتـر</button>
-                    <button class="btn-primary btn-to-cases">قائمة القضايا</button>
-                </div>
-            </div>
+            if (myScoreEl) myScoreEl.innerText = myScore;
+            if (myRankEl) myRankEl.innerText = myFoundRank;
 
-            <div class="desk-paper" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding: 12px 20px;">
-                <div>⭐ النقاط: <span id="scoreDisplay" style="color:var(--accent-color); font-weight:bold;">1000</span></div>
-                <div>❌ الأخطاء: <span id="mistakesDisplay" style="color:var(--danger-color); font-weight:bold;">0</span></div>
-                <div>💡 التلميحات المتبقية: <span id="hintsLeftDisplay" style="color:var(--success-color); font-weight:bold;">3</span></div>
-                <button id="btnUseHint" class="btn-primary" style="padding: 6px 14px; font-size: 0.85rem;">طلب تلميح</button>
-            </div>
+        } catch (error) {
+            console.error("خطأ في تحميل الترتيب:", error);
+            container.innerHTML = '<p style="text-align:center; color:red;">تعذر الاتصال بالخادم لجلب الترتيب.</p>';
+        }
+    }
 
-            <!-- عداد العقوبة عند الخطأ -->
-            <div id="cooldownTimerDisplay" class="desk-paper hidden" style="background: rgba(192, 57, 43, 0.15); border-color: var(--danger-color); text-align: center; color: #e74c3c;">
-                ⚠️ محاولة خاطئة! تم حظر تقديم الحلول لمدة <span id="cooldownSeconds">15</span> ثانية.
-            </div>
+    const notebookModal = document.getElementById('notebookModal');
+    const notebookBtn = document.getElementById('notebookToggleBtn');
+    const notebookText = document.getElementById('notebookTextArea');
 
-            <div class="board-tabs">
-                <button class="tab-btn active" data-tab="tabOverview">نظرة عامة</button>
-                <button class="tab-btn" data-tab="tabCharacters">المشتبه بهم</button>
-                <button class="tab-btn" data-tab="tabEvidence">الأدلة</button>
-                <button class="tab-btn" data-tab="tabTimeline">تسلسل الأحداث</button>
-                <button class="tab-btn" data-tab="tabDeduction">قرار الاتهام</button>
-            </div>
+    if (notebookText) {
+        notebookText.value = localStorage.getItem('detective_notebook') || '';
+        notebookText.addEventListener('input', () => {
+            localStorage.setItem('detective_notebook', notebookText.value);
+        });
+    }
 
-            <div class="board-content">
-                <!-- نظرة عامة -->
-                <div id="tabOverview" class="tab-pane active desk-paper">
-                    <h3>ملخص مسرح الجريمة</h3>
-                    <p id="caseOverviewText" style="margin-top: 10px; line-height: 1.6;"></p>
-                </div>
+    notebookBtn?.addEventListener('click', () => { playSound('click'); notebookModal?.classList.remove('hidden'); });
 
-                <!-- المشتبه بهم -->
-                <div id="tabCharacters" class="tab-pane">
-                    <div id="charactersGrid" class="grid-2"></div>
-                </div>
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', () => {
+            playSound('click');
+            notebookModal?.classList.add('hidden');
+        });
+    });
 
-                <!-- الأدلة -->
-                <div id="tabEvidence" class="tab-pane">
-                    <div id="evidenceGrid" class="grid-2"></div>
-                </div>
+    document.getElementById('btnResetProgress')?.addEventListener('click', async () => {
+        if (confirm('هل أنت متأكد من مسح جميع التقدم وتصفير النقاط والقضايا؟')) {
+            playSound('click');
+            
+            localStorage.removeItem('detective_solved_cases');
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('badge_strict_')) localStorage.removeItem(key);
+            });
 
-                <!-- تسلسل الأحداث -->
-                <div id="tabTimeline" class="tab-pane">
-                    <div id="timelineContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
-                </div>
+            if (currentUserId && currentUserData) {
+                currentUserData.solvedCases = [];
+                currentUserData.totalScore = 0;
+                currentUserData.rank = "مساعد محقق 🕵️‍♂️";
+                try {
+                    const docRef = doc(db, "users", currentUserId);
+                    await setDoc(docRef, currentUserData);
+                } catch (e) { console.error("خطأ أثناء تحديث الخادم:", e); }
+            }
 
-                <!-- قرار الاتهام -->
-                <div id="tabDeduction" class="tab-pane">
-                    <div id="deductionPuzzlesContainer"></div>
-                    <button id="btnSubmitDeduction" class="btn-primary" style="width:100%; margin-top:15px; border-color: var(--success-color); color: var(--success-color); padding: 13px;">⚖️ إصدار مذكرة إدانة نهائية</button>
-                </div>
-            </div>
-        </section>
+            alert('✅ تم إعادة تعيين جميع القضايا وتصفير النقاط بنجاح!');
+            location.reload();
+        }
+    });
 
-        <!-- لوحة الشرف -->
-        <section id="leaderboardSection" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>🏆 لوحة شرف المحققين (Top 50)</h2>
-                <button class="btn-primary btn-to-menu">القائمة الرئيسية</button>
-            </div>
-            <div class="desk-paper" style="margin-bottom: 15px; display: flex; justify-content: space-around; text-align: center;">
-                <div>نقاطك: <span id="myScoreDisplay" style="color:var(--accent-color); font-weight:bold;">0</span></div>
-                <div>ترتيبك: <span id="myRankDisplay" style="color:var(--success-color); font-weight:bold;">-</span></div>
-            </div>
-            <div class="desk-paper" id="leaderboardList">
-                <p style="text-align:center;">جاري جلب قائمة المتصدرين...</p>
-            </div>
-        </section>
-
-        <!-- كيف تلعب -->
-        <section id="howToPlaySection" class="desk-paper hidden">
-            <h2>كيف تلعب دور المحقق؟</h2>
-            <div style="margin-top: 15px; line-height: 1.8; font-size: 0.95rem;">
-                <p>1. <strong>افحص مسرح الجريمة:</strong> اقرأ ملخص القضية بعناية وافهم تفاصيل الواقعة.</p>
-                <p>2. <strong>استجوب المشتبه بهم:</strong> طابق أقوالهم وتعرّف على دوافعهم، ويمكنك استخدام زر الاستبعاد لتصفية الأبرياء.</p>
-                <p>3. <strong>اربط الأدلة:</strong> راجع الأدلة المادية وتتابع الأوقات لكشف التناقضات.</p>
-                <p>4. <strong>أصدر الاتهام:</strong> توجّه لتبويب "قرار الاتهام"، حدد الجاني الحقيقي، الدليل القاطع، والثغرة في الأقوال لكسب القضية!</p>
-            </div>
-            <button class="btn-primary btn-to-menu" style="margin-top: 20px;">العودة للقائمة</button>
-        </section>
-
-        <!-- الإعدادات -->
-        <section id="settingsSection" class="desk-paper hidden">
-            <h2>إعدادات اللعبة</h2>
-            <div style="margin: 20px 0; display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="settingSoundToggle" checked style="width:20px; height:20px; cursor:pointer;">
-                <label for="settingSoundToggle" style="cursor:pointer;">تفعيل المؤثرات الصوتية والموسيقى</label>
-            </div>
-            <hr style="border:0; border-top:1px solid #444; margin: 20px 0;">
-            <button id="btnResetProgress" class="btn-primary" style="border-color: var(--danger-color); color: #e74c3c;">⚠️ مسح جميع التقدم وتصفير النقاط</button>
-            <br><br>
-            <button class="btn-primary btn-to-menu" style="margin-top: 10px;">العودة للقائمة</button>
-        </section>
-
-        <!-- عن اللعبة -->
-        <section id="aboutSection" class="desk-paper hidden">
-            <h2>عن اللعبة</h2>
-            <p style="margin: 15px 0; line-height: 1.6;">لعبة قضايا جنائية تفاعلية تختبر مهاراتك التحليلية وقدرتك على ربط الأدلة وكشف الجناة الحقيقيين.</p>
-            <p style="color: var(--accent-color); font-size: 0.9rem;">الإصدار 1.2 - جميع الحقوق محفوظة لمحقيي الإنتربول.</p>
-            <br>
-            <button class="btn-primary btn-to-menu" style="margin-top: 10px;">العودة للقائمة</button>
-        </section>
-
-    </main>
-
-    <!-- نافذة دفتر الملاحظات العائم -->
-    <div id="notebookModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:9999;">
-        <div class="desk-paper" style="width:90%; max-width:500px; height:400px; display:flex; flex-direction:column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="color:var(--accent-color);">📓 دفتر ملاحظات المحقق</h3>
-                <button class="close-modal btn-primary" style="padding: 4px 10px;">✕</button>
-            </div>
-            <textarea id="notebookTextArea" placeholder="اكتب ملاحظاتك، خواطرك، أو استنتاجاتك هنا أثناء التحقيق (يتم الحفظ تلقائياً)..." style="flex:1; background:#111; color:#fff; border:1px solid var(--border-color); padding:10px; border-radius:5px; resize:none; font-family:inherit;"></textarea>
-        </div>
-    </div>
-
-    <footer>
-        <p>جميع الحقوق محفوظة © قضايا 2026</p>
-    </footer>
-
-    <!-- ربط ملف الـ JavaScript الرئيسي -->
-    <script type="module" src="script.js"></script>
-</body>
-</html>
+    loadCasesFromGitHub();
+});
