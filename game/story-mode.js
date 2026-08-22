@@ -37,7 +37,7 @@ async function loadStoryFromGitHub() {
         console.error("خطأ في جلب القصة:", error);
         const container = document.getElementById('storyContainer');
         if (container) {
-            container.innerHTML = `<div class="desk-paper" style="text-align: center; color: #e74c3c;">⚠️ تعذر تحميل القضايا من الخادم. تأكد من اتصال الإنترنت ورابط الـ GitHub.</div>`;
+            container.innerHTML = `<div class="desk-paper" style="text-align: center; color: #e74c3c;"> تحت الصيانه</div>`;
         }
     }
 }
