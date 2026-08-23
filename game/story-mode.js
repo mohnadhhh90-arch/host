@@ -40,7 +40,7 @@ async function loadStoryFromGitHub() {
             container.innerHTML = `
                 <div class="detective-desk-file" style="text-align: center; color: #c0392b;">
                     <h3>⚠️ خطأ في الاتصال بالأرشيف السيبراني</h3>
-                    <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">تعذر تحميل القصة (30 يوماً) من جيت هاب. تأكد من رفع ملف الـ JSON.</p>
+                    <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">في صيانه دلوقتي</p>
                 </div>
             `;
         }
