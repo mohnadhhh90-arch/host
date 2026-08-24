@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settings: document.getElementById('settingsSection'),
         about: document.getElementById('aboutSection'),
         leaderboard: document.getElementById('leaderboardSection'),
-        storyMode: document.getElementById('storyModeSection') // تمت إضافة شاشة القصة
+        storyMode: document.getElementById('storyModeSection')
     };
 
     function showView(viewKey) {
@@ -207,21 +207,18 @@ document.addEventListener('DOMContentLoaded', () => {
         await renderLeaderboard();
     });
 
-    // أحداث زر العودة
     document.querySelectorAll('.btn-to-menu').forEach(btn => btn.addEventListener('click', () => showView('mainMenu')));
     document.querySelectorAll('.btn-to-cases').forEach(btn => btn.addEventListener('click', () => showView('casesList')));
 
-
     // ==========================================
-    // بدايـــة أجزاء طـــور القصـــة 📖
+    // أجزاء طـــور القصـــة 📖
     // ==========================================
 
     document.getElementById('btnStoryMode')?.addEventListener('click', () => {
         showView('storyMode');
-        startStoryNode('chapter1_start'); // بدء العقدة الأولى للقصة
+        startStoryNode('chapter1_start');
     });
 
-    // بيانات القصة التفاعلية
     const STORY_DATA = {
         "chapter1_start": {
             text: "تتلقى مكالمة هاتفية غامضة في منتصف الليل من ضابط مناوب.. 'يا محقق، لقد وقعت جريمة غامضة في الحي الراقي، والمدير يريدك أنت بالذات في مسرح الجريمة فوراً.' ما خطوتك الأولى؟",
@@ -266,12 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!node || !dialogueBox || !choicesContainer) return;
 
-        // تفريغ المحتوى وتصفير الأنيميشن
         if(typeWriterInterval) clearTimeout(typeWriterInterval);
         dialogueBox.innerText = "";
         choicesContainer.innerHTML = "";
 
-        // تأثير الآلة الكاتبة لعرض النص
         let charIndex = 0;
         function typeWriter() {
             if (charIndex < node.text.length) {
@@ -279,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 charIndex++;
                 typeWriterInterval = setTimeout(typeWriter, 30);
             } else {
-                // إظهار الأزرار بعد انتهاء الكتابة
                 renderChoices(node.choices, choicesContainer);
             }
         }
@@ -293,7 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.style.cssText = "background: #2c3e50; border: 1px solid #f1c40f; padding: 12px; text-align: right; cursor: pointer; border-radius: 5px; color: #fff; font-family: inherit; transition: 0.2s;";
             btn.innerText = choice.text;
             
-            // تأثير حركي عند المرور بالماوس
             btn.onmouseover = () => btn.style.background = "#34495e";
             btn.onmouseleave = () => btn.style.background = "#2c3e50";
 
@@ -324,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
             playSound('success');
         }
 
-        // تحديث النقاط في الداتا بيس إذا كان اللاعب مسجل
         if (currentUserData && currentUserId) {
             let newScore = (Number(currentUserData.totalScore) || 0) + pointsToAdd;
             currentUserData.totalScore = newScore;
@@ -340,11 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(message);
         showView('mainMenu');
     }
-
-    // ==========================================
-    // نهايـــة أجزاء طـــور القصـــة 📖
-    // ==========================================
-
 
     const GITHUB_CASES_URL = "https://raw.githubusercontent.com/mohnadhhh90-arch/game/main/cases.json";
     let CASES_DATA = [];
@@ -370,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let newTotalScore = Number(currentUserData?.totalScore || 0);
         if (isNewCase) {
-            newTotalScore += earnedScore; // إضافة نقاط فقط للقضايا الجديدة
+            newTotalScore += earnedScore;
         }
 
         let rank = "مساعد محقق 🕵️‍♂️";
@@ -684,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSuspectCorrect && isEvidenceCorrect) {
             playSound('success');
             const noHintsUsed = (hintsLeft === 3);
-            const earnedPoints = 10; // 10 نقاط ثابتة عند الحل الصحيح
+            const earnedPoints = 10;
             
             await saveSolvedCase(currentCase.id, noHintsUsed, earnedPoints);
             
