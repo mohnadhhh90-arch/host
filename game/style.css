@@ -606,3 +606,68 @@ body {
     align-items: flex-start;
   }
 }
+/* --- تحسين وضوح وقراءة كروت القضايا والأرشيف --- */
+
+/* اجعل حاوية القصة أو الأرشيف واضحة ومنظمة */
+#storyContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* تصميم كارت القضية داخل الأرشيف ليكون بارزاً ومريحاً للعين */
+#storyContainer > div,
+.story-case-card, 
+.archive-card {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 20px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+  transition: var(--transition);
+}
+
+#storyContainer > div:hover {
+  border-color: var(--cyan-color) !important;
+}
+
+/* رفع تباين ووضوح العناوين داخل الأرشيف */
+#storyContainer h3, 
+#storyContainer h4,
+#storyContainer .case-title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 1.15rem !important;
+  margin-bottom: 8px !important;
+}
+
+/* وضوح الوصف والنصوص الفرعية */
+#storyContainer p, 
+#storyContainer .case-desc {
+  color: #d1d5db !important; /* لون رمادي فاتح مريح جداً للقراءة */
+  font-size: 0.92rem !important;
+  line-height: 1.6 !important;
+  margin-bottom: 15px !important;
+}
+
+/* تلوين ووضوح نسبة الإنجاز والنسب المئوية */
+#storyContainer span, 
+#storyContainer .progress-text {
+  color: var(--cyan-color) !important;
+  font-weight: 600 !important;
+}
+
+/* شارات العمليات الأمنية */
+#storyContainer .badge,
+#storyContainer .security-tag {
+  background: rgba(220, 38, 38, 0.2) !important;
+  color: #f87171 !important;
+  border: 1px solid var(--danger-color) !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+  font-weight: bold !important;
+  display: inline-block !important;
+  margin-bottom: 8px !important;
+}
+
