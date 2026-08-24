@@ -670,4 +670,63 @@ body {
   display: inline-block !important;
   margin-bottom: 8px !important;
 }
+/* --- إصلاح شامل لتباين الألوان وراحة العين في كل الشاشات --- */
+
+:root {
+  --text-main: #f9fafb !important;       /* أبيض ساطع ومريح للعناوين وال النصوص الأساسية */
+  --text-muted: #e5e7eb !important;      /* رمادي فاتح جداً وواضح للوصف والنصوص الفرعية */
+}
+
+/* إصلاح عام لكل النصوص والفقرات داخل الكروت والأرشيف وصناديق الرسائل */
+p, span, div, label, li, a {
+  color: var(--text-muted);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main) !important;
+}
+
+/* إصلاح صناديق الرسائل والبطاقات (Messages & Cards) */
+.desk-paper, 
+.hero-banner, 
+.board-header, 
+.stats-bar,
+#storyContainer > div,
+.story-case-card,
+.archive-card,
+div[class*="message"],
+div[class*="box"] {
+  color: var(--text-main) !important;
+}
+
+/* إزالة أي نصوص باهتة داخل صناديق الرسائل أو مربعات النصوص وتوضيحها بالكامل */
+input, textarea, select, .dossier-input {
+  color: #ffffff !important;
+  background-color: var(--bg-primary) !important;
+  opacity: 1 !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #9ca3af !important; /* لون واضح ومريح للبلايسهولدر */
+  opacity: 1 !important;
+}
+
+/* ضبط النصوص داخل مربعات الحوار أو الرسائل اليومية لتكون بيضاء وواضحة جداً */
+.message-content, 
+.day-message, 
+.case-description,
+.card-text {
+  color: #f3f4f6 !important;
+  font-size: 0.98rem !important;
+  line-height: 1.7 !important;
+}
+
+/* توضيح العناوين البارزة (مثل رسالة اليوم / عنوان القضية) */
+.highlight-title, 
+[class*="title"],
+[class*="header"] h3,
+[class*="header"] h4 {
+  color: var(--cyan-color) !important; /* تحويل العناوين الرئيسية للون السماوي الواضح والمريح */
+  font-weight: 700 !important;
+}
 
