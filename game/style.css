@@ -1,11 +1,12 @@
 :root {
-    --bg-color: #121212;
-    --paper-bg: #1e1e1e;
+    --bg-color: #121314;
+    --card-bg: #1e2022;
+    --accent-color: #00E5FF;
+    --accent-hover: #00b8cc;
     --text-color: #e0e0e0;
-    --accent-color: #f1c40f;
-    --border-color: #333;
     --danger-color: #e74c3c;
-    --success-color: #27ae60;
+    --success-color: #2ecc71;
+    --border-color: #333;
 }
 
 * {
@@ -15,96 +16,288 @@
 }
 
 body {
+    font-family: 'Tajawal', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: 'Cairo', sans-serif;
     direction: rtl;
-    padding: 20px;
+    display: flex;
+    justify-content: center;
     min-height: 100vh;
 }
 
-/* الأقسام والتحكم في الإظهار والإخفاء */
-.view-section {
-    max-width: 900px;
-    margin: 0 auto;
+.app-container {
+    width: 100%;
+    max-width: 500px;
+    background: #181a1b;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+/* Header */
+.main-header {
+    background: #101112;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #2a2c2e;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo h1 {
+    font-size: 1.4rem;
+    color: #fff;
+}
+
+.rank-badge {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+main {
+    flex: 1;
+    padding: 15px;
 }
 
 .hidden {
     display: none !important;
 }
 
-/* تنسيق عام يشبه الورق والمكتب الجنائي */
+/* Cards & Panels */
 .desk-paper {
-    background-color: var(--paper-bg);
+    background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 10px;
     margin-bottom: 15px;
+    position: relative;
+    transition: 0.3s opacity, 0.3s border-color;
 }
 
-/* الأزرار العامة */
-.btn-primary {
-    background-color: var(--accent-color);
-    color: #111;
-    border: none;
-    padding: 10px 20px;
-    font-family: 'Cairo', sans-serif;
-    font-weight: 700;
-    border-radius: 5px;
+.desk-paper.locked {
+    opacity: 0.6;
+    background: #161718;
+}
+
+.desk-paper.eliminated {
+    opacity: 0.4;
+    text-decoration: line-through;
+    border-color: var(--danger-color);
+}
+
+/* Inputs & Form Elements */
+input[type="text"],
+input[type="password"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    background: #111213;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px rgba(0, 229, 255, 0.3);
+}
+
+select option {
+    background: #1e2022;
+    color: #fff;
+}
+
+/* Buttons */
+button {
+    font-family: 'Tajawal', sans-serif;
     cursor: pointer;
-    transition: 0.2s;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: background 0.2s, transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    color: #000;
+    padding: 12px 20px;
+    font-size: 1rem;
+    width: 100%;
 }
 
 .btn-primary:hover {
-    background-color: #d4ac0d;
+    background: var(--accent-hover);
+}
+
+.btn-primary:disabled {
+    background: #444;
+    color: #888;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .btn-secondary {
-    background-color: transparent;
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    padding: 8px 15px;
-    font-family: 'Cairo', sans-serif;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.2s;
+    background: #2c2e30;
+    color: #fff;
+    padding: 10px 15px;
 }
 
 .btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: #777;
+    background: #3a3d40;
 }
 
-/* شبكات العرض (Grid) */
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 15px;
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    background: #333;
+    color: #fff;
 }
 
-/* أزرار التبويب داخل لوحة التحقيق */
+.btn-small:hover {
+    background: #444;
+}
+
+.btn-hint {
+    background: #f39c12;
+    color: #000;
+    padding: 5px 12px;
+    border-radius: 15px;
+}
+
+.btn-hint:hover {
+    background: #d68910;
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: #fff;
+    padding: 10px;
+    width: 100%;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-eliminate {
+    background: #333;
+    color: #ff5555;
+    border: 1px solid #ff5555;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+.btn-eliminate:hover {
+    background: #ff5555;
+    color: #fff;
+}
+
+/* Layout Grids */
+.cases-grid, .cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Hero Section */
+.hero-banner {
+    text-align: center;
+    padding: 20px 10px;
+}
+
+.hero-banner h2 {
+    color: var(--accent-color);
+    margin-bottom: 10px;
+}
+
+.hero-banner p {
+    color: #aaa;
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+/* Board & Tabs */
+.board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.case-tag {
+    background: var(--accent-color);
+    color: #000;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.stats-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #141516;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+}
+
 .board-tabs {
     display: flex;
-    flex-wrap: wrap;
     gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    margin-bottom: 12px;
 }
 
 .tab-btn {
-    background: #1a1a1a;
-    border: 1px solid #444;
+    background: #252729;
     color: #aaa;
-    padding: 8px 15px;
-    cursor: pointer;
-    border-radius: 5px 5px 0 0;
-    font-family: 'Cairo', sans-serif;
-    transition: 0.2s;
+    padding: 8px 12px;
+    white-space: nowrap;
+    font-size: 0.85rem;
 }
 
 .tab-btn.active {
-    background: var(--paper-bg);
-    color: var(--accent-color);
-    border-bottom: 2px solid var(--accent-color);
+    background: var(--accent-color);
+    color: #000;
 }
 
 .tab-pane {
@@ -115,84 +308,325 @@ body {
     display: block;
 }
 
-/* حالات القضايا والمشتبه بهم */
-.desk-paper.locked {
-    opacity: 0.5;
-    border-style: dashed;
+.hint-subtext {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 10px;
 }
 
-.desk-paper.eliminated {
-    opacity: 0.4;
-    text-decoration: line-through;
+.cooldown-banner {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid var(--danger-color);
+    color: #ff6b6b;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    font-weight: bold;
 }
 
-/* لوحة الشرف */
+/* Leaderboard Styles */
+.leaderboard-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    color: var(--accent-color);
+    font-size: 0.9rem;
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
 .leaderboard-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #151515;
-    padding: 10px 15px;
-    border-radius: 5px;
-    border: 1px solid #222;
+    background: #131415;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+    transition: 0.2s;
+}
+
+.leaderboard-row:hover {
+    background: #181a1c;
+    border-left: 3px solid var(--accent-color);
 }
 
 .lb-rank {
+    width: 20%;
     font-weight: bold;
-    color: var(--accent-color);
-    width: 40px;
+    font-size: 1.1rem;
 }
 
 .lb-name {
-    flex-grow: 1;
+    width: 50%;
     text-align: right;
+    font-size: 0.9rem;
 }
 
 .lb-score {
-    color: var(--success-color);
+    width: 30%;
+    text-align: left;
     font-weight: bold;
+    color: var(--success-color);
 }
 
-/* دفتر الملاحظات العائم */
-.notebook-float-btn {
+/* Notebook & Modals */
+.notebook-fab {
     position: fixed;
     bottom: 20px;
     left: 20px;
-    background: var(--accent-color);
-    color: #111;
-    border: none;
-    padding: 10px 15px;
+    background: #f1c40f;
+    color: #000;
+    padding: 10px 16px;
     border-radius: 30px;
-    font-family: 'Cairo', sans-serif;
-    font-weight: bold;
-    cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    z-index: 999;
+    z-index: 99;
 }
 
-.notebook-float-btn:hover {
-    background: #d4ac0d;
+.notebook-fab:hover {
+    background: #f39c12;
 }
 
-/* النوافذ المنبثقة (Modals) */
-.modal {
+.modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-}
-
-.modal.hidden {
-    display: none !important;
+    z-index: 100;
 }
 
 .modal-content {
+    background: #222;
     width: 90%;
-    max-width: 450px;
+    max-width: 400px;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.close-modal {
+    background: none;
+    color: #fff;
+    font-size: 1.5rem;
+}
+
+textarea {
+    height: 180px;
+    resize: vertical;
+}
+/* ==========================================
+   تنسيقات طور القصة - مكتب التحقيق الخشبي
+   ========================================== */
+
+#storyModeSection {
+    background-color: #2b1d0c;
+    background-image: radial-gradient(circle, #3d2711 10%, #1c1207 90%);
+    border: 5px solid #140c04;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+    padding: 20px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* دفتر أو ملف القضية الخشبي */
+.detective-case-file {
+    background: #f4ecd8;
+    color: #2c2c2c;
+    border: 1px dashed #b5a48b;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    padding: 25px;
+    position: relative;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+/* دبوس الملف الورقي */
+.detective-case-file::before {
+    content: "📌";
+    position: absolute;
+    top: -15px;
+    right: 50%;
+    transform: translateX(50%);
+    font-size: 1.5rem;
+}
+
+/* بطاقات الاختيارات على شكل شرائط ورق تحقيق */
+.story-evidence-btn {
+    background: #fff8e8;
+    border: 1px solid #d4c5a9;
+    border-left: 5px solid #8b4513;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    text-align: right;
+    cursor: pointer;
+    font-weight: bold;
+    color: #333;
+    transition: all 0.2s ease;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    width: 100%;
+    border-radius: 3px;
+}
+
+.story-evidence-btn:hover {
+    background: #fff0d1;
+    border-left-color: #f1c40f;
+    transform: translateX(-3px);
+}
+/* ==========================================
+   أجواء مكتب المحقق الحقيقي (Story Mode Theme)
+   ========================================== */
+
+#storyModeSection {
+    background: radial-gradient(circle at center, #2c221e 0%, #15110e 100%);
+    border: 3px solid #5c4033;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0,0,0,0.5);
+    padding: 20px;
+    border-radius: 8px;
+    color: #f4e8c1;
+}
+
+/* تصميم ملف القضية الفخم على المكتب */
+.detective-desk-file {
+    background: #fdfbf7;
+    background-image: linear-gradient(#e1d7cd 1px, transparent 1px);
+    background-size: 100% 25px;
+    color: #2c221e;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6), inset 0 0 15px rgba(139,69,19,0.1);
+    border: 1px solid #d4c5a9;
+    position: relative;
+    font-family: 'Tajawal', sans-serif;
+    margin-bottom: 20px;
+}
+
+/* ختم سري أو طابع أمني على الملف */
+.detective-desk-file::before {
+    content: "CONFIDENTIAL";
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    border: 2px dashed #c0392b;
+    color: #c0392b;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    transform: rotate(-5deg);
+    opacity: 0.7;
+    letter-spacing: 1px;
+}
+
+/* أزرار مكاتب التحقيق */
+.btn-detective {
+    background: #4a3525;
+    color: #f4e8c1;
+    border: 1px solid #8b4513;
+    padding: 10px 18px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.btn-detective:hover {
+    background: #6b4f3b;
+    color: #fff;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
+/* ==========================================
+   فخامة جيم‌پلاي مكتب التحقيق (Case Board Makeover)
+   ========================================== */
+
+#caseBoardSection {
+    background: radial-gradient(circle at center, #231c18 0%, #0d0a08 100%) !important;
+    border: 3px solid #6b4f3b;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.85), 0 15px 35px rgba(0,0,0,0.6);
+    padding: 25px;
+    border-radius: 10px;
+    color: #f4e8c1;
+}
+
+/* عناوين الأقسام داخل اللوحة بطابع سري */
+#caseBoardSection h3, #caseBoardSection h2 {
+    font-family: 'Tajawal', sans-serif;
+    border-bottom: 2px dashed #8b4513;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    color: #e2c08d;
+}
+
+/* بطاقات الأدلة والشخصيات كأنها أوراق حقيقية مرمية على المكتب */
+#caseBoardSection .desk-paper {
+    background: #fdfbf7 !important;
+    color: #2c221e !important;
+    border: 1px solid #d4c5a9 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 0 10px rgba(139,69,19,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#caseBoardSection .desk-paper:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.5), inset 0 0 10px rgba(139,69,19,0.1);
+}
+
+/* تصميم قسم التسلسل الزمني كأنه ملف تحقيق رسمي */
+#timelineContainer > div {
+    background: rgba(255, 255, 255, 0.05);
+    border-right: 4px solid #c0392b !important;
+    padding: 10px 15px !important;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 10px;
+}
+
+/* خيارات سؤال الاستنتاج بشكل فخم */
+#deductionPuzzlesContainer label {
+    background: #fdfbf7 !important;
+    color: #2c221e !important;
+    border: 1px solid #c2b292 !important;
+    border-radius: 6px !important;
+    padding: 12px 15px !important;
+    transition: all 0.2s ease;
+}
+
+#deductionPuzzlesContainer label:hover {
+    background: #fff5e6 !important;
+    border-color: #8b4513 !important;
+}
+
+/* زر إصدار القرار النهائي */
+#btnSubmitDeduction {
+    background: linear-gradient(135deg, #8b4513, #5c4033) !important;
+    color: #fff !important;
+    border: 1px solid #d4c5a9 !important;
+    padding: 14px 25px !important;
+    font-size: 1.05rem !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    transition: all 0.3s ease;
+}
+
+#btnSubmitDeduction:hover {
+    background: linear-gradient(135deg, #a0522d, #6b4f3b) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
 }
