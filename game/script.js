@@ -460,7 +460,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadCase(caseId) {
         currentCase = CASES_DATA.find(c => c.id === caseId);
         if (!currentCase) return;
-
+    // إرسال القضية للنظام التفاعلي الجديد بدون تغيير النظام القديم
+    window.dispatchEvent(
+        new CustomEvent("qadayati:case-loaded", {
+            detail: {
+                caseData: currentCase
+            }
+        })
+    );
         score = 1000;
         mistakes = 0;
         hintsLeft = 3;
