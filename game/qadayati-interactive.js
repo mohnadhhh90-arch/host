@@ -157,37 +157,53 @@
        ROOT
        ===================================================== */
 
-    function getRoot() {
-        let root = document.getElementById(
-            "qadayatiInteractiveRoot"
-        );
+ function getRoot() {
+    let root = document.getElementById(
+        "qadayatiInteractiveRoot"
+    );
 
-        if (!root) {
-            const board =
-                document.getElementById("caseBoardSection");
+    if (!root) {
+        const board =
+            document.getElementById("caseBoardSection");
 
-            if (!board) return null;
+        if (!board) return null;
 
-            root = document.createElement("div");
+        root = document.createElement("div");
 
-            root.id = "qadayatiInteractiveRoot";
+        root.id = "qadayatiInteractiveRoot";
 
-            root.className =
-                "qad-interactive-root";
+        root.className =
+            "qad-interactive-root";
 
-            const tabs =
-                board.querySelector(".board-tabs");
+        /*
+         * مهم:
+         * النظام التفاعلي الجديد يظهر بعد
+         * محتوى القضية والتبويبات الأصلية.
+         *
+         * بهذا الشكل:
+         * ملف القضية
+         * الشخصيات
+         * الأدلة
+         * التسلسل الزمني
+         * الاستنتاج
+         * ↓
+         * مسرح الجريمة
+         * المقابلات
+         * الأحداث
+         */
 
-            if (tabs) {
-                tabs.before(root);
-            } else {
-                board.prepend(root);
-            }
+        const boardContent =
+            board.querySelector(".board-content");
+
+        if (boardContent) {
+            boardContent.after(root);
+        } else {
+            board.appendChild(root);
         }
-
-        return root;
     }
 
+    return root;
+}
     /* =====================================================
        TOAST
        ===================================================== */
