@@ -156,38 +156,43 @@
     /* =====================================================
        ROOT
        ===================================================== */
+Function getRoot() {
+    let root = document.getElementById(
+        "qadayatiInteractiveRoot"
+    );
 
-    function getRoot() {
-        let root = document.getElementById(
-            "qadayatiInteractiveRoot"
-        );
+    if (!root) {
+        const board =
+            document.getElementById("caseBoardSection");
 
-        if (!root) {
-            const board =
-                document.getElementById("caseBoardSection");
+        if (!board) return null;
 
-            if (!board) return null;
+        root = document.createElement("div");
 
-            root = document.createElement("div");
+        root.id = "qadayatiInteractiveRoot";
+        root.className = "qad-interactive-root";
 
-            root.id = "qadayatiInteractiveRoot";
+        /*
+         * الترتيب الجديد:
+         * محتوى ملف القضية
+         * ↓
+         * التبويبات الأصلية
+         * ↓
+         * النظام التفاعلي الجديد
+         */
 
-            root.className =
-                "qad-interactive-root";
+        const boardContent =
+            board.querySelector(".board-content");
 
-            const tabs =
-                board.querySelector(".board-tabs");
-
-            if (tabs) {
-                tabs.before(root);
-            } else {
-                board.prepend(root);
-            }
+        if (boardContent) {
+            boardContent.after(root);
+        } else {
+            board.appendChild(root);
         }
-
-        return root;
     }
 
+    return root;
+}
     /* =====================================================
        TOAST
        ===================================================== */
@@ -813,15 +818,41 @@
 
                             ${
                                 state.events.length
-                                    ? state.events
-                                        .map(id => `
-                                            <div>
-                                                ⚡
-                                                ${escapeHTML(
-                                                    id
-                                                )}
-                                            </div>
-                                        `)
+                                    ? 
+                              State.events
+    .map(id => {
+        const event =
+            currentCase.events?.find(
+                e => e.id === id
+            );
+
+        return `
+            <div class="qad-event-item">
+
+                <strong>
+                    ⚡
+                    ${escapeHTML(
+                        event?.title ||
+                        "تطور جديد"
+                    )}
+                </strong>
+
+                ${
+                    event?.message
+                        ? `
+                        <span>
+                            ${escapeHTML(
+                                event.message
+                            )}
+                        </span>
+                        `
+                        : ""
+                }
+
+            </div>
+        `;
+    })
+    .join("")
                                         .join("")
                                     : `
                                         <span class="qad-muted">
