@@ -824,29 +824,48 @@
                         <h3>
                             تطورات التحقيق
                         </h3>
+<div class="qad-event-log">
+    ${
+        state.events.length
+            ? state.events
+                .map(id => {
+                    const event =
+                        currentCase.events?.find(
+                            e => e.id === id
+                        );
 
-                        <div class="qad-event-log">
+                    return `
+                        <div class="qad-event-item">
+                            <strong>
+                                ⚡
+                                ${escapeHTML(
+                                    event?.title ||
+                                    "تطور جديد"
+                                )}
+                            </strong>
 
                             ${
-                                state.events.length
-                                    ? state.events
-                                        .map(id => `
-                                            <div>
-                                                ⚡
-                                                ${escapeHTML(
-                                                    id
-                                                )}
-                                            </div>
-                                        `)
-                                        .join("")
-                                    : `
-                                        <span class="qad-muted">
-                                            لم تظهر أحداث مفاجئة بعد.
-                                        </span>
+                                event?.message
+                                    ? `
+                                    <span>
+                                        ${escapeHTML(
+                                            event.message
+                                        )}
+                                    </span>
                                     `
+                                    : ""
                             }
-
                         </div>
+                    `;
+                })
+                .join("")
+            : `
+                <span class="qad-muted">
+                    لم تظهر أحداث مفاجئة بعد.
+                </span>
+            `
+    }
+</div>
                     </section>
                     `
                     : ""
