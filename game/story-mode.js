@@ -39,8 +39,8 @@ async function loadStoryFromGitHub() {
         if (container) {
             container.innerHTML = `
                 <div class="detective-desk-file" style="text-align: center; color: #c0392b;">
-                    <h3>⚠️ خطأ في الاتصال بالأرشيف السيبراني</h3>
-                    <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">في صيانه دلوقتي</p>
+                    <h3>صيانه</h3>
+                    <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">القصه في صيانه حاليا تقدر تلعب طور القضايا العاديه</p>
                 </div>
             `;
         }
