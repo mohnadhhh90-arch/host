@@ -1,47 +1,42 @@
-function getRoot() {
-    let root = document.getElementById(
-        "qadayatiInteractiveRoot"
-    );
+<div class="qad-event-log">
+    ${
+        state.events.length
+            ? state.events
+                .map(id => {
+                    const event =
+                        currentCase.events?.find(
+                            e => e.id === id
+                        );
 
-    if (!root) {
-        const board =
-            document.getElementById("caseBoardSection");
+                    return `
+                        <div class="qad-event-item">
+                            <strong>
+                                ⚡
+                                ${escapeHTML(
+                                    event?.title ||
+                                    "تطور جديد"
+                                )}
+                            </strong>
 
-        if (!board) return null;
-
-        root = document.createElement("div");
-
-        root.id = "qadayatiInteractiveRoot";
-
-        root.className =
-            "qad-interactive-root";
-
-        /*
-         * مهم:
-         * النظام التفاعلي الجديد يظهر بعد
-         * محتوى القضية والتبويبات الأصلية.
-         *
-         * بهذا الشكل:
-         * ملف القضية
-         * الشخصيات
-         * الأدلة
-         * التسلسل الزمني
-         * الاستنتاج
-         * ↓
-         * مسرح الجريمة
-         * المقابلات
-         * الأحداث
-         */
-
-        const boardContent =
-            board.querySelector(".board-content");
-
-        if (boardContent) {
-            boardContent.after(root);
-        } else {
-            board.appendChild(root);
-        }
+                            ${
+                                event?.message
+                                    ? `
+                                    <span>
+                                        ${escapeHTML(
+                                            event.message
+                                        )}
+                                    </span>
+                                    `
+                                    : ""
+                            }
+                        </div>
+                    `;
+                })
+                .join("")
+            : `
+                <span class="qad-muted">
+                    لم تظهر أحداث مفاجئة بعد.
+                </span>
+            `
     }
-
-    return root;
-}
+</div>
