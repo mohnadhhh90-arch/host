@@ -678,3 +678,438 @@ body {
     align-items: flex-start;
   }
 }
+/* =========================================================
+   QADAYATI - INTERACTIVE INVESTIGATION
+   ========================================================= */
+
+.qad-interactive-root {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 18px 0;
+}
+
+.qad-panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.35);
+}
+
+.qad-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+.qad-panel h3 {
+    margin: 3px 0 0;
+    color: var(--text-main);
+}
+
+.qad-kicker {
+    color: var(--cyan-color);
+    font-size: .75rem;
+    font-weight: 800;
+}
+
+.qad-muted {
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+
+.qad-badge {
+    border: 1px solid var(--cyan-color);
+    color: var(--cyan-color);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: .75rem;
+}
+
+/* =========================================================
+   CRIME SCENE
+   ========================================================= */
+
+.qad-scene {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 15px auto;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: #080b12;
+}
+
+.qad-scene img {
+    width: 100%;
+    display: block;
+    max-height: 600px;
+    object-fit: cover;
+}
+
+.qad-hotspot {
+    position: absolute;
+    transform: translate(-50%,-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--cyan-color);
+    background: rgba(0,0,0,.75);
+    color: var(--cyan-color);
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: .2s ease;
+    box-shadow: 0 0 15px rgba(0,229,255,.25);
+}
+
+.qad-hotspot:hover {
+    transform: translate(-50%,-50%) scale(1.15);
+}
+
+.qad-hotspot.found {
+    border-color: #27ae60;
+    color: #27ae60;
+}
+
+.qad-hotspot-list {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.qad-hotspot-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    text-align: right;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.qad-hotspot-item:hover {
+    border-color: var(--cyan-color);
+}
+
+.qad-hotspot-item span {
+    color: var(--text-muted);
+    font-size: .8rem;
+}
+
+/* =========================================================
+   EVIDENCE
+   ========================================================= */
+
+.qad-evidence-card {
+    position: relative;
+}
+
+.qad-inspect {
+    margin-top: 12px;
+    width: 100%;
+}
+
+.qad-inspect:disabled {
+    opacity: .7;
+    cursor: default;
+}
+
+/* =========================================================
+   INTERVIEWS
+   ========================================================= */
+
+.qad-interviews {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 10px;
+}
+
+.qad-interview {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: right;
+    padding: 13px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.qad-interview:hover {
+    border-color: var(--cyan-color);
+    transform: translateY(-2px);
+}
+
+.qad-interview strong,
+.qad-interview small {
+    display: block;
+}
+
+.qad-interview small {
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+
+.qad-person {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    font-size: 22px;
+}
+
+.qad-person.large {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+}
+
+/* =========================================================
+   EVENTS
+   ========================================================= */
+
+.qad-event-log {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.qad-event-log > div {
+    padding: 10px 12px;
+    border-right: 3px solid var(--cyan-color);
+    background: var(--bg-primary);
+    color: var(--text-main);
+    border-radius: var(--radius-sm);
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+.qad-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 25px;
+    transform: translate(-50%,20px);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100000;
+    min-width: 280px;
+    max-width: 90vw;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: #111827;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    transition: .25s ease;
+    text-align: right;
+}
+
+.qad-toast.show {
+    opacity: 1;
+    transform: translate(-50%,0);
+}
+
+.qad-toast strong,
+.qad-toast span {
+    display: block;
+}
+
+.qad-toast strong {
+    color: var(--cyan-color);
+    margin-bottom: 4px;
+}
+
+.qad-toast span {
+    color: var(--text-main);
+    font-size: .9rem;
+}
+
+.qad-toast.success {
+    border-color: #27ae60;
+}
+
+.qad-toast.warning {
+    border-color: #f1c40f;
+}
+
+/* =========================================================
+   DIALOGUE
+   ========================================================= */
+
+.qad-dialogue-modal,
+.qad-cutscene-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,.82);
+}
+
+.qad-dialogue-card,
+.qad-cutscene-card {
+    position: relative;
+    width: min(600px,100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    border-radius: 15px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--cyan-color);
+    box-shadow: 0 15px 50px rgba(0,0,0,.65);
+    color: var(--text-main);
+}
+
+.qad-close {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    border: 0;
+    background: none;
+    color: var(--text-muted);
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.qad-dialogue-person {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.qad-dialogue-text {
+    padding: 15px;
+    margin-bottom: 15px;
+    line-height: 1.8;
+    background: var(--bg-primary);
+    border-right: 3px solid var(--cyan-color);
+    border-radius: 8px;
+}
+
+.qad-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.qad-choice {
+    width: 100%;
+    padding: 12px;
+    text-align: right;
+    color: var(--text-main);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .2s;
+    font-family: inherit;
+}
+
+.qad-choice:hover {
+    border-color: var(--cyan-color);
+    transform: translateX(-3px);
+}
+
+.qad-response {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    background: rgba(0,229,255,.06);
+    border: 1px solid var(--cyan-color);
+    line-height: 1.8;
+}
+
+.qad-response p {
+    margin: 7px 0;
+}
+
+.qad-cutscene-image {
+    width: 100%;
+    max-height: 350px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* =========================================================
+   NOTEBOOK - PC
+   ========================================================= */
+
+@media (min-width: 901px) {
+
+    #notebookModal .modal-content {
+        cursor: grab;
+        transition: box-shadow .2s ease;
+        touch-action: none;
+    }
+
+    #notebookModal .modal-content.qad-dragging {
+        cursor: grabbing;
+        box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .qad-hotspot {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+    }
+
+    .qad-hotspot-list,
+    .qad-interviews {
+        grid-template-columns: 1fr;
+    }
+
+    .qad-panel {
+        padding: 14px;
+    }
+
+    .qad-dialogue-card,
+    .qad-cutscene-card {
+        padding: 18px;
+    }
+
+    #notebookModal .modal-content {
+        transform: none !important;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .qad-scene img {
+        max-height: 400px;
+    }
+
+    .qad-toast {
+        min-width: 0;
+        width: calc(100vw - 30px);
+    }
+}
+
