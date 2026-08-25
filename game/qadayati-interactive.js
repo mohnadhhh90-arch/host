@@ -1,8 +1,3 @@
-/* =========================================================
-   قضيتي - Interactive Investigation System
-   يعمل فوق النظام القديم ولا يستبدله
-   ========================================================= */
-
 (() => {
     "use strict";
 
@@ -156,61 +151,48 @@
     /* =====================================================
        ROOT
        ===================================================== */
-Function getRoot() {
-    let root = document.getElementById(
-        "qadayatiInteractiveRoot"
-    );
+    function getRoot() {
+        let root = document.getElementById(
+            "qadayatiInteractiveRoot"
+        );
 
-    if (!root) {
-        const board =
-            document.getElementById("caseBoardSection");
+        if (!root) {
+            const board =
+                document.getElementById("caseBoardSection");
 
-        if (!board) return null;
+            if (!board) return null;
 
-        root = document.createElement("div");
+            root = document.createElement("div");
 
-        root.id = "qadayatiInteractiveRoot";
-        root.className = "qad-interactive-root";
+            root.id = "qadayatiInteractiveRoot";
+            root.className = "qad-interactive-root";
 
-        /*
-         * الترتيب الجديد:
-         * محتوى ملف القضية
-         * ↓
-         * التبويبات الأصلية
-         * ↓
-         * النظام التفاعلي الجديد
-         */
+            const boardContent =
+                board.querySelector(".board-content");
 
-        const boardContent =
-            board.querySelector(".board-content");
-
-        if (boardContent) {
-            boardContent.after(root);
-        } else {
-            board.appendChild(root);
+            if (boardContent) {
+                boardContent.after(root);
+            } else {
+                board.appendChild(root);
+            }
         }
+
+        return root;
     }
 
-    return root;
-}
     /* =====================================================
        TOAST
        ===================================================== */
-
     function toast(title, text, type = "") {
-
-        let box =
-            document.getElementById("qadToast");
+        let box = document.getElementById("qadToast");
 
         if (!box) {
             box = document.createElement("div");
             box.id = "qadToast";
-
             document.body.appendChild(box);
         }
 
-        box.className =
-            "qad-toast show " + type;
+        box.className = "qad-toast show " + type;
 
         box.innerHTML = `
             <strong>${escapeHTML(title)}</strong>
@@ -228,62 +210,26 @@ Function getRoot() {
     /* =====================================================
        CUTSCENE
        ===================================================== */
-
     function showCutscene(scene) {
-
         if (!scene) return;
 
-        const modal =
-            document.createElement("div");
-
-        modal.className =
-            "qad-cutscene-modal";
+        const modal = document.createElement("div");
+        modal.className = "qad-cutscene-modal";
 
         modal.innerHTML = `
             <div class="qad-cutscene-card">
-
-                <button
-                    class="qad-close"
-                    type="button">
-                    ×
-                </button>
-
+                <button class="qad-close" type="button">×</button>
                 ${
                     scene.image
-                        ? `
-                        <img
-                            src="${escapeHTML(scene.image)}"
-                            alt=""
-                            class="qad-cutscene-image"
-                        >
-                        `
+                        ? `<img src="${escapeHTML(scene.image)}" alt="" class="qad-cutscene-image">`
                         : ""
                 }
-
-                <span class="qad-kicker">
-                    🎬 مشهد تحقيقي
-                </span>
-
-                <h3>
-                    ${escapeHTML(
-                        scene.title || "حدث مهم"
-                    )}
-                </h3>
-
-                <p>
-                    ${escapeHTML(
-                        scene.text ||
-                        scene.description ||
-                        ""
-                    )}
-                </p>
-
-                <button
-                    class="btn-detective btn-primary qad-close-btn"
-                    type="button">
+                <span class="qad-kicker">🎬 مشهد تحقيقي</span>
+                <h3>${escapeHTML(scene.title || "حدث مهم")}</h3>
+                <p>${escapeHTML(scene.text || scene.description || "")}</p>
+                <button class="btn-detective btn-primary qad-close-btn" type="button">
                     متابعة التحقيق
                 </button>
-
             </div>
         `;
 
@@ -291,67 +237,29 @@ Function getRoot() {
 
         const close = () => modal.remove();
 
-        modal
-            .querySelector(".qad-close")
-            ?.addEventListener("click", close);
-
-        modal
-            .querySelector(".qad-close-btn")
-            ?.addEventListener("click", close);
+        modal.querySelector(".qad-close")?.addEventListener("click", close);
+        modal.querySelector(".qad-close-btn")?.addEventListener("click", close);
     }
 
     /* =====================================================
        EVENTS
        ===================================================== */
-
     function triggerEvents(trigger, payload = {}) {
-
         if (!Array.isArray(currentCase?.events)) {
             return;
         }
 
         currentCase.events.forEach(event => {
+            if (event.trigger && event.trigger !== trigger) return;
+            if (event.whenEvidence && event.whenEvidence !== payload.evidenceId) return;
+            if (event.whenCharacter && event.whenCharacter !== payload.characterId) return;
+            if (event.whenChoice && event.whenChoice !== payload.choiceId) return;
 
-            if (
-                event.trigger &&
-                event.trigger !== trigger
-            ) {
-                return;
-            }
+            if (!conditionPassed(event.condition)) return;
 
-            if (
-                event.whenEvidence &&
-                event.whenEvidence !== payload.evidenceId
-            ) {
-                return;
-            }
+            const eventId = event.id || event.title || event.message;
 
-            if (
-                event.whenCharacter &&
-                event.whenCharacter !== payload.characterId
-            ) {
-                return;
-            }
-
-            if (
-                event.whenChoice &&
-                event.whenChoice !== payload.choiceId
-            ) {
-                return;
-            }
-
-            if (!conditionPassed(event.condition)) {
-                return;
-            }
-
-            const eventId =
-                event.id ||
-                event.title ||
-                event.message;
-
-            if (state.events.includes(eventId)) {
-                return;
-            }
+            if (state.events.includes(eventId)) return;
 
             state.events.push(eventId);
 
@@ -366,8 +274,7 @@ Function getRoot() {
             }
 
             if (event.setStage !== undefined) {
-                state.stage =
-                    Number(event.setStage);
+                state.stage = Number(event.setStage);
             }
 
             saveState();
@@ -379,12 +286,9 @@ Function getRoot() {
             );
 
             if (event.cutsceneId) {
-
-                const scene =
-                    currentCase.cutscenes?.find(
-                        s => s.id === event.cutsceneId
-                    );
-
+                const scene = currentCase.cutscenes?.find(
+                    s => s.id === event.cutsceneId
+                );
                 if (scene) {
                     showCutscene(scene);
                 }
@@ -397,39 +301,21 @@ Function getRoot() {
     /* =====================================================
        EVIDENCE
        ===================================================== */
-
     function inspectEvidence(id) {
-
         if (!id || !currentCase) return;
 
-        const evidence =
-            currentCase.evidences?.find(
-                e => e.id === id
-            );
-
+        const evidence = currentCase.evidences?.find(e => e.id === id);
         if (!evidence) return;
 
-        const firstTime =
-            !hasEvidence(id);
+        const firstTime = !hasEvidence(id);
 
         if (firstTime) {
-
             state.evidence.push(id);
-
             saveState();
 
-            toast(
-                "🔎 دليل جديد",
-                evidence.title,
-                "success"
-            );
+            toast("🔎 دليل جديد", evidence.title, "success");
 
-            triggerEvents(
-                "evidence",
-                {
-                    evidenceId: id
-                }
-            );
+            triggerEvents("evidence", { evidenceId: id });
 
             currentCase.cutscenes
                 ?.filter(scene =>
@@ -437,91 +323,52 @@ Function getRoot() {
                     scene.evidenceId === id
                 )
                 .forEach(scene => {
-
-                    if (
-                        conditionPassed(
-                            scene.condition
-                        )
-                    ) {
+                    if (conditionPassed(scene.condition)) {
                         showCutscene(scene);
                     }
                 });
         }
 
         refreshEvidenceCards();
-
         refreshEvidenceSelect();
     }
 
     function refreshEvidenceCards() {
-
-        const grid =
-            document.getElementById(
-                "evidenceGrid"
-            );
-
+        const grid = document.getElementById("evidenceGrid");
         if (!grid || !currentCase) return;
 
-        const cards =
-            [...grid.children];
+        const cards = [...grid.children];
 
-        currentCase.evidences
-            ?.forEach((evidence, index) => {
+        currentCase.evidences?.forEach((evidence, index) => {
+            const card = cards[index];
+            if (!card) return;
 
-                const card = cards[index];
+            card.dataset.qadEvidenceId = evidence.id;
 
-                if (!card) return;
+            let button = card.querySelector(".qad-inspect");
 
-                card.dataset.qadEvidenceId =
-                    evidence.id;
+            if (!button) {
+                button = document.createElement("button");
+                button.type = "button";
+                button.className = "btn-detective btn-secondary qad-inspect";
+                card.appendChild(button);
+            }
 
-                let button =
-                    card.querySelector(
-                        ".qad-inspect"
-                    );
-
-                if (!button) {
-
-                    button =
-                        document.createElement(
-                            "button"
-                        );
-
-                    button.type = "button";
-
-                    button.className =
-                        "btn-detective btn-secondary qad-inspect";
-
-                    card.appendChild(button);
-                }
-
-                button.dataset.evidenceId =
-                    evidence.id;
-
-                button.textContent =
-                    hasEvidence(evidence.id)
-                        ? "✅ تم فحص الدليل"
-                        : "🔎 فحص الدليل";
-            });
+            button.dataset.evidenceId = evidence.id;
+            button.textContent = hasEvidence(evidence.id)
+                ? "✅ تم فحص الدليل"
+                : "🔎 فحص الدليل";
+        });
     }
 
     function refreshEvidenceSelect() {
-
-        const select =
-            document.getElementById(
-                "selectEvidence"
-            );
-
+        const select = document.getElementById("selectEvidence");
         if (!select || !currentCase) return;
 
-        const oldValue =
-            select.value;
+        const oldValue = select.value;
 
         select.innerHTML = `
-            <option value="">
-                -- اختر الدليل القاطع --
-            </option>
-
+            <option value="">-- اختر الدليل القاطع --</option>
             ${
                 currentCase.evidences
                     ?.map(e => `
@@ -539,14 +386,9 @@ Function getRoot() {
     /* =====================================================
        CRIME SCENE
        ===================================================== */
-
     function renderCrimeScene() {
-
-        const scene =
-            currentCase?.crimeScene;
-
-        const spots =
-            currentCase?.interactiveEvidence;
+        const scene = currentCase?.crimeScene;
+        const spots = currentCase?.interactiveEvidence;
 
         if (!scene && !spots?.length) {
             return "";
@@ -554,35 +396,17 @@ Function getRoot() {
 
         return `
             <section class="qad-panel">
-
                 <div class="qad-panel-header">
                     <div>
-                        <span class="qad-kicker">
-                            📍 مسرح الجريمة
-                        </span>
-
-                        <h3>
-                            ${escapeHTML(
-                                scene?.title ||
-                                "افحص المكان"
-                            )}
-                        </h3>
+                        <span class="qad-kicker">📍 مسرح الجريمة</span>
+                        <h3>${escapeHTML(scene?.title || "افحص المكان")}</h3>
                     </div>
-
-                    <span class="qad-badge">
-                        تفاعلي
-                    </span>
+                    <span class="qad-badge">تفاعلي</span>
                 </div>
 
                 ${
                     scene?.description
-                        ? `
-                        <p class="qad-muted">
-                            ${escapeHTML(
-                                scene.description
-                            )}
-                        </p>
-                        `
+                        ? `<p class="qad-muted">${escapeHTML(scene.description)}</p>`
                         : ""
                 }
 
@@ -590,46 +414,21 @@ Function getRoot() {
                     scene?.image
                         ? `
                         <div class="qad-scene">
-
-                            <img
-                                src="${escapeHTML(
-                                    scene.image
-                                )}"
-                                alt="مسرح الجريمة"
-                            >
-
+                            <img src="${escapeHTML(scene.image)}" alt="مسرح الجريمة">
                             ${
                                 spots
                                     ?.map(spot => `
                                         <button
                                             type="button"
-                                            class="qad-hotspot ${
-                                                hasEvidence(
-                                                    spot.evidenceId
-                                                )
-                                                    ? "found"
-                                                    : ""
-                                            }"
-                                            style="
-                                                left:${Number(spot.x) || 0}%;
-                                                top:${Number(spot.y) || 0}%;
-                                            "
-                                            data-evidence-id="${escapeHTML(
-                                                spot.evidenceId
-                                            )}"
+                                            class="qad-hotspot ${hasEvidence(spot.evidenceId) ? "found" : ""}"
+                                            style="left:${Number(spot.x) || 0}%; top:${Number(spot.y) || 0}%;"
+                                            data-evidence-id="${escapeHTML(spot.evidenceId)}"
                                         >
-                                            ${
-                                                hasEvidence(
-                                                    spot.evidenceId
-                                                )
-                                                    ? "✓"
-                                                    : "+"
-                                            }
+                                            ${hasEvidence(spot.evidenceId) ? "✓" : "+"}
                                         </button>
                                     `)
                                     .join("") || ""
                             }
-
                         </div>
                         `
                         : ""
@@ -639,37 +438,22 @@ Function getRoot() {
                     spots?.length
                         ? `
                         <div class="qad-hotspot-list">
-
                             ${spots
                                 .map(spot => `
                                     <button
                                         type="button"
                                         class="qad-hotspot-item"
-                                        data-evidence-id="${escapeHTML(
-                                            spot.evidenceId
-                                        )}"
+                                        data-evidence-id="${escapeHTML(spot.evidenceId)}"
                                     >
-                                        <strong>
-                                            ${escapeHTML(
-                                                spot.title
-                                            )}
-                                        </strong>
-
-                                        <span>
-                                            ${escapeHTML(
-                                                spot.description ||
-                                                "اضغط للفحص"
-                                            )}
-                                        </span>
+                                        <strong>${escapeHTML(spot.title)}</strong>
+                                        <span>${escapeHTML(spot.description || "اضغط للفحص")}</span>
                                     </button>
                                 `)
                                 .join("")}
-
                         </div>
                         `
                         : ""
                 }
-
             </section>
         `;
     }
@@ -677,99 +461,55 @@ Function getRoot() {
     /* =====================================================
        INTERVIEWS
        ===================================================== */
-
     function renderInterviews() {
-
-        if (
-            !Array.isArray(
-                currentCase?.dialogues
-            ) ||
-            !currentCase.dialogues.length
-        ) {
+        if (!Array.isArray(currentCase?.dialogues) || !currentCase.dialogues.length) {
             return "";
         }
 
-        const dialogues =
-            currentCase.dialogues.filter(
-                d => conditionPassed(
-                    d.condition
-                )
-            );
+        const dialogues = currentCase.dialogues.filter(
+            d => conditionPassed(d.condition)
+        );
 
         return `
             <section class="qad-panel">
-
                 <div class="qad-panel-header">
                     <div>
-                        <span class="qad-kicker">
-                            🗣️ المقابلات
-                        </span>
-
-                        <h3>
-                            استجواب المشتبه بهم
-                        </h3>
+                        <span class="qad-kicker">🗣️ المقابلات</span>
+                        <h3>استجواب المشتبه بهم</h3>
                     </div>
                 </div>
 
                 <div class="qad-interviews">
-
                     ${
                         dialogues.length
                             ? dialogues
                                 .map(dialogue => {
-
-                                    const char =
-                                        currentCase.characters
-                                            ?.find(
-                                                c =>
-                                                    c.id ===
-                                                    dialogue.characterId
-                                            );
+                                    const char = currentCase.characters?.find(
+                                        c => c.id === dialogue.characterId
+                                    );
 
                                     return `
                                         <button
                                             type="button"
                                             class="qad-interview"
-                                            data-dialogue-id="${escapeHTML(
-                                                dialogue.id
-                                            )}"
+                                            data-dialogue-id="${escapeHTML(dialogue.id)}"
                                         >
-                                            <span class="qad-person">
-                                                👤
-                                            </span>
-
+                                            <span class="qad-person">👤</span>
                                             <span>
-                                                <strong>
-                                                    ${escapeHTML(
-                                                        char?.name ||
-                                                        dialogue.characterName ||
-                                                        "مشتبه به"
-                                                    )}
-                                                </strong>
-
-                                                <small>
-                                                    ${escapeHTML(
-                                                        char?.role ||
-                                                        "مقابلة"
-                                                    )}
-                                                </small>
+                                                <strong>${escapeHTML(char?.name || dialogue.characterName || "مشتبه به")}</strong>
+                                                <small>${escapeHTML(char?.role || "مقابلة")}</small>
                                             </span>
-
-                                            <span>
-                                                ←
-                                            </span>
+                                            <span>←</span>
                                         </button>
                                     `;
                                 })
                                 .join("")
                             : `
                                 <p class="qad-muted">
-                                    لا توجد أسئلة متاحة الآن.
-                                    اجمع المزيد من الأدلة.
+                                    لا توجد أسئلة متاحة الآن. اجمع المزيد من الأدلة.
                                 </p>
                             `
                     }
-
                 </div>
             </section>
         `;
@@ -778,11 +518,8 @@ Function getRoot() {
     /* =====================================================
        RENDER
        ===================================================== */
-
     function render() {
-
         const root = getRoot();
-
         if (!root || !currentCase) return;
 
         const hasFeatures =
@@ -805,62 +542,35 @@ Function getRoot() {
                 currentCase.events?.length
                     ? `
                     <section class="qad-panel">
-
-                        <span class="qad-kicker">
-                            ⚡ الأحداث
-                        </span>
-
-                        <h3>
-                            تطورات التحقيق
-                        </h3>
-
+                        <span class="qad-kicker">⚡ الأحداث</span>
+                        <h3>تطورات التحقيق</h3>
                         <div class="qad-event-log">
-
                             ${
                                 state.events.length
-                                    ? 
-                              State.events
-    .map(id => {
-        const event =
-            currentCase.events?.find(
-                e => e.id === id
-            );
+                                    ? state.events
+                                        .map(id => {
+                                            const event = currentCase.events?.find(
+                                                e => e.id === id
+                                            );
 
-        return `
-            <div class="qad-event-item">
-
-                <strong>
-                    ⚡
-                    ${escapeHTML(
-                        event?.title ||
-                        "تطور جديد"
-                    )}
-                </strong>
-
-                ${
-                    event?.message
-                        ? `
-                        <span>
-                            ${escapeHTML(
-                                event.message
-                            )}
-                        </span>
-                        `
-                        : ""
-                }
-
-            </div>
-        `;
-    })
-    .join("")
+                                            return `
+                                                <div class="qad-event-item">
+                                                    <strong>⚡ ${escapeHTML(event?.title || "تطور جديد")}</strong>
+                                                    ${
+                                                        event?.message
+                                                            ? `<span>${escapeHTML(event.message)}</span>`
+                                                            : ""
+                                                    }
+                                                </div>
+                                            `;
+                                        })
                                         .join("")
                                     : `
                                         <span class="qad-muted">
                                             لم تظهر أحداث مفاجئة بعد.
                                         </span>
-                                    `
+                                      `
                             }
-
                         </div>
                     </section>
                     `
@@ -874,488 +584,116 @@ Function getRoot() {
     /* =====================================================
        DIALOGUE
        ===================================================== */
-
     function openDialogue(id) {
+        const dialogue = currentCase?.dialogues?.find(
+            d => d.id === id
+        );
 
-        const dialogue =
-            currentCase?.dialogues?.find(
-                d => d.id === id
-            );
-
-        if (
-            !dialogue ||
-            !conditionPassed(dialogue.condition)
-        ) {
+        if (!dialogue || !conditionPassed(dialogue.condition)) {
             toast(
                 "المعلومة غير متاحة",
                 "اجمع الأدلة المطلوبة أولًا.",
                 "warning"
             );
-
             return;
         }
 
-        const character =
-            currentCase.characters?.find(
-                c =>
-                    c.id ===
-                    dialogue.characterId
-            );
+        const character = currentCase.characters?.find(
+            c => c.id === dialogue.characterId
+        );
 
-        state.interviewed =
-            Array.from(
-                new Set([
-                    ...state.interviewed,
-                    dialogue.characterId
-                ])
-            );
+        state.interviewed = Array.from(
+            new Set([
+                ...state.interviewed,
+                dialogue.characterId
+            ])
+        );
 
         saveState();
 
-        const modal =
-            document.createElement("div");
-
-        modal.className =
-            "qad-dialogue-modal";
+        const modal = document.createElement("div");
+        modal.className = "qad-dialogue-modal";
 
         modal.innerHTML = `
             <div class="qad-dialogue-card">
-
-                <button
-                    class="qad-close"
-                    type="button">
-                    ×
-                </button>
-
+                <button class="qad-close" type="button">×</button>
                 <div class="qad-dialogue-person">
-
-                    <div class="qad-person large">
-                        👤
-                    </div>
-
+                    <div class="qad-person large">👤</div>
                     <div>
-                        <span class="qad-kicker">
-                            مقابلة رسمية
-                        </span>
-
-                        <h3>
-                            ${escapeHTML(
-                                character?.name ||
-                                dialogue.characterName ||
-                                "المشتبه به"
-                            )}
-                        </h3>
-
-                        <small>
-                            ${escapeHTML(
-                                character?.role || ""
-                            )}
-                        </small>
+                        <span class="qad-kicker">مقابلة رسمية</span>
+                        <h3>${escapeHTML(character?.name || dialogue.characterName || "المشتبه به")}</h3>
+                        <small>${escapeHTML(character?.role || "")}</small>
                     </div>
-
                 </div>
 
                 <div class="qad-dialogue-text">
-                    ${escapeHTML(
-                        dialogue.intro ||
-                        character?.statement ||
-                        ""
-                    )}
+                    ${escapeHTML(dialogue.intro || character?.statement || "")}
                 </div>
 
                 <div class="qad-choices">
-
                     ${
                         dialogue.choices
-                            ?.filter(
-                                choice =>
-                                    conditionPassed(
-                                        choice.condition
-                                    )
-                            )
+                            ?.filter(choice => conditionPassed(choice.condition))
                             .map(choice => `
                                 <button
                                     type="button"
                                     class="qad-choice"
-                                    data-choice-id="${escapeHTML(
-                                        choice.id
-                                    )}"
+                                    data-choice-id="${escapeHTML(choice.id)}"
                                 >
-                                    ${escapeHTML(
-                                        choice.text
-                                    )}
+                                    ${escapeHTML(choice.text)}
                                 </button>
                             `)
                             .join("") || ""
                     }
-
                 </div>
 
-                <div
-                    class="qad-response"
-                    hidden>
-                </div>
-
+                <div class="qad-response" hidden></div>
             </div>
         `;
 
         document.body.appendChild(modal);
 
-        const close =
-            () => modal.remove();
+        const close = () => modal.remove();
 
-        modal
-            .querySelector(".qad-close")
-            ?.addEventListener(
-                "click",
-                close
-            );
+        modal.querySelector(".qad-close")?.addEventListener("click", close);
 
-        modal
-            .querySelectorAll(".qad-choice")
-            .forEach(button => {
+        modal.querySelectorAll(".qad-choice").forEach(button => {
+            button.addEventListener("click", () => {
+                const choice = dialogue.choices?.find(
+                    c => c.id === button.dataset.choiceId
+                );
 
-                button.addEventListener(
-                    "click",
-                    () => {
+                if (!choice) return;
 
-                        const choice =
-                            dialogue.choices?.find(
-                                c =>
-                                    c.id ===
-                                    button.dataset.choiceId
-                            );
+                state.asked.push(choice.id);
 
-                        if (!choice) return;
+                if (choice.setFlag) {
+                    state.flags[choice.setFlag] = true;
+                }
 
-                        state.asked.push(
-                            choice.id
-                        );
+                if (choice.setStage !== undefined) {
+                    state.stage = Number(choice.setStage);
+                }
 
-                        if (choice.setFlag) {
-                            state.flags[
-                                choice.setFlag
-                            ] = true;
-                        }
+                if (choice.decision) {
+                    state.decisions.push(choice.decision);
+                }
 
-                        if (
-                            choice.setStage !==
-                            undefined
-                        ) {
-                            state.stage =
-                                Number(
-                                    choice.setStage
-                                );
-                        }
+                saveState();
 
-                        if (choice.decision) {
-                            state.decisions.push(
-                                choice.decision
-                            );
-                        }
+                const response = modal.querySelector(".qad-response");
+                response.hidden = false;
 
-                        saveState();
-
-                        const response =
-                            modal.querySelector(
-                                ".qad-response"
-                            );
-
-                        response.hidden = false;
-
-                        response.innerHTML = `
-                            <strong>
-                                ${escapeHTML(
-                                    character?.name ||
-                                    "المشتبه به"
-                                )}:
-                            </strong>
-
-                            <p>
-                                ${escapeHTML(
-                                    choice.response ||
-                                    "لا توجد إجابة إضافية."
-                                )}
-                            </p>
-
-                            ${
-                                choice.reaction
-                                    ? `
-                                    <span>
-                                        ${escapeHTML(
-                                            choice.reaction
-                                        )}
-                                    </span>
-                                    `
-                                    : ""
-                            }
-                        `;
-
-                        modal
-                            .querySelector(
-                                ".qad-choices"
-                            )
-                            .hidden = true;
-
-                        triggerEvents(
-                            "choice",
-                            {
-                                choiceId:
-                                    choice.id,
-
-                                characterId:
-                                    dialogue.characterId
-                            }
-                        );
-
-                        if (choice.eventId) {
-
-                            const event =
-                                currentCase.events
-                                    ?.find(
-                                        e =>
-                                            e.id ===
-                                            choice.eventId
-                                    );
-
-                            if (event) {
-                                triggerEvents(
-                                    event.trigger ||
-                                    "choice",
-                                    {
-                                        choiceId:
-                                            choice.id,
-
-                                        characterId:
-                                            dialogue.characterId
-                                    }
-                                );
-                            }
-                        }
-
-                        if (choice.cutsceneId) {
-
-                            const scene =
-                                currentCase.cutscenes
-                                    ?.find(
-                                        s =>
-                                            s.id ===
-                                            choice.cutsceneId
-                                    );
-
-                            if (scene) {
-                                showCutscene(
-                                    scene
-                                );
-                            }
-                        }
-
-                        render();
+                response.innerHTML = `
+                    <strong>${escapeHTML(character?.name || "المشتبه به")}:</strong>
+                    <p>${escapeHTML(choice.response || "لا توجد إجابة إضافية.")}</p>
+                    ${
+                        choice.reaction
+                            ? `<span>${escapeHTML(choice.reaction)}</span>`
+                            : ""
                     }
-                );
+                `;
             });
+        });
     }
-
-    /* =====================================================
-       NOTEBOOK DRAG - PC ONLY
-       ===================================================== */
-
-    function enableNotebookDrag() {
-
-        const modal =
-            document.getElementById(
-                "notebookModal"
-            );
-
-        const card =
-            modal?.querySelector(
-                ".modal-content"
-            );
-
-        if (!card) return;
-
-        let dragging = false;
-        let startX = 0;
-        let currentX = 0;
-
-        card.addEventListener(
-            "pointerdown",
-            event => {
-
-                if (
-                    window.innerWidth <= 900
-                ) {
-                    return;
-                }
-
-                if (
-                    event.target.closest(
-                        "textarea,button,input"
-                    )
-                ) {
-                    return;
-                }
-
-                dragging = true;
-
-                startX =
-                    event.clientX -
-                    currentX;
-
-                card.setPointerCapture?.(
-                    event.pointerId
-                );
-
-                card.classList.add(
-                    "qad-dragging"
-                );
-            }
-        );
-
-        card.addEventListener(
-            "pointermove",
-            event => {
-
-                if (!dragging) return;
-
-                let x =
-                    event.clientX -
-                    startX;
-
-                x = Math.max(
-                    -80,
-                    Math.min(80, x)
-                );
-
-                currentX = x;
-
-                card.style.transform =
-                    `translateX(${x}px)`;
-            }
-        );
-
-        const stop = event => {
-
-            if (!dragging) return;
-
-            dragging = false;
-
-            card.releasePointerCapture?.(
-                event.pointerId
-            );
-
-            card.classList.remove(
-                "qad-dragging"
-            );
-        };
-
-        card.addEventListener(
-            "pointerup",
-            stop
-        );
-
-        card.addEventListener(
-            "pointercancel",
-            stop
-        );
-
-        window.addEventListener(
-            "resize",
-            () => {
-
-                if (window.innerWidth <= 900) {
-                    currentX = 0;
-                    card.style.transform =
-                        "";
-                }
-
-            }
-        );
-    }
-
-    /* =====================================================
-       EVENTS
-       ===================================================== */
-
-    document.addEventListener(
-        "click",
-        event => {
-
-            const evidence =
-                event.target.closest(
-                    ".qad-inspect"
-                );
-
-            if (evidence) {
-
-                inspectEvidence(
-                    evidence.dataset.evidenceId
-                );
-
-                return;
-            }
-
-            const hotspot =
-                event.target.closest(
-                    ".qad-hotspot, .qad-hotspot-item"
-                );
-
-            if (hotspot) {
-
-                inspectEvidence(
-                    hotspot.dataset.evidenceId
-                );
-
-                return;
-            }
-
-            const interview =
-                event.target.closest(
-                    ".qad-interview"
-                );
-
-            if (interview) {
-
-                openDialogue(
-                    interview.dataset.dialogueId
-                );
-            }
-        }
-    );
-
-    /* =====================================================
-       CASE LOADED
-       ===================================================== */
-
-    window.addEventListener(
-        "qadayati:case-loaded",
-        event => {
-
-            currentCase =
-                event.detail?.caseData;
-
-            if (!currentCase) return;
-
-            state = loadState();
-
-            render();
-
-            triggerEvents(
-                "caseStart"
-            );
-
-            setTimeout(() => {
-                refreshEvidenceCards();
-                refreshEvidenceSelect();
-            }, 100);
-        }
-    );
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        () => {
-            enableNotebookDrag();
-        }
-    );
-
 })();
