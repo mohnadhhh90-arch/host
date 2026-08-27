@@ -1520,34 +1520,27 @@
                 </article>
             `;
 
-            const submit =
-                document.getElementById(
-                    "storyV2Submit"
-                );
+     
+                const submit = document.getElementById("storyV2Submit");
+const input = document.getElementById("storyV2Answer");
 
-            const input =
-                document.getElementById(
-                    "storyV2Answer"
-                );
+if (submit) {
+    submit.onclick = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
 
-            submit?.addEventListener(
-                "click",
-                checkAnswer
-            );
+        checkAnswer();
+    };
+}
 
-            input?.addEventListener(
-                "keydown",
-                event => {
-
-                    if (
-                        event.key === "Enter"
-                    ) {
-                        checkAnswer();
-                    }
-
-                }
-            );
-        };
+if (input) {
+    input.onkeydown = function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            checkAnswer();
+        }
+    };
+}
 
     /* ============================================================
        ANSWER
