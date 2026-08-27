@@ -1520,8 +1520,7 @@
                 </article>
             `;
 
-     
-const submit =
+     const submit =
     document.getElementById(
         "storyV2Submit"
     );
