@@ -1521,26 +1521,31 @@
             `;
 
      
-                const submit = document.getElementById("storyV2Submit");
-const input = document.getElementById("storyV2Answer");
+const submit =
+    document.getElementById(
+        "storyV2Submit"
+    );
 
-if (submit) {
-    submit.onclick = function (event) {
-        event.preventDefault();
-        event.stopPropagation();
+const input =
+    document.getElementById(
+        "storyV2Answer"
+    );
 
-        checkAnswer();
-    };
-}
+submit?.addEventListener(
+    "click",
+    checkAnswer
+);
 
-if (input) {
-    input.onkeydown = function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
+input?.addEventListener(
+    "keydown",
+    event => {
+        if (
+            event.key === "Enter"
+        ) {
             checkAnswer();
         }
-    };
-}
+    }
+);
 
     /* ============================================================
        ANSWER
