@@ -1,8 +1,6 @@
 /* ============================================================
    QADAYATI — STORY MODE V2
    مستقل بالكامل عن نظام القضايا العادية
-   لا يستخدم caseBoardSection
-   لا يعتمد على qadayati-interactive.js
    ============================================================ */
 
 (() => {
@@ -24,19 +22,30 @@
     const $ = selector =>
         document.querySelector(selector);
 
-    const escapeHTML = value =>
-        String(value ?? "")
+    function escapeHTML(value) {
+        return String(value ?? "")
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
 
-    const normalizeAnswer = value =>
-        String(value ?? "")
+    function normalizeAnswer(value) {
+        return String(value ?? "")
             .trim()
             .toLowerCase()
+            .replace(/[ًٌٍَُِّْـ]/g, "")
+            .replace(/[أإآ]/g, "ا")
+            .replace(/ى/g, "ي")
+            .replace(/ة/g, "ه")
+            .replace(/[.,،؛;:!?؟'"`()[\]{}]/g, "")
             .replace(/\s+/g, " ");
+    }
+
+    /* ============================================================
+       PROGRESS
+       ============================================================ */
 
     function getProgress() {
         try {
@@ -46,7 +55,12 @@
             return saved
                 ? JSON.parse(saved)
                 : {};
-        } catch {
+        } catch (error) {
+            console.error(
+                "Story progress read error:",
+                error
+            );
+
             return {};
         }
     }
@@ -59,7 +73,7 @@
             );
         } catch (error) {
             console.error(
-                "Story progress error:",
+                "Story progress save error:",
                 error
             );
         }
@@ -82,19 +96,26 @@
         return progress[storyId];
     }
 
+    /* ============================================================
+       ROOT
+       ============================================================ */
+
     function getRoot() {
+
         let root =
             document.getElementById(
                 "storyModeContainer"
             );
 
         if (!root) {
+
             const section =
                 document.getElementById(
                     "storyModeSection"
                 );
 
             if (!section) {
+
                 console.error(
                     "storyModeSection غير موجود"
                 );
@@ -127,7 +148,9 @@
             document.getElementById(
                 "qad-story-v2-style"
             )
-        ) return;
+        ) {
+            return;
+        }
 
         const style =
             document.createElement("style");
@@ -219,7 +242,8 @@
         .story-v2-operation:hover {
             transform: translateY(-3px);
             border-color: rgba(216,183,106,.4);
-            box-shadow: 0 15px 35px rgba(0,0,0,.25);
+            box-shadow:
+                0 15px 35px rgba(0,0,0,.25);
         }
 
         .story-v2-operation-top,
@@ -266,11 +290,12 @@
 
         .story-v2-progress-fill {
             height: 100%;
-            background: linear-gradient(
-                90deg,
-                #8b4513,
-                #d8b76a
-            );
+            background:
+                linear-gradient(
+                    90deg,
+                    #8b4513,
+                    #d8b76a
+                );
             border-radius: inherit;
             transition: width .5s ease;
         }
@@ -402,7 +427,8 @@
             border-radius: 18px;
             background: #191b20;
             border: 1px solid rgba(216,183,106,.22);
-            box-shadow: 0 18px 45px rgba(0,0,0,.25);
+            box-shadow:
+                0 18px 45px rgba(0,0,0,.25);
         }
 
         .story-v2-file-stamp {
@@ -438,7 +464,8 @@
             align-items: flex-start;
             padding-bottom: 20px;
             margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,.08);
+            border-bottom:
+                1px solid rgba(255,255,255,.08);
         }
 
         .story-v2-day-counter {
@@ -594,6 +621,10 @@
             color: #e58b8b;
         }
 
+        .story-v2-feedback.success {
+            color: #72d69a;
+        }
+
         .story-v2-loading,
         .story-v2-error {
             text-align: center;
@@ -604,7 +635,8 @@
 
         .story-v2-loading div {
             font-size: 3rem;
-            animation: storyPulse 1.4s infinite;
+            animation:
+                storyPulse 1.4s infinite;
         }
 
         .story-v2-loading h3,
@@ -661,6 +693,7 @@
         }
 
         @media (max-width: 800px) {
+
             .qad-story-v2 {
                 padding: 12px;
             }
@@ -714,7 +747,7 @@
     }
 
     /* ============================================================
-       LOADING
+       LOAD STORIES
        ============================================================ */
 
     async function loadStories() {
@@ -728,9 +761,11 @@
         root.innerHTML = `
             <div class="story-v2-loading">
                 <div>🕵️</div>
+
                 <h3>
                     جاري فتح أرشيف التحقيق...
                 </h3>
+
                 <p>
                     تتم مزامنة ملفات القصة.
                 </p>
@@ -758,7 +793,9 @@
             stories =
                 Array.isArray(data)
                     ? data
-                    : data.stories || [];
+                    : Array.isArray(data.stories)
+                        ? data.stories
+                        : [];
 
             renderStories();
 
@@ -771,6 +808,7 @@
 
             root.innerHTML = `
                 <div class="story-v2-error">
+
                     <h3>
                         ⚠️ تعذر فتح أرشيف التحقيق
                     </h3>
@@ -780,11 +818,15 @@
                     </p>
 
                     <button
+                        type="button"
                         class="story-v2-btn primary"
-                        onclick="window.qadLoadStoryV2()"
+                        onclick="
+                            window.qadLoadStoryV2()
+                        "
                     >
                         🔄 إعادة المحاولة
                     </button>
+
                 </div>
             `;
         }
@@ -831,6 +873,7 @@
             </header>
 
             <div>
+
                 ${stories.map(story => {
 
                     const progress =
@@ -842,7 +885,9 @@
                         progress.completedDays.length;
 
                     const total =
-                        story.days.length;
+                        Array.isArray(story.days)
+                            ? story.days.length
+                            : 0;
 
                     const percent =
                         total
@@ -892,9 +937,7 @@
                             >
                                 <div
                                     class="story-v2-progress-fill"
-                                    style="
-                                        width:${percent}%
-                                    "
+                                    style="width:${percent}%"
                                 ></div>
                             </div>
 
@@ -907,12 +950,11 @@
                                 </strong>
 
                                 <button
+                                    type="button"
                                     class="story-v2-btn"
-                                    onclick="
-                                        window.qadOpenStoryV2(
-                                            '${escapeHTML(story.id)}'
-                                        )
-                                    "
+                                    data-story-id="${escapeHTML(
+                                        story.id
+                                    )}"
                                 >
                                     📂 فتح الملف
                                 </button>
@@ -924,8 +966,32 @@
                     `;
 
                 }).join("")}
+
             </div>
         `;
+
+        /* ربط أزرار القصص بعد رسمها */
+
+        root
+            .querySelectorAll(
+                "[data-story-id]"
+            )
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const storyId =
+                            button.dataset.storyId;
+
+                        window.qadOpenStoryV2(
+                            storyId
+                        );
+                    }
+                );
+
+            });
     }
 
     /* ============================================================
@@ -938,10 +1004,31 @@
             currentStory =
                 stories.find(
                     story =>
-                        story.id === storyId
+                        String(story.id) ===
+                        String(storyId)
                 );
 
-            if (!currentStory) return;
+            if (!currentStory) {
+                console.error(
+                    "Story not found:",
+                    storyId
+                );
+
+                return;
+            }
+
+            if (
+                !Array.isArray(
+                    currentStory.days
+                )
+            ) {
+                console.error(
+                    "Story days غير موجودة:",
+                    currentStory
+                );
+
+                return;
+            }
 
             const root = getRoot();
 
@@ -952,13 +1039,14 @@
 
             root.innerHTML = `
 
-                <div class="story-v2-toolbar">
+                <div
+                    class="story-v2-toolbar"
+                >
 
                     <button
+                        type="button"
                         class="story-v2-link-btn"
-                        onclick="
-                            window.qadRenderStoriesV2()
-                        "
+                        id="storyV2BackArchive"
                     >
                         ← الأرشيف
                     </button>
@@ -1016,6 +1104,7 @@
                             return `
 
                                 <button
+                                    type="button"
                                     class="
                                         story-v2-day
                                         ${
@@ -1026,16 +1115,12 @@
                                                     : "locked"
                                         }
                                     "
+                                    data-day-id="${escapeHTML(
+                                        day.id
+                                    )}"
                                     ${
-                                        unlocked
-                                            ? `
-                                                onclick="
-                                                    window.qadShowBriefingV2(
-                                                        '${escapeHTML(currentStory.id)}',
-                                                        '${escapeHTML(day.id)}'
-                                                    )
-                                                "
-                                            `
+                                        !unlocked
+                                            ? "disabled"
                                             : ""
                                     }
                                 >
@@ -1048,7 +1133,9 @@
                                         ${
                                             completed
                                                 ? "✓"
-                                                : day.day
+                                                : escapeHTML(
+                                                    day.day
+                                                )
                                         }
                                     </span>
 
@@ -1059,7 +1146,9 @@
                                     >
 
                                         <strong>
-                                            اليوم ${day.day}
+                                            اليوم ${escapeHTML(
+                                                day.day
+                                            )}
                                         </strong>
 
                                         <span>
@@ -1093,6 +1182,43 @@
 
                 </div>
             `;
+
+            /* زر العودة للأرشيف */
+
+            document
+                .getElementById(
+                    "storyV2BackArchive"
+                )
+                ?.addEventListener(
+                    "click",
+                    () => {
+                        renderStories();
+                    }
+                );
+
+            /* أزرار الأيام */
+
+            root
+                .querySelectorAll(
+                    ".story-v2-day.unlocked"
+                )
+                .forEach(button => {
+
+                    button.addEventListener(
+                        "click",
+                        () => {
+
+                            const dayId =
+                                button.dataset.dayId;
+
+                            window.qadShowBriefingV2(
+                                currentStory.id,
+                                dayId
+                            );
+                        }
+                    );
+
+                });
         };
 
     /* ============================================================
@@ -1105,7 +1231,8 @@
             currentStory =
                 stories.find(
                     story =>
-                        story.id === storyId
+                        String(story.id) ===
+                        String(storyId)
                 );
 
             if (!currentStory) return;
@@ -1113,7 +1240,8 @@
             currentDay =
                 currentStory.days.find(
                     day =>
-                        day.id === dayId
+                        String(day.id) ===
+                        String(dayId)
                 );
 
             if (!currentDay) return;
@@ -1122,15 +1250,14 @@
 
             root.innerHTML = `
 
-                <div class="story-v2-toolbar">
+                <div
+                    class="story-v2-toolbar"
+                >
 
                     <button
+                        type="button"
                         class="story-v2-link-btn"
-                        onclick="
-                            window.qadOpenStoryV2(
-                                '${escapeHTML(storyId)}'
-                            )
-                        "
+                        id="storyV2BackDays"
                     >
                         ← الأيام
                     </button>
@@ -1144,7 +1271,9 @@
                     <div
                         class="story-v2-file-stamp"
                     >
-                        DAY ${currentDay.day}
+                        DAY ${escapeHTML(
+                            currentDay.day
+                        )}
                     </div>
 
                     <div
@@ -1172,19 +1301,42 @@
                     </div>
 
                     <button
+                        type="button"
                         class="
                             story-v2-btn
                             primary
                         "
-                        onclick="
-                            window.qadStartDayV2()
-                        "
+                        id="storyV2StartDay"
                     >
                         🔎 فتح ملف التحقيق
                     </button>
 
                 </article>
             `;
+
+            document
+                .getElementById(
+                    "storyV2BackDays"
+                )
+                ?.addEventListener(
+                    "click",
+                    () => {
+                        window.qadOpenStoryV2(
+                            currentStory.id
+                        );
+                    }
+                );
+
+            document
+                .getElementById(
+                    "storyV2StartDay"
+                )
+                ?.addEventListener(
+                    "click",
+                    () => {
+                        window.qadStartDayV2();
+                    }
+                );
         };
 
     /* ============================================================
@@ -1194,7 +1346,16 @@
     window.qadStartDayV2 =
         function() {
 
-            if (!currentDay) return;
+            if (
+                !currentStory ||
+                !currentDay
+            ) {
+                console.error(
+                    "currentStory أو currentDay غير موجود"
+                );
+
+                return;
+            }
 
             const root = getRoot();
 
@@ -1205,20 +1366,17 @@
                 >
 
                     <button
+                        type="button"
                         class="story-v2-link-btn"
-                        onclick="
-                            window.qadOpenStoryV2(
-                                '${escapeHTML(
-                                    currentStory.id
-                                )}'
-                            )
-                        "
+                        id="storyV2BackDaysFromGame"
                     >
                         ← خريطة الأيام
                     </button>
 
                     <span>
-                        اليوم ${currentDay.day}
+                        اليوم ${escapeHTML(
+                            currentDay.day
+                        )}
                         /
                         ${currentStory.days.length}
                     </span>
@@ -1254,7 +1412,9 @@
                                 story-v2-day-counter
                             "
                         >
-                            DAY ${currentDay.day}
+                            DAY ${escapeHTML(
+                                currentDay.day
+                            )}
                         </div>
 
                     </header>
@@ -1301,6 +1461,7 @@
                                         []
                                     ).map(
                                         character => `
+
                                             <div
                                                 class="
                                                     story-v2-card
@@ -1327,6 +1488,7 @@
                                                 </p>
 
                                             </div>
+
                                         `
                                     ).join("")
                                 }
@@ -1354,6 +1516,7 @@
                                         []
                                     ).map(
                                         evidence => `
+
                                             <div
                                                 class="
                                                     story-v2-card
@@ -1375,6 +1538,7 @@
                                                 </p>
 
                                             </div>
+
                                         `
                                     ).join("")
                                 }
@@ -1404,6 +1568,7 @@
                                     []
                                 ).map(
                                     item => `
+
                                         <div
                                             class="
                                                 story-v2-timeline-item
@@ -1423,6 +1588,7 @@
                                             </span>
 
                                         </div>
+
                                     `
                                 ).join("")
                             }
@@ -1434,6 +1600,7 @@
                     ${
                         currentDay.challenge
                             ? `
+
                                 <section
                                     class="
                                         story-v2-challenge
@@ -1460,9 +1627,7 @@
                                         id="storyV2Answer"
                                         type="text"
                                         autocomplete="off"
-                                        placeholder="
-                                            اكتب إجابتك...
-                                        "
+                                        placeholder="اكتب إجابتك..."
                                     >
 
                                     <div
@@ -1482,6 +1647,7 @@
                                     </div>
 
                                     <button
+                                        type="button"
                                         id="storyV2Submit"
                                         class="
                                             story-v2-btn
@@ -1492,150 +1658,330 @@
                                     </button>
 
                                     <div
-                                        id="
-                                            storyV2Feedback
-                                        "
+                                        id="storyV2Feedback"
                                         class="
                                             story-v2-feedback
                                         "
                                     ></div>
 
                                 </section>
+
                             `
                             : `
+
                                 <button
+                                    type="button"
+                                    id="storyV2FinishDay"
                                     class="
                                         story-v2-btn
                                         primary
                                     "
-                                    onclick="
-                                        window.qadCompleteDayV2()
-                                    "
                                 >
                                     ✅ إنهاء اليوم
                                 </button>
+
                             `
                     }
 
                 </article>
             `;
 
-     const submit =
-    document.getElementById(
-        "storyV2Submit"
-    );
+            /* ====================================================
+               BACK BUTTON
+               ==================================================== */
 
-const input =
-    document.getElementById(
-        "storyV2Answer"
-    );
+            document
+                .getElementById(
+                    "storyV2BackDaysFromGame"
+                )
+                ?.addEventListener(
+                    "click",
+                    () => {
 
-submit?.addEventListener(
-    "click",
-    checkAnswer
-);
+                        window.qadOpenStoryV2(
+                            currentStory.id
+                        );
 
-input?.addEventListener(
-    "keydown",
-    event => {
-        if (
-            event.key === "Enter"
-        ) {
-            checkAnswer();
-        }
-    }
-);
+                    }
+                );
 
-};   // ← السطر الناقص
+            /* ====================================================
+               ANSWER BUTTON
+               ==================================================== */
 
-/* ============================================================
-   ANSWER
-   ============================================================ */
+            const submit =
+                document.getElementById(
+                    "storyV2Submit"
+                );
 
+            const input =
+                document.getElementById(
+                    "storyV2Answer"
+                );
 
+            if (submit) {
+
+                submit.addEventListener(
+                    "click",
+                    function(event) {
+
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        window.qadCheckAnswerV2();
+
+                    }
+                );
+
+            }
+
+            /* ====================================================
+               ENTER KEY
+               ==================================================== */
+
+            if (input) {
+
+                input.addEventListener(
+                    "keydown",
+                    function(event) {
+
+                        if (
+                            event.key === "Enter"
+                        ) {
+
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            window.qadCheckAnswerV2();
+
+                        }
+
+                    }
+                );
+
+            }
+
+            /* ====================================================
+               FINISH WITHOUT CHALLENGE
+               ==================================================== */
+
+            document
+                .getElementById(
+                    "storyV2FinishDay"
+                )
+                ?.addEventListener(
+                    "click",
+                    () => {
+
+                        window.qadCompleteDayV2();
+
+                    }
+                );
+        };
 
     /* ============================================================
-       ANSWER
+       ANSWER CHECK
        ============================================================ */
 
-    function checkAnswer() {
+    window.qadCheckAnswerV2 =
+        function() {
 
-        if (
-            !currentDay ||
-            !currentDay.challenge
-        ) return;
-
-        const input =
-            document.getElementById(
-                "storyV2Answer"
+            console.log(
+                "QADAYATI: checking answer..."
             );
 
-        const feedback =
-            document.getElementById(
-                "storyV2Feedback"
-            );
+            if (
+                !currentStory ||
+                !currentDay
+            ) {
 
-        if (!input || !feedback)
-            return;
+                console.error(
+                    "currentStory أو currentDay غير موجود"
+                );
 
-        const answer =
-            normalizeAnswer(
-                input.value
-            );
+                return;
+            }
 
-        const expected =
-            normalizeAnswer(
+            if (
+                !currentDay.challenge
+            ) {
+
+                console.error(
+                    "لا يوجد challenge لهذا اليوم"
+                );
+
+                return;
+            }
+
+            const input =
+                document.getElementById(
+                    "storyV2Answer"
+                );
+
+            const feedback =
+                document.getElementById(
+                    "storyV2Feedback"
+                );
+
+            if (
+                !input ||
+                !feedback
+            ) {
+
+                console.error(
+                    "Answer input أو feedback غير موجود"
+                );
+
+                return;
+            }
+
+            const answer =
+                normalizeAnswer(
+                    input.value
+                );
+
+            if (!answer) {
+
+                feedback.className =
+                    "story-v2-feedback error";
+
+                feedback.textContent =
+                    "اكتب إجابتك أولًا.";
+
+                input.focus();
+
+                return;
+            }
+
+            /* ====================================================
+               GET EXPECTED ANSWER
+               ==================================================== */
+
+            const expectedRaw =
                 currentDay
                     .challenge
-                    .expectedAnswer
+                    .expectedAnswer;
+
+            let acceptedAnswers = [];
+
+            if (
+                Array.isArray(
+                    expectedRaw
+                )
+            ) {
+
+                acceptedAnswers =
+                    expectedRaw
+                        .map(
+                            normalizeAnswer
+                        )
+                        .filter(Boolean);
+
+            } else {
+
+                acceptedAnswers = [
+                    normalizeAnswer(
+                        expectedRaw
+                    )
+                ].filter(Boolean);
+
+            }
+
+            console.log(
+                "User answer:",
+                answer
             );
 
-        if (!answer) {
+            console.log(
+                "Accepted answers:",
+                acceptedAnswers
+            );
+
+            /* ====================================================
+               CHECK
+               ==================================================== */
+
+            const isCorrect =
+                acceptedAnswers.includes(
+                    answer
+                );
+
+            if (isCorrect) {
+
+                feedback.className =
+                    "story-v2-feedback success";
+
+                feedback.textContent =
+                    "✅ إجابة صحيحة! جاري فتح الجزء التالي...";
+
+                /*
+                 * تأخير بسيط عشان اللاعب يشوف رسالة النجاح
+                 */
+
+                setTimeout(
+                    () => {
+
+                        window.qadCompleteDayV2();
+
+                    },
+                    500
+                );
+
+                return;
+            }
+
+            /* ====================================================
+               WRONG ANSWER
+               ==================================================== */
+
+            const progress =
+                getProgress();
+
+            if (
+                !progress[
+                    currentStory.id
+                ]
+            ) {
+
+                progress[
+                    currentStory.id
+                ] = {
+                    completedDays: [],
+                    failedAttempts: 0,
+                    lastDay: 0,
+                    notes: []
+                };
+
+            }
+
+            progress[
+                currentStory.id
+            ].failedAttempts =
+                Number(
+                    progress[
+                        currentStory.id
+                    ].failedAttempts || 0
+                ) + 1;
+
+            saveProgress(
+                progress
+            );
 
             feedback.className =
                 "story-v2-feedback error";
 
-            feedback.textContent =
-                "اكتب إجابتك أولًا.";
+            feedback.innerHTML =
+                `
+                    ❌ الإجابة غير صحيحة.
+                    <br>
+                    راجع الأدلة وحاول مرة أخرى.
+                `;
 
-            return;
-        }
-
-        if (
-            answer === expected
-        ) {
-
-            window.qadCompleteDayV2();
-
-            return;
-        }
-
-        const progress =
-            getProgress();
-
-        progress[currentStory.id] ||=
-            {
-                completedDays: [],
-                failedAttempts: 0,
-                lastDay: 0,
-                notes: []
-            };
-
-        progress[
-            currentStory.id
-        ].failedAttempts++;
-
-        saveProgress(progress);
-
-        feedback.className =
-            "story-v2-feedback error";
-
-        feedback.innerHTML =
-            "❌ الإجابة غير صحيحة.<br>راجع الأدلة وحاول مرة أخرى.";
-    }
+            input.focus();
+        };
 
     /* ============================================================
-       COMPLETE
+       COMPLETE DAY
        ============================================================ */
 
     window.qadCompleteDayV2 =
@@ -1644,23 +1990,49 @@ input?.addEventListener(
             if (
                 !currentStory ||
                 !currentDay
-            ) return;
+            ) {
+
+                console.error(
+                    "Cannot complete day: missing story/day"
+                );
+
+                return;
+            }
 
             const progress =
                 getProgress();
 
-            progress[currentStory.id] ||=
-                {
+            if (
+                !progress[
+                    currentStory.id
+                ]
+            ) {
+
+                progress[
+                    currentStory.id
+                ] = {
                     completedDays: [],
                     failedAttempts: 0,
                     lastDay: 0,
                     notes: []
                 };
 
+            }
+
             const state =
                 progress[
                     currentStory.id
                 ];
+
+            if (
+                !Array.isArray(
+                    state.completedDays
+                )
+            ) {
+
+                state.completedDays = [];
+
+            }
 
             if (
                 !state.completedDays
@@ -1672,6 +2044,7 @@ input?.addEventListener(
                 state.completedDays.push(
                     currentDay.id
                 );
+
             }
 
             state.lastDay =
@@ -1684,7 +2057,9 @@ input?.addEventListener(
                     )
                 );
 
-            saveProgress(progress);
+            saveProgress(
+                progress
+            );
 
             showCompletion();
         };
@@ -1698,8 +2073,12 @@ input?.addEventListener(
         const root =
             getRoot();
 
+        if (!root) return;
+
         const finalDay =
-            Number(currentDay.day) ===
+            Number(
+                currentDay.day
+            ) ===
             Number(
                 currentStory.days.length
             );
@@ -1718,7 +2097,11 @@ input?.addEventListener(
                         story-v2-result-icon
                     "
                 >
-                    ${finalDay ? "🏆" : "✅"}
+                    ${
+                        finalDay
+                            ? "🏆"
+                            : "✅"
+                    }
                 </div>
 
                 <span
@@ -1731,7 +2114,9 @@ input?.addEventListener(
                     ${
                         finalDay
                             ? "العملية اكتملت"
-                            : `اليوم ${currentDay.day} تم اجتيازه`
+                            : `اليوم ${escapeHTML(
+                                currentDay.day
+                            )} تم اجتيازه`
                     }
                 </h2>
 
@@ -1746,8 +2131,11 @@ input?.addEventListener(
                 ${
                     currentDay.storyEffect
                         ? `
+
                             <div
-                                class="story-v2-effect"
+                                class="
+                                    story-v2-effect
+                                "
                             >
 
                                 <strong>
@@ -1762,6 +2150,7 @@ input?.addEventListener(
                                 </p>
 
                             </div>
+
                         `
                         : ""
                 }
@@ -1769,6 +2158,7 @@ input?.addEventListener(
                 ${
                     currentDay.finalReveal
                         ? `
+
                             <div
                                 class="
                                     story-v2-effect
@@ -1788,21 +2178,17 @@ input?.addEventListener(
                                 </p>
 
                             </div>
+
                         `
                         : ""
                 }
 
                 <button
+                    type="button"
+                    id="storyV2BackToDays"
                     class="
                         story-v2-btn
                         primary
-                    "
-                    onclick="
-                        window.qadOpenStoryV2(
-                            '${escapeHTML(
-                                currentStory.id
-                            )}'
-                        )
                     "
                 >
                     📅 العودة إلى الأيام
@@ -1810,10 +2196,25 @@ input?.addEventListener(
 
             </article>
         `;
+
+        document
+            .getElementById(
+                "storyV2BackToDays"
+            )
+            ?.addEventListener(
+                "click",
+                () => {
+
+                    window.qadOpenStoryV2(
+                        currentStory.id
+                    );
+
+                }
+            );
     }
 
     /* ============================================================
-       PUBLIC
+       PUBLIC FUNCTIONS
        ============================================================ */
 
     window.qadRenderStoriesV2 =
@@ -1831,6 +2232,10 @@ input?.addEventListener(
         () => {
 
             injectStyles();
+
+            /* ====================================================
+               STORY MODE BUTTON
+               ==================================================== */
 
             const button =
                 document.getElementById(
@@ -1865,9 +2270,15 @@ input?.addEventListener(
                             );
 
                         loadStories();
+
                     }
                 );
+
             }
+
+            /* ====================================================
+               BACK TO MAIN MENU
+               ==================================================== */
 
             const section =
                 document.getElementById(
@@ -1905,8 +2316,10 @@ input?.addEventListener(
                             .remove(
                                 "hidden"
                             );
+
                     }
                 );
+
             }
 
         }
