@@ -1,6 +1,6 @@
 /* ============================================================
-   QADAYATI — STORY MODE V2
-   مستقل بالكامل عن نظام القضايا العادية
+   QADAYATI — STORY MODE V3
+   نظام القصة مستقل بالكامل
    ============================================================ */
 
 (() => {
@@ -31,21 +31,21 @@
             .replace(/'/g, "&#039;");
     }
 
+    /*
+       توحيد الإجابة:
+       - مسافات
+       - أقواس
+       - علامات اقتباس
+       - اختلاف الحروف
+    */
     function normalizeAnswer(value) {
         return String(value ?? "")
             .trim()
             .toLowerCase()
-            .replace(/[ًٌٍَُِّْـ]/g, "")
-            .replace(/[أإآ]/g, "ا")
-            .replace(/ى/g, "ي")
-            .replace(/ة/g, "ه")
-            .replace(/[.,،؛;:!?؟'"`()[\]{}]/g, "")
+            .replace(/[()[\]{}]/g, "")
+            .replace(/["'`]/g, "")
             .replace(/\s+/g, " ");
     }
-
-    /* ============================================================
-       PROGRESS
-       ============================================================ */
 
     function getProgress() {
         try {
@@ -57,7 +57,7 @@
                 : {};
         } catch (error) {
             console.error(
-                "Story progress read error:",
+                "getProgress error:",
                 error
             );
 
@@ -73,32 +73,33 @@
             );
         } catch (error) {
             console.error(
-                "Story progress save error:",
+                "saveProgress error:",
                 error
             );
         }
+    }
+
+    function createStoryProgress() {
+        return {
+            completedDays: [],
+            failedAttempts: 0,
+            lastDay: 0,
+            notes: []
+        };
     }
 
     function getStoryProgress(storyId) {
         const progress = getProgress();
 
         if (!progress[storyId]) {
-            progress[storyId] = {
-                completedDays: [],
-                failedAttempts: 0,
-                lastDay: 0,
-                notes: []
-            };
+            progress[storyId] =
+                createStoryProgress();
 
             saveProgress(progress);
         }
 
         return progress[storyId];
     }
-
-    /* ============================================================
-       ROOT
-       ============================================================ */
 
     function getRoot() {
 
@@ -115,9 +116,8 @@
                 );
 
             if (!section) {
-
                 console.error(
-                    "storyModeSection غير موجود"
+                    "❌ storyModeSection غير موجود"
                 );
 
                 return null;
@@ -130,7 +130,7 @@
                 "storyModeContainer";
 
             root.className =
-                "qad-story-v2";
+                "qad-story-v3";
 
             section.appendChild(root);
         }
@@ -146,7 +146,7 @@
 
         if (
             document.getElementById(
-                "qad-story-v2-style"
+                "qad-story-v3-style"
             )
         ) {
             return;
@@ -156,11 +156,11 @@
             document.createElement("style");
 
         style.id =
-            "qad-story-v2-style";
+            "qad-story-v3-style";
 
         style.textContent = `
 
-        .qad-story-v2 {
+        .qad-story-v3 {
             direction: rtl;
             width: 100%;
             max-width: 1200px;
@@ -170,11 +170,11 @@
             color: #eee;
         }
 
-        .qad-story-v2 * {
+        .qad-story-v3 * {
             box-sizing: border-box;
         }
 
-        .story-v2-header {
+        .story-v3-header {
             position: relative;
             overflow: hidden;
             padding: 35px;
@@ -191,18 +191,7 @@
                 0 18px 45px rgba(0,0,0,.3);
         }
 
-        .story-v2-header::after {
-            content: "";
-            position: absolute;
-            width: 260px;
-            height: 260px;
-            left: -100px;
-            top: -120px;
-            border-radius: 50%;
-            border: 1px solid rgba(212,174,96,.18);
-        }
-
-        .story-v2-kicker {
+        .story-v3-kicker {
             display: inline-block;
             font-size: .72rem;
             letter-spacing: 2px;
@@ -211,57 +200,46 @@
             margin-bottom: 8px;
         }
 
-        .story-v2-header h2,
-        .story-v2-operation-header h2,
-        .story-v2-day-header h2,
-        .story-v2-briefing h2,
-        .story-v2-result h2 {
+        .story-v3-header h2,
+        .story-v3-operation-header h2,
+        .story-v3-day-header h2,
+        .story-v3-briefing h2,
+        .story-v3-result h2 {
             margin: 0 0 10px;
             color: #f4e8c1;
         }
 
-        .story-v2-header p,
-        .story-v2-operation-header p {
+        .story-v3-header p,
+        .story-v3-operation-header p {
             color: #bbb;
             line-height: 1.8;
             margin: 0;
         }
 
-        .story-v2-operation {
+        .story-v3-operation {
             padding: 24px;
             margin-bottom: 18px;
             border-radius: 16px;
             background: #191b20;
             border: 1px solid rgba(255,255,255,.08);
-            transition:
-                transform .2s ease,
-                border-color .2s ease,
-                box-shadow .2s ease;
         }
 
-        .story-v2-operation:hover {
-            transform: translateY(-3px);
-            border-color: rgba(216,183,106,.4);
-            box-shadow:
-                0 15px 35px rgba(0,0,0,.25);
-        }
-
-        .story-v2-operation-top,
-        .story-v2-operation-bottom,
-        .story-v2-toolbar {
+        .story-v3-operation-top,
+        .story-v3-operation-bottom,
+        .story-v3-toolbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
         }
 
-        .story-v2-operation-top {
+        .story-v3-operation-top {
             color: #aaa;
             font-size: .85rem;
             margin-bottom: 15px;
         }
 
-        .story-v2-badge {
+        .story-v3-badge {
             background: #713737;
             color: #fff;
             padding: 5px 10px;
@@ -269,18 +247,18 @@
             font-size: .72rem;
         }
 
-        .story-v2-operation h3 {
+        .story-v3-operation h3 {
             color: #f4e8c1;
             margin: 0 0 8px;
         }
 
-        .story-v2-operation p {
+        .story-v3-operation p {
             color: #aaa;
             line-height: 1.8;
             margin: 0 0 18px;
         }
 
-        .story-v2-progress {
+        .story-v3-progress {
             height: 8px;
             background: #303238;
             border-radius: 99px;
@@ -288,7 +266,7 @@
             margin-bottom: 15px;
         }
 
-        .story-v2-progress-fill {
+        .story-v3-progress-fill {
             height: 100%;
             background:
                 linear-gradient(
@@ -300,7 +278,7 @@
             transition: width .5s ease;
         }
 
-        .story-v2-btn {
+        .story-v3-btn {
             border: 0;
             border-radius: 10px;
             padding: 11px 18px;
@@ -308,25 +286,23 @@
             background: #29313b;
             color: #fff;
             font-weight: 700;
-            transition:
-                transform .18s ease,
-                background .18s ease;
+            transition: .18s ease;
         }
 
-        .story-v2-btn:hover {
+        .story-v3-btn:hover {
             transform: translateY(-2px);
             background: #354252;
         }
 
-        .story-v2-btn.primary {
+        .story-v3-btn.primary {
             background: #8b4513;
         }
 
-        .story-v2-btn.primary:hover {
+        .story-v3-btn.primary:hover {
             background: #a95819;
         }
 
-        .story-v2-link-btn {
+        .story-v3-link-btn {
             border: 0;
             background: transparent;
             color: #d8b76a;
@@ -335,12 +311,12 @@
             padding: 5px;
         }
 
-        .story-v2-toolbar {
+        .story-v3-toolbar {
             margin-bottom: 18px;
             color: #999;
         }
 
-        .story-v2-operation-header {
+        .story-v3-operation-header {
             padding: 25px;
             margin-bottom: 20px;
             border-radius: 16px;
@@ -348,14 +324,14 @@
             border: 1px solid rgba(255,255,255,.08);
         }
 
-        .story-v2-days {
+        .story-v3-days {
             display: grid;
             grid-template-columns:
                 repeat(2, minmax(0, 1fr));
             gap: 10px;
         }
 
-        .story-v2-day {
+        .story-v3-day {
             display: grid;
             grid-template-columns: 48px 1fr auto;
             align-items: center;
@@ -369,24 +345,23 @@
             background: #191b20;
             color: #eee;
             cursor: pointer;
-            transition: .2s ease;
         }
 
-        .story-v2-day.unlocked:hover {
+        .story-v3-day.unlocked:hover {
             transform: translateX(-3px);
             border-color: #d8b76a;
         }
 
-        .story-v2-day.locked {
+        .story-v3-day.locked {
             opacity: .42;
             cursor: not-allowed;
         }
 
-        .story-v2-day.completed {
+        .story-v3-day.completed {
             border-color: rgba(39,174,96,.45);
         }
 
-        .story-v2-day-number {
+        .story-v3-day-number {
             display: grid;
             place-items: center;
             width: 44px;
@@ -397,32 +372,32 @@
             font-weight: 900;
         }
 
-        .story-v2-day-content {
+        .story-v3-day-content {
             display: flex;
             flex-direction: column;
             gap: 5px;
             min-width: 0;
         }
 
-        .story-v2-day-content strong {
+        .story-v3-day-content strong {
             color: #f4e8c1;
         }
 
-        .story-v2-day-content span {
+        .story-v3-day-content span {
             color: #aaa;
             font-size: .82rem;
             line-height: 1.5;
         }
 
-        .story-v2-day-status {
+        .story-v3-day-status {
             font-size: .72rem;
             color: #aaa;
             white-space: nowrap;
         }
 
-        .story-v2-briefing,
-        .story-v2-day-file,
-        .story-v2-result {
+        .story-v3-briefing,
+        .story-v3-day-file,
+        .story-v3-result {
             padding: 30px;
             border-radius: 18px;
             background: #191b20;
@@ -431,7 +406,7 @@
                 0 18px 45px rgba(0,0,0,.25);
         }
 
-        .story-v2-file-stamp {
+        .story-v3-file-stamp {
             display: inline-block;
             padding: 5px 10px;
             border: 1px solid #713737;
@@ -441,12 +416,12 @@
             margin-bottom: 15px;
         }
 
-        .story-v2-briefing-icon {
+        .story-v3-briefing-icon {
             font-size: 3rem;
             margin-bottom: 12px;
         }
 
-        .story-v2-briefing-paper {
+        .story-v3-briefing-paper {
             margin: 20px 0;
             padding: 22px;
             border-radius: 12px;
@@ -454,21 +429,19 @@
             color: #29221d;
             line-height: 2;
             font-size: 1rem;
-            text-align: right;
         }
 
-        .story-v2-day-header {
+        .story-v3-day-header {
             display: flex;
             justify-content: space-between;
             gap: 20px;
             align-items: flex-start;
             padding-bottom: 20px;
             margin-bottom: 20px;
-            border-bottom:
-                1px solid rgba(255,255,255,.08);
+            border-bottom: 1px solid rgba(255,255,255,.08);
         }
 
-        .story-v2-day-counter {
+        .story-v3-day-counter {
             min-width: 70px;
             text-align: center;
             padding: 10px;
@@ -478,8 +451,8 @@
             font-weight: 900;
         }
 
-        .story-v2-section,
-        .story-v2-panel {
+        .story-v3-section,
+        .story-v3-panel {
             margin-bottom: 18px;
             padding: 20px;
             border-radius: 14px;
@@ -487,65 +460,65 @@
             border: 1px solid rgba(255,255,255,.06);
         }
 
-        .story-v2-panel h3,
-        .story-v2-section h3 {
+        .story-v3-panel h3,
+        .story-v3-section h3 {
             margin: 0 0 14px;
             color: #d8b76a;
         }
 
-        .story-v2-overview p {
+        .story-v3-overview p {
             color: #ccc;
             line-height: 1.9;
             margin: 0;
         }
 
-        .story-v2-grid {
+        .story-v3-grid {
             display: grid;
             grid-template-columns:
                 repeat(2, minmax(0, 1fr));
             gap: 18px;
         }
 
-        .story-v2-cards {
+        .story-v3-cards {
             display: grid;
             gap: 10px;
         }
 
-        .story-v2-card {
+        .story-v3-card {
             padding: 15px;
             border-radius: 11px;
             background: #17191d;
             border: 1px solid rgba(255,255,255,.06);
         }
 
-        .story-v2-card strong {
+        .story-v3-card strong {
             display: block;
             color: #f4e8c1;
             margin-bottom: 5px;
         }
 
-        .story-v2-card span {
+        .story-v3-card span {
             color: #d8b76a;
             font-size: .78rem;
         }
 
-        .story-v2-card p {
+        .story-v3-card p {
             color: #aaa;
             line-height: 1.7;
             margin: 8px 0 0;
             font-size: .86rem;
         }
 
-        .story-v2-card.evidence {
+        .story-v3-card.evidence {
             border-right: 3px solid #8b4513;
         }
 
-        .story-v2-timeline {
+        .story-v3-timeline {
             display: grid;
             gap: 10px;
         }
 
-        .story-v2-timeline-item {
+        .story-v3-timeline-item {
             display: grid;
             grid-template-columns: 90px 1fr;
             gap: 15px;
@@ -554,16 +527,16 @@
             background: #17191d;
         }
 
-        .story-v2-timeline-item strong {
+        .story-v3-timeline-item strong {
             color: #d8b76a;
         }
 
-        .story-v2-timeline-item span {
+        .story-v3-timeline-item span {
             color: #bbb;
             line-height: 1.6;
         }
 
-        .story-v2-challenge {
+        .story-v3-challenge {
             padding: 24px;
             border-radius: 15px;
             background:
@@ -575,18 +548,19 @@
             border: 1px solid rgba(216,183,106,.3);
         }
 
-        .story-v2-challenge-title {
+        .story-v3-challenge-title {
             color: #d8b76a;
             font-weight: 900;
             margin-bottom: 10px;
+            font-size: 1.15rem;
         }
 
-        .story-v2-challenge p {
+        .story-v3-challenge p {
             color: #ddd;
             line-height: 1.8;
         }
 
-        .story-v2-challenge input {
+        .story-v3-challenge input {
             width: 100%;
             padding: 13px;
             border-radius: 9px;
@@ -595,13 +569,16 @@
             color: #fff;
             outline: none;
             margin: 8px 0 12px;
+            font-size: 1rem;
+            direction: ltr;
+            text-align: center;
         }
 
-        .story-v2-challenge input:focus {
+        .story-v3-challenge input:focus {
             border-color: #d8b76a;
         }
 
-        .story-v2-hint {
+        .story-v3-hint {
             padding: 12px;
             margin-bottom: 14px;
             border-radius: 9px;
@@ -611,59 +588,60 @@
             line-height: 1.7;
         }
 
-        .story-v2-feedback {
+        .story-v3-feedback {
             margin-top: 12px;
-            min-height: 20px;
+            min-height: 24px;
             line-height: 1.7;
+            text-align: center;
+            font-weight: 700;
         }
 
-        .story-v2-feedback.error {
+        .story-v3-feedback.error {
             color: #e58b8b;
         }
 
-        .story-v2-feedback.success {
-            color: #72d69a;
+        .story-v3-feedback.success {
+            color: #6edb9a;
         }
 
-        .story-v2-loading,
-        .story-v2-error {
+        .story-v3-loading,
+        .story-v3-error {
             text-align: center;
             padding: 70px 20px;
             border-radius: 18px;
             background: #191b20;
         }
 
-        .story-v2-loading div {
+        .story-v3-loading div {
             font-size: 3rem;
-            animation:
-                storyPulse 1.4s infinite;
+            animation: storyPulse 1.4s infinite;
         }
 
-        .story-v2-loading h3,
-        .story-v2-error h3 {
+        .story-v3-loading h3,
+        .story-v3-error h3 {
             color: #f4e8c1;
         }
 
-        .story-v2-loading p,
-        .story-v2-error p {
+        .story-v3-loading p,
+        .story-v3-error p {
             color: #999;
         }
 
-        .story-v2-result {
+        .story-v3-result {
             text-align: center;
         }
 
-        .story-v2-result-icon {
+        .story-v3-result-icon {
             font-size: 4rem;
             margin-bottom: 12px;
         }
 
-        .story-v2-result > p {
+        .story-v3-result > p {
             color: #bbb;
             line-height: 1.8;
         }
 
-        .story-v2-effect {
+        .story-v3-effect {
             text-align: right;
             padding: 18px;
             margin: 20px 0;
@@ -672,16 +650,16 @@
             border: 1px solid rgba(216,183,106,.2);
         }
 
-        .story-v2-effect strong {
+        .story-v3-effect strong {
             color: #d8b76a;
         }
 
-        .story-v2-effect p {
+        .story-v3-effect p {
             color: #ccc;
             line-height: 1.8;
         }
 
-        .story-v2-result.final {
+        .story-v3-result.final {
             border-color: rgba(216,183,106,.55);
         }
 
@@ -694,49 +672,49 @@
 
         @media (max-width: 800px) {
 
-            .qad-story-v2 {
+            .qad-story-v3 {
                 padding: 12px;
             }
 
-            .story-v2-header,
-            .story-v2-briefing,
-            .story-v2-day-file,
-            .story-v2-result {
+            .story-v3-header,
+            .story-v3-briefing,
+            .story-v3-day-file,
+            .story-v3-result {
                 padding: 20px;
             }
 
-            .story-v2-days,
-            .story-v2-grid {
+            .story-v3-days,
+            .story-v3-grid {
                 grid-template-columns: 1fr;
             }
 
-            .story-v2-day {
+            .story-v3-day {
                 grid-template-columns: 42px 1fr;
             }
 
-            .story-v2-day-status {
+            .story-v3-day-status {
                 display: none;
             }
 
-            .story-v2-day-header {
+            .story-v3-day-header {
                 flex-direction: column;
             }
 
-            .story-v2-day-counter {
+            .story-v3-day-counter {
                 width: 100%;
             }
 
-            .story-v2-timeline-item {
+            .story-v3-timeline-item {
                 grid-template-columns: 1fr;
                 gap: 5px;
             }
 
-            .story-v2-operation-bottom {
+            .story-v3-operation-bottom {
                 flex-direction: column;
                 align-items: stretch;
             }
 
-            .story-v2-btn {
+            .story-v3-btn {
                 width: 100%;
             }
         }
@@ -759,7 +737,7 @@
         if (!root) return;
 
         root.innerHTML = `
-            <div class="story-v2-loading">
+            <div class="story-v3-loading">
                 <div>🕵️</div>
 
                 <h3>
@@ -778,36 +756,47 @@
                 await fetch(
                     STORY_URL +
                     "?v=" +
-                    Date.now()
+                    Date.now(),
+                    {
+                        cache: "no-store"
+                    }
                 );
 
             if (!response.ok) {
                 throw new Error(
-                    "story.json unavailable"
+                    "HTTP " +
+                    response.status
                 );
             }
 
             const data =
                 await response.json();
 
-            stories =
-                Array.isArray(data)
-                    ? data
-                    : Array.isArray(data.stories)
+            if (Array.isArray(data)) {
+                stories = data;
+            } else {
+                stories =
+                    Array.isArray(data.stories)
                         ? data.stories
                         : [];
+            }
+
+            console.log(
+                "✅ Story Mode loaded:",
+                stories
+            );
 
             renderStories();
 
         } catch (error) {
 
             console.error(
-                "Story Mode:",
+                "❌ Story Mode Error:",
                 error
             );
 
             root.innerHTML = `
-                <div class="story-v2-error">
+                <div class="story-v3-error">
 
                     <h3>
                         ⚠️ تعذر فتح أرشيف التحقيق
@@ -819,10 +808,8 @@
 
                     <button
                         type="button"
-                        class="story-v2-btn primary"
-                        onclick="
-                            window.qadLoadStoryV2()
-                        "
+                        class="story-v3-btn primary"
+                        onclick="window.qadLoadStoryV3()"
                     >
                         🔄 إعادة المحاولة
                     </button>
@@ -845,8 +832,10 @@
         if (!stories.length) {
 
             root.innerHTML = `
-                <div class="story-v2-error">
-                    لا توجد عمليات في الأرشيف حاليًا.
+                <div class="story-v3-error">
+                    <h3>
+                        لا توجد عمليات في الأرشيف حاليًا.
+                    </h3>
                 </div>
             `;
 
@@ -855,9 +844,9 @@
 
         root.innerHTML = `
 
-            <header class="story-v2-header">
+            <header class="story-v3-header">
 
-                <span class="story-v2-kicker">
+                <span class="story-v3-kicker">
                     CONFIDENTIAL / STORY ARCHIVE
                 </span>
 
@@ -882,10 +871,16 @@
                         );
 
                     const completed =
-                        progress.completedDays.length;
+                        Array.isArray(
+                            progress.completedDays
+                        )
+                            ? progress.completedDays.length
+                            : 0;
 
                     const total =
-                        Array.isArray(story.days)
+                        Array.isArray(
+                            story.days
+                        )
                             ? story.days.length
                             : 0;
 
@@ -901,15 +896,15 @@
                     return `
 
                         <article
-                            class="story-v2-operation"
+                            class="story-v3-operation"
                         >
 
                             <div
-                                class="story-v2-operation-top"
+                                class="story-v3-operation-top"
                             >
 
                                 <span
-                                    class="story-v2-badge"
+                                    class="story-v3-badge"
                                 >
                                     عملية أمنية كبرى
                                 </span>
@@ -933,16 +928,16 @@
                             </p>
 
                             <div
-                                class="story-v2-progress"
+                                class="story-v3-progress"
                             >
                                 <div
-                                    class="story-v2-progress-fill"
+                                    class="story-v3-progress-fill"
                                     style="width:${percent}%"
                                 ></div>
                             </div>
 
                             <div
-                                class="story-v2-operation-bottom"
+                                class="story-v3-operation-bottom"
                             >
 
                                 <strong>
@@ -951,7 +946,8 @@
 
                                 <button
                                     type="button"
-                                    class="story-v2-btn"
+                                    class="story-v3-btn"
+                                    data-action="open-story"
                                     data-story-id="${escapeHTML(
                                         story.id
                                     )}"
@@ -962,509 +958,430 @@
                             </div>
 
                         </article>
-
                     `;
 
                 }).join("")}
 
             </div>
         `;
-
-        /* ربط أزرار القصص بعد رسمها */
-
-        root
-            .querySelectorAll(
-                "[data-story-id]"
-            )
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        const storyId =
-                            button.dataset.storyId;
-
-                        window.qadOpenStoryV2(
-                            storyId
-                        );
-                    }
-                );
-
-            });
     }
 
     /* ============================================================
        DAYS
        ============================================================ */
 
-    window.qadOpenStoryV2 =
-        function(storyId) {
+    function openStory(storyId) {
 
-            currentStory =
-                stories.find(
-                    story =>
-                        String(story.id) ===
-                        String(storyId)
-                );
+        currentStory =
+            stories.find(
+                story =>
+                    String(story.id) ===
+                    String(storyId)
+            );
 
-            if (!currentStory) {
-                console.error(
-                    "Story not found:",
-                    storyId
-                );
+        if (!currentStory) {
+            console.error(
+                "Story not found:",
+                storyId
+            );
 
-                return;
-            }
+            return;
+        }
 
-            if (
-                !Array.isArray(
-                    currentStory.days
-                )
-            ) {
-                console.error(
-                    "Story days غير موجودة:",
-                    currentStory
-                );
+        const root = getRoot();
 
-                return;
-            }
+        if (!root) return;
 
-            const root = getRoot();
+        const progress =
+            getStoryProgress(
+                currentStory.id
+            );
 
-            const progress =
-                getStoryProgress(
-                    currentStory.id
-                );
+        const days =
+            Array.isArray(
+                currentStory.days
+            )
+                ? currentStory.days
+                : [];
 
-            root.innerHTML = `
+        root.innerHTML = `
 
-                <div
-                    class="story-v2-toolbar"
+            <div class="story-v3-toolbar">
+
+                <button
+                    type="button"
+                    class="story-v3-link-btn"
+                    data-action="back-archive"
                 >
+                    ← الأرشيف
+                </button>
 
-                    <button
-                        type="button"
-                        class="story-v2-link-btn"
-                        id="storyV2BackArchive"
-                    >
-                        ← الأرشيف
-                    </button>
+                <span>
+                    ${progress.completedDays.length}
+                    /
+                    ${days.length}
+                </span>
 
-                    <span>
-                        ${progress.completedDays.length}
-                        /
-                        ${currentStory.days.length}
-                    </span>
+            </div>
 
-                </div>
+            <section
+                class="story-v3-operation-header"
+            >
 
-                <section
-                    class="story-v2-operation-header"
-                >
+                <span class="story-v3-kicker">
+                    OPERATION FILE
+                </span>
 
-                    <span class="story-v2-kicker">
-                        OPERATION FILE
-                    </span>
+                <h2>
+                    ${escapeHTML(
+                        currentStory.title
+                    )}
+                </h2>
 
-                    <h2>
-                        ${escapeHTML(
-                            currentStory.title
-                        )}
-                    </h2>
+                <p>
+                    اختر اليوم المتاح للتحقيق.
+                    الأيام التالية تُفتح بالتتابع.
+                </p>
 
-                    <p>
-                        اختر اليوم المتاح للتحقيق.
-                        الأيام التالية تُفتح بالتتابع.
-                    </p>
+            </section>
 
-                </section>
+            <div class="story-v3-days">
 
-                <div class="story-v2-days">
+                ${days.map(
+                    (day, index) => {
 
-                    ${currentStory.days.map(
-                        (day, index) => {
+                        const unlocked =
+                            index === 0 ||
+                            progress.completedDays
+                                .includes(
+                                    days[
+                                        index - 1
+                                    ].id
+                                );
 
-                            const unlocked =
-                                index === 0 ||
-                                progress.completedDays
-                                    .includes(
-                                        currentStory
-                                            .days[
-                                                index - 1
-                                            ].id
-                                    );
+                        const completed =
+                            progress.completedDays
+                                .includes(
+                                    day.id
+                                );
 
-                            const completed =
-                                progress.completedDays
-                                    .includes(
-                                        day.id
-                                    );
+                        return `
 
-                            return `
-
-                                <button
-                                    type="button"
-                                    class="
-                                        story-v2-day
-                                        ${
-                                            completed
-                                                ? "completed"
-                                                : unlocked
-                                                    ? "unlocked"
-                                                    : "locked"
-                                        }
-                                    "
-                                    data-day-id="${escapeHTML(
-                                        day.id
-                                    )}"
+                            <button
+                                type="button"
+                                class="
+                                    story-v3-day
                                     ${
-                                        !unlocked
-                                            ? "disabled"
-                                            : ""
+                                        completed
+                                            ? "completed"
+                                            : unlocked
+                                                ? "unlocked"
+                                                : "locked"
                                     }
+                                "
+                                ${
+                                    unlocked
+                                        ? `
+                                            data-action="open-day"
+                                            data-day-id="${escapeHTML(
+                                                day.id
+                                            )}"
+                                          `
+                                        : ""
+                                }
+                            >
+
+                                <span
+                                    class="story-v3-day-number"
+                                >
+                                    ${
+                                        completed
+                                            ? "✓"
+                                            : escapeHTML(
+                                                day.day
+                                            )
+                                    }
+                                </span>
+
+                                <span
+                                    class="story-v3-day-content"
                                 >
 
-                                    <span
-                                        class="
-                                            story-v2-day-number
-                                        "
-                                    >
-                                        ${
-                                            completed
-                                                ? "✓"
-                                                : escapeHTML(
-                                                    day.day
-                                                )
-                                        }
+                                    <strong>
+                                        اليوم
+                                        ${escapeHTML(
+                                            day.day
+                                        )}
+                                    </strong>
+
+                                    <span>
+                                        ${escapeHTML(
+                                            day.title
+                                        )}
                                     </span>
 
-                                    <span
-                                        class="
-                                            story-v2-day-content
-                                        "
-                                    >
+                                </span>
 
-                                        <strong>
-                                            اليوم ${escapeHTML(
-                                                day.day
-                                            )}
-                                        </strong>
+                                <span
+                                    class="story-v3-day-status"
+                                >
+                                    ${
+                                        completed
+                                            ? "مكتمل"
+                                            : unlocked
+                                                ? "ابدأ"
+                                                : "مقفل"
+                                    }
+                                </span>
 
-                                        <span>
-                                            ${escapeHTML(
-                                                day.title
-                                            )}
-                                        </span>
-
-                                    </span>
-
-                                    <span
-                                        class="
-                                            story-v2-day-status
-                                        "
-                                    >
-                                        ${
-                                            completed
-                                                ? "مكتمل"
-                                                : unlocked
-                                                    ? "ابدأ"
-                                                    : "مقفل"
-                                        }
-                                    </span>
-
-                                </button>
-
-                            `;
-
-                        }
-                    ).join("")}
-
-                </div>
-            `;
-
-            /* زر العودة للأرشيف */
-
-            document
-                .getElementById(
-                    "storyV2BackArchive"
-                )
-                ?.addEventListener(
-                    "click",
-                    () => {
-                        renderStories();
+                            </button>
+                        `;
                     }
-                );
+                ).join("")}
 
-            /* أزرار الأيام */
+            </div>
+        `;
+    }
 
-            root
-                .querySelectorAll(
-                    ".story-v2-day.unlocked"
-                )
-                .forEach(button => {
-
-                    button.addEventListener(
-                        "click",
-                        () => {
-
-                            const dayId =
-                                button.dataset.dayId;
-
-                            window.qadShowBriefingV2(
-                                currentStory.id,
-                                dayId
-                            );
-                        }
-                    );
-
-                });
-        };
+    window.qadOpenStoryV3 =
+        openStory;
 
     /* ============================================================
        BRIEFING
        ============================================================ */
 
-    window.qadShowBriefingV2 =
-        function(storyId, dayId) {
+    function showBriefing(storyId, dayId) {
 
-            currentStory =
-                stories.find(
-                    story =>
-                        String(story.id) ===
-                        String(storyId)
-                );
+        currentStory =
+            stories.find(
+                story =>
+                    String(story.id) ===
+                    String(storyId)
+            );
 
-            if (!currentStory) return;
+        if (!currentStory) return;
 
-            currentDay =
-                currentStory.days.find(
-                    day =>
-                        String(day.id) ===
-                        String(dayId)
-                );
+        currentDay =
+            currentStory.days.find(
+                day =>
+                    String(day.id) ===
+                    String(dayId)
+            );
 
-            if (!currentDay) return;
+        if (!currentDay) return;
 
-            const root = getRoot();
+        const root = getRoot();
 
-            root.innerHTML = `
+        if (!root) return;
+
+        root.innerHTML = `
+
+            <div class="story-v3-toolbar">
+
+                <button
+                    type="button"
+                    class="story-v3-link-btn"
+                    data-action="back-days"
+                >
+                    ← الأيام
+                </button>
+
+            </div>
+
+            <article
+                class="story-v3-briefing"
+            >
 
                 <div
-                    class="story-v2-toolbar"
+                    class="story-v3-file-stamp"
                 >
-
-                    <button
-                        type="button"
-                        class="story-v2-link-btn"
-                        id="storyV2BackDays"
-                    >
-                        ← الأيام
-                    </button>
-
+                    DAY ${escapeHTML(
+                        currentDay.day
+                    )}
                 </div>
 
-                <article
-                    class="story-v2-briefing"
+                <div
+                    class="story-v3-briefing-icon"
+                >
+                    📩
+                </div>
+
+                <span class="story-v3-kicker">
+                    CONFIDENTIAL BRIEFING
+                </span>
+
+                <h2>
+                    ${escapeHTML(
+                        currentDay.title
+                    )}
+                </h2>
+
+                <div
+                    class="story-v3-briefing-paper"
+                >
+                    ${escapeHTML(
+                        currentDay.briefing
+                    )}
+                </div>
+
+                <button
+                    type="button"
+                    class="
+                        story-v3-btn
+                        primary
+                    "
+                    data-action="start-day"
+                >
+                    🔎 فتح ملف التحقيق
+                </button>
+
+            </article>
+        `;
+    }
+
+    window.qadShowBriefingV3 =
+        showBriefing;
+
+    /* ============================================================
+       START DAY
+       ============================================================ */
+
+    function startDay() {
+
+        if (!currentStory || !currentDay) {
+            console.error(
+                "❌ currentStory/currentDay غير موجود"
+            );
+
+            return;
+        }
+
+        const root = getRoot();
+
+        if (!root) return;
+
+        const characters =
+            Array.isArray(
+                currentDay.characters
+            )
+                ? currentDay.characters
+                : [];
+
+        const evidences =
+            Array.isArray(
+                currentDay.evidences
+            )
+                ? currentDay.evidences
+                : [];
+
+        const timeline =
+            Array.isArray(
+                currentDay.timeline
+            )
+                ? currentDay.timeline
+                : [];
+
+        const challenge =
+            currentDay.challenge;
+
+        root.innerHTML = `
+
+            <div class="story-v3-toolbar">
+
+                <button
+                    type="button"
+                    class="story-v3-link-btn"
+                    data-action="back-days"
+                >
+                    ← خريطة الأيام
+                </button>
+
+                <span>
+                    اليوم ${escapeHTML(
+                        currentDay.day
+                    )}
+                    /
+                    ${currentStory.days.length}
+                </span>
+
+            </div>
+
+            <article
+                class="story-v3-day-file"
+            >
+
+                <header
+                    class="story-v3-day-header"
                 >
 
+                    <div>
+
+                        <span
+                            class="story-v3-kicker"
+                        >
+                            INVESTIGATION FILE
+                        </span>
+
+                        <h2>
+                            ${escapeHTML(
+                                currentDay.title
+                            )}
+                        </h2>
+
+                    </div>
+
                     <div
-                        class="story-v2-file-stamp"
+                        class="story-v3-day-counter"
                     >
                         DAY ${escapeHTML(
                             currentDay.day
                         )}
                     </div>
 
-                    <div
-                        class="story-v2-briefing-icon"
-                    >
-                        📩
-                    </div>
+                </header>
 
-                    <span class="story-v2-kicker">
-                        CONFIDENTIAL BRIEFING
-                    </span>
-
-                    <h2>
-                        ${escapeHTML(
-                            currentDay.title
-                        )}
-                    </h2>
-
-                    <div
-                        class="story-v2-briefing-paper"
-                    >
-                        ${escapeHTML(
-                            currentDay.briefing
-                        )}
-                    </div>
-
-                    <button
-                        type="button"
-                        class="
-                            story-v2-btn
-                            primary
-                        "
-                        id="storyV2StartDay"
-                    >
-                        🔎 فتح ملف التحقيق
-                    </button>
-
-                </article>
-            `;
-
-            document
-                .getElementById(
-                    "storyV2BackDays"
-                )
-                ?.addEventListener(
-                    "click",
-                    () => {
-                        window.qadOpenStoryV2(
-                            currentStory.id
-                        );
-                    }
-                );
-
-            document
-                .getElementById(
-                    "storyV2StartDay"
-                )
-                ?.addEventListener(
-                    "click",
-                    () => {
-                        window.qadStartDayV2();
-                    }
-                );
-        };
-
-    /* ============================================================
-       DAY
-       ============================================================ */
-
-    window.qadStartDayV2 =
-        function() {
-
-            if (
-                !currentStory ||
-                !currentDay
-            ) {
-                console.error(
-                    "currentStory أو currentDay غير موجود"
-                );
-
-                return;
-            }
-
-            const root = getRoot();
-
-            root.innerHTML = `
-
-                <div
-                    class="story-v2-toolbar"
+                <section
+                    class="
+                        story-v3-section
+                        story-v3-overview
+                    "
                 >
 
-                    <button
-                        type="button"
-                        class="story-v2-link-btn"
-                        id="storyV2BackDaysFromGame"
-                    >
-                        ← خريطة الأيام
-                    </button>
+                    <h3>
+                        📋 ملخص المهمة
+                    </h3>
 
-                    <span>
-                        اليوم ${escapeHTML(
-                            currentDay.day
+                    <p>
+                        ${escapeHTML(
+                            currentDay.overview
                         )}
-                        /
-                        ${currentStory.days.length}
-                    </span>
+                    </p>
 
-                </div>
+                </section>
 
-                <article
-                    class="story-v2-day-file"
+                <section
+                    class="story-v3-grid"
                 >
 
-                    <header
-                        class="story-v2-day-header"
-                    >
-
-                        <div>
-
-                            <span
-                                class="story-v2-kicker"
-                            >
-                                INVESTIGATION FILE
-                            </span>
-
-                            <h2>
-                                ${escapeHTML(
-                                    currentDay.title
-                                )}
-                            </h2>
-
-                        </div>
-
-                        <div
-                            class="
-                                story-v2-day-counter
-                            "
-                        >
-                            DAY ${escapeHTML(
-                                currentDay.day
-                            )}
-                        </div>
-
-                    </header>
-
-                    <section
-                        class="
-                            story-v2-section
-                            story-v2-overview
-                        "
+                    <div
+                        class="story-v3-panel"
                     >
 
                         <h3>
-                            📋 ملخص المهمة
+                            👥 الشخصيات
                         </h3>
 
-                        <p>
-                            ${escapeHTML(
-                                currentDay.overview
-                            )}
-                        </p>
-
-                    </section>
-
-                    <section
-                        class="story-v2-grid"
-                    >
-
                         <div
-                            class="story-v2-panel"
+                            class="story-v3-cards"
                         >
 
-                            <h3>
-                                👥 الشخصيات
-                            </h3>
-
-                            <div
-                                class="story-v2-cards"
-                            >
-
-                                ${
-                                    (
-                                        currentDay
-                                            .characters ||
-                                        []
-                                    ).map(
+                            ${
+                                characters.length
+                                    ? characters.map(
                                         character => `
-
                                             <div
                                                 class="
-                                                    story-v2-card
+                                                    story-v3-card
                                                 "
                                             >
 
@@ -1488,38 +1405,38 @@
                                                 </p>
 
                                             </div>
-
                                         `
                                     ).join("")
-                                }
-
-                            </div>
+                                    : `
+                                        <div class="story-v3-card">
+                                            لا توجد شخصيات مسجلة.
+                                        </div>
+                                    `
+                            }
 
                         </div>
 
+                    </div>
+
+                    <div
+                        class="story-v3-panel"
+                    >
+
+                        <h3>
+                            🔎 الأدلة
+                        </h3>
+
                         <div
-                            class="story-v2-panel"
+                            class="story-v3-cards"
                         >
 
-                            <h3>
-                                🔎 الأدلة
-                            </h3>
-
-                            <div
-                                class="story-v2-cards"
-                            >
-
-                                ${
-                                    (
-                                        currentDay
-                                            .evidences ||
-                                        []
-                                    ).map(
+                            ${
+                                evidences.length
+                                    ? evidences.map(
                                         evidence => `
-
                                             <div
                                                 class="
-                                                    story-v2-card
+                                                    story-v3-card
                                                     evidence
                                                 "
                                             >
@@ -1538,40 +1455,40 @@
                                                 </p>
 
                                             </div>
-
                                         `
                                     ).join("")
-                                }
-
-                            </div>
+                                    : `
+                                        <div class="story-v3-card">
+                                            لا توجد أدلة مسجلة.
+                                        </div>
+                                    `
+                            }
 
                         </div>
 
-                    </section>
+                    </div>
 
-                    <section
-                        class="story-v2-panel"
+                </section>
+
+                <section
+                    class="story-v3-panel"
+                >
+
+                    <h3>
+                        🕐 التسلسل الزمني
+                    </h3>
+
+                    <div
+                        class="story-v3-timeline"
                     >
 
-                        <h3>
-                            🕐 التسلسل الزمني
-                        </h3>
-
-                        <div
-                            class="story-v2-timeline"
-                        >
-
-                            ${
-                                (
-                                    currentDay
-                                        .timeline ||
-                                    []
-                                ).map(
+                        ${
+                            timeline.length
+                                ? timeline.map(
                                     item => `
-
                                         <div
                                             class="
-                                                story-v2-timeline-item
+                                                story-v3-timeline-item
                                             "
                                         >
 
@@ -1588,484 +1505,434 @@
                                             </span>
 
                                         </div>
-
                                     `
                                 ).join("")
-                            }
+                                : `
+                                    <div class="story-v3-timeline-item">
+                                        <span>
+                                            لا يوجد تسلسل زمني.
+                                        </span>
+                                    </div>
+                                `
+                        }
 
-                        </div>
+                    </div>
 
-                    </section>
+                </section>
 
-                    ${
-                        currentDay.challenge
-                            ? `
+                ${
+                    challenge
+                        ? `
 
-                                <section
+                            <section
+                                class="
+                                    story-v3-challenge
+                                "
+                            >
+
+                                <div
                                     class="
-                                        story-v2-challenge
+                                        story-v3-challenge-title
                                     "
                                 >
+                                    🧩 اختبار المحقق
+                                </div>
 
-                                    <div
-                                        class="
-                                            story-v2-challenge-title
-                                        "
-                                    >
-                                        🧩 اختبار المحقق
-                                    </div>
+                                <p>
+                                    ${escapeHTML(
+                                        challenge.prompt
+                                    )}
+                                </p>
 
-                                    <p>
-                                        ${escapeHTML(
-                                            currentDay
-                                                .challenge
-                                                .prompt
-                                        )}
-                                    </p>
+                                <input
+                                    id="storyV3Answer"
+                                    type="text"
+                                    autocomplete="off"
+                                    placeholder="اكتب إجابتك..."
+                                >
 
-                                    <input
-                                        id="storyV2Answer"
-                                        type="text"
-                                        autocomplete="off"
-                                        placeholder="اكتب إجابتك..."
-                                    >
-
-                                    <div
-                                        class="
-                                            story-v2-hint
-                                        "
-                                    >
-                                        💡 تلميح:
-                                        ${
-                                            escapeHTML(
-                                                currentDay
-                                                    .challenge
-                                                    .hint ||
-                                                "راجع الأدلة بعناية."
-                                            )
-                                        }
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        id="storyV2Submit"
-                                        class="
-                                            story-v2-btn
-                                            primary
-                                        "
-                                    >
-                                        📝 تقديم الإجابة
-                                    </button>
-
-                                    <div
-                                        id="storyV2Feedback"
-                                        class="
-                                            story-v2-feedback
-                                        "
-                                    ></div>
-
-                                </section>
-
-                            `
-                            : `
+                                <div
+                                    class="
+                                        story-v3-hint
+                                    "
+                                >
+                                    💡 تلميح:
+                                    ${
+                                        escapeHTML(
+                                            challenge.hint ||
+                                            "راجع الأدلة بعناية."
+                                        )
+                                    }
+                                </div>
 
                                 <button
                                     type="button"
-                                    id="storyV2FinishDay"
+                                    id="storyV3Submit"
                                     class="
-                                        story-v2-btn
+                                        story-v3-btn
                                         primary
                                     "
+                                    data-action="submit-answer"
                                 >
-                                    ✅ إنهاء اليوم
+                                    📝 تقديم الإجابة
                                 </button>
 
-                            `
-                    }
+                                <div
+                                    id="storyV3Feedback"
+                                    class="story-v3-feedback"
+                                ></div>
 
-                </article>
-            `;
+                            </section>
 
-            /* ====================================================
-               BACK BUTTON
-               ==================================================== */
+                        `
+                        : `
 
-            document
-                .getElementById(
-                    "storyV2BackDaysFromGame"
-                )
-                ?.addEventListener(
-                    "click",
-                    () => {
+                            <button
+                                type="button"
+                                class="
+                                    story-v3-btn
+                                    primary
+                                "
+                                data-action="complete-day"
+                            >
+                                ✅ إنهاء اليوم
+                            </button>
 
-                        window.qadOpenStoryV2(
-                            currentStory.id
-                        );
+                        `
+                }
 
-                    }
-                );
+            </article>
+        `;
 
-            /* ====================================================
-               ANSWER BUTTON
-               ==================================================== */
+        /*
+           مهم:
+           هنا بنربط Enter بطريقة آمنة.
+           الزر نفسه مربوط عن طريق event delegation
+           أسفل الملف.
+        */
 
-            const submit =
-                document.getElementById(
-                    "storyV2Submit"
-                );
+        const input =
+            document.getElementById(
+                "storyV3Answer"
+            );
 
-            const input =
-                document.getElementById(
-                    "storyV2Answer"
-                );
+        if (input) {
 
-            if (submit) {
+            input.addEventListener(
+                "keydown",
+                event => {
 
-                submit.addEventListener(
-                    "click",
-                    function(event) {
-
+                    if (
+                        event.key === "Enter"
+                    ) {
                         event.preventDefault();
-                        event.stopPropagation();
 
-                        window.qadCheckAnswerV2();
-
+                        checkAnswer();
                     }
-                );
 
-            }
+                }
+            );
+        }
+    }
 
-            /* ====================================================
-               ENTER KEY
-               ==================================================== */
-
-            if (input) {
-
-                input.addEventListener(
-                    "keydown",
-                    function(event) {
-
-                        if (
-                            event.key === "Enter"
-                        ) {
-
-                            event.preventDefault();
-                            event.stopPropagation();
-
-                            window.qadCheckAnswerV2();
-
-                        }
-
-                    }
-                );
-
-            }
-
-            /* ====================================================
-               FINISH WITHOUT CHALLENGE
-               ==================================================== */
-
-            document
-                .getElementById(
-                    "storyV2FinishDay"
-                )
-                ?.addEventListener(
-                    "click",
-                    () => {
-
-                        window.qadCompleteDayV2();
-
-                    }
-                );
-        };
+    window.qadStartDayV3 =
+        startDay;
 
     /* ============================================================
-       ANSWER CHECK
+       CHECK ANSWER
        ============================================================ */
 
-    window.qadCheckAnswerV2 =
-        function() {
+    function checkAnswer() {
 
-            console.log(
-                "QADAYATI: checking answer..."
+        console.log(
+            "📝 Checking story answer..."
+        );
+
+        if (
+            !currentStory ||
+            !currentDay
+        ) {
+            console.error(
+                "❌ لا توجد قضية/يوم حالي."
             );
 
-            if (
-                !currentStory ||
-                !currentDay
-            ) {
+            return;
+        }
 
-                console.error(
-                    "currentStory أو currentDay غير موجود"
-                );
-
-                return;
-            }
-
-            if (
-                !currentDay.challenge
-            ) {
-
-                console.error(
-                    "لا يوجد challenge لهذا اليوم"
-                );
-
-                return;
-            }
-
-            const input =
-                document.getElementById(
-                    "storyV2Answer"
-                );
-
-            const feedback =
-                document.getElementById(
-                    "storyV2Feedback"
-                );
-
-            if (
-                !input ||
-                !feedback
-            ) {
-
-                console.error(
-                    "Answer input أو feedback غير موجود"
-                );
-
-                return;
-            }
-
-            const answer =
-                normalizeAnswer(
-                    input.value
-                );
-
-            if (!answer) {
-
-                feedback.className =
-                    "story-v2-feedback error";
-
-                feedback.textContent =
-                    "اكتب إجابتك أولًا.";
-
-                input.focus();
-
-                return;
-            }
-
-            /* ====================================================
-               GET EXPECTED ANSWER
-               ==================================================== */
-
-            const expectedRaw =
-                currentDay
-                    .challenge
-                    .expectedAnswer;
-
-            let acceptedAnswers = [];
-
-            if (
-                Array.isArray(
-                    expectedRaw
-                )
-            ) {
-
-                acceptedAnswers =
-                    expectedRaw
-                        .map(
-                            normalizeAnswer
-                        )
-                        .filter(Boolean);
-
-            } else {
-
-                acceptedAnswers = [
-                    normalizeAnswer(
-                        expectedRaw
-                    )
-                ].filter(Boolean);
-
-            }
-
-            console.log(
-                "User answer:",
-                answer
+        if (
+            !currentDay.challenge
+        ) {
+            console.error(
+                "❌ هذا اليوم لا يحتوي على challenge."
             );
 
-            console.log(
-                "Accepted answers:",
-                acceptedAnswers
+            return;
+        }
+
+        const input =
+            document.getElementById(
+                "storyV3Answer"
             );
 
-            /* ====================================================
-               CHECK
-               ==================================================== */
-
-            const isCorrect =
-                acceptedAnswers.includes(
-                    answer
-                );
-
-            if (isCorrect) {
-
-                feedback.className =
-                    "story-v2-feedback success";
-
-                feedback.textContent =
-                    "✅ إجابة صحيحة! جاري فتح الجزء التالي...";
-
-                /*
-                 * تأخير بسيط عشان اللاعب يشوف رسالة النجاح
-                 */
-
-                setTimeout(
-                    () => {
-
-                        window.qadCompleteDayV2();
-
-                    },
-                    500
-                );
-
-                return;
-            }
-
-            /* ====================================================
-               WRONG ANSWER
-               ==================================================== */
-
-            const progress =
-                getProgress();
-
-            if (
-                !progress[
-                    currentStory.id
-                ]
-            ) {
-
-                progress[
-                    currentStory.id
-                ] = {
-                    completedDays: [],
-                    failedAttempts: 0,
-                    lastDay: 0,
-                    notes: []
-                };
-
-            }
-
-            progress[
-                currentStory.id
-            ].failedAttempts =
-                Number(
-                    progress[
-                        currentStory.id
-                    ].failedAttempts || 0
-                ) + 1;
-
-            saveProgress(
-                progress
+        const feedback =
+            document.getElementById(
+                "storyV3Feedback"
             );
+
+        if (!input || !feedback) {
+
+            console.error(
+                "❌ input أو feedback غير موجود"
+            );
+
+            return;
+        }
+
+        const userAnswer =
+            normalizeAnswer(
+                input.value
+            );
+
+        /*
+           ندعم أكثر من اسم محتمل للإجابة
+           بدون كسر story.json القديم.
+        */
+
+        const challenge =
+            currentDay.challenge;
+
+        const expectedRaw =
+            challenge.expectedAnswer ??
+            challenge.answer ??
+            challenge.correctAnswer ??
+            "";
+
+        const expectedAnswer =
+            normalizeAnswer(
+                expectedRaw
+            );
+
+        console.log(
+            "User:",
+            userAnswer
+        );
+
+        console.log(
+            "Expected:",
+            expectedAnswer
+        );
+
+        if (!userAnswer) {
 
             feedback.className =
-                "story-v2-feedback error";
+                "story-v3-feedback error";
 
-            feedback.innerHTML =
-                `
-                    ❌ الإجابة غير صحيحة.
-                    <br>
-                    راجع الأدلة وحاول مرة أخرى.
-                `;
+            feedback.textContent =
+                "⚠️ اكتب إجابتك أولًا.";
 
-            input.focus();
-        };
+            return;
+        }
+
+        if (!expectedAnswer) {
+
+            feedback.className =
+                "story-v3-feedback error";
+
+            feedback.textContent =
+                "⚠️ لم يتم تحديد الإجابة الصحيحة في ملف القصة.";
+
+            console.error(
+                "❌ challenge has no expectedAnswer/answer/correctAnswer:",
+                challenge
+            );
+
+            return;
+        }
+
+        if (
+            userAnswer ===
+            expectedAnswer
+        ) {
+
+            feedback.className =
+                "story-v3-feedback success";
+
+            feedback.textContent =
+                "✅ إجابة صحيحة!";
+
+            /*
+               تأخير بسيط حتى يشاهد اللاعب النتيجة
+            */
+
+            setTimeout(
+                () => {
+                    completeDay();
+                },
+                350
+            );
+
+            return;
+        }
+
+        /*
+           محاولة ثانية:
+           لو كانت الإجابة عبارة عن IP
+           أو نص يحتوي على الإجابة.
+        */
+
+        const userCompact =
+            userAnswer.replace(
+                /\s/g,
+                ""
+            );
+
+        const expectedCompact =
+            expectedAnswer.replace(
+                /\s/g,
+                ""
+            );
+
+        if (
+            userCompact ===
+            expectedCompact
+        ) {
+
+            feedback.className =
+                "story-v3-feedback success";
+
+            feedback.textContent =
+                "✅ إجابة صحيحة!";
+
+            setTimeout(
+                () => {
+                    completeDay();
+                },
+                350
+            );
+
+            return;
+        }
+
+        /*
+           إجابة خاطئة
+        */
+
+        const progress =
+            getProgress();
+
+        if (
+            !progress[
+                currentStory.id
+            ]
+        ) {
+            progress[
+                currentStory.id
+            ] =
+                createStoryProgress();
+        }
+
+        progress[
+            currentStory.id
+        ].failedAttempts =
+            Number(
+                progress[
+                    currentStory.id
+                ].failedAttempts || 0
+            ) + 1;
+
+        saveProgress(progress);
+
+        feedback.className =
+            "story-v3-feedback error";
+
+        feedback.innerHTML =
+            "❌ الإجابة غير صحيحة.<br>" +
+            "راجع الأدلة وحاول مرة أخرى.";
+
+        console.log(
+            "❌ Wrong answer"
+        );
+    }
+
+    window.qadCheckAnswerV3 =
+        checkAnswer;
 
     /* ============================================================
        COMPLETE DAY
        ============================================================ */
 
-    window.qadCompleteDayV2 =
-        function() {
+    function completeDay() {
 
-            if (
-                !currentStory ||
-                !currentDay
-            ) {
+        if (
+            !currentStory ||
+            !currentDay
+        ) {
+            return;
+        }
 
-                console.error(
-                    "Cannot complete day: missing story/day"
-                );
+        const progress =
+            getProgress();
 
-                return;
-            }
+        if (
+            !progress[
+                currentStory.id
+            ]
+        ) {
+            progress[
+                currentStory.id
+            ] =
+                createStoryProgress();
+        }
 
-            const progress =
-                getProgress();
+        const state =
+            progress[
+                currentStory.id
+            ];
 
-            if (
-                !progress[
-                    currentStory.id
-                ]
-            ) {
+        if (
+            !Array.isArray(
+                state.completedDays
+            )
+        ) {
+            state.completedDays = [];
+        }
 
-                progress[
-                    currentStory.id
-                ] = {
-                    completedDays: [],
-                    failedAttempts: 0,
-                    lastDay: 0,
-                    notes: []
-                };
+        if (
+            !state.completedDays.includes(
+                currentDay.id
+            )
+        ) {
 
-            }
+            state.completedDays.push(
+                currentDay.id
+            );
+        }
 
-            const state =
-                progress[
-                    currentStory.id
-                ];
-
-            if (
-                !Array.isArray(
-                    state.completedDays
+        state.lastDay =
+            Math.max(
+                Number(
+                    state.lastDay || 0
+                ),
+                Number(
+                    currentDay.day || 0
                 )
-            ) {
-
-                state.completedDays = [];
-
-            }
-
-            if (
-                !state.completedDays
-                    .includes(
-                        currentDay.id
-                    )
-            ) {
-
-                state.completedDays.push(
-                    currentDay.id
-                );
-
-            }
-
-            state.lastDay =
-                Math.max(
-                    Number(
-                        state.lastDay || 0
-                    ),
-                    Number(
-                        currentDay.day || 0
-                    )
-                );
-
-            saveProgress(
-                progress
             );
 
-            showCompletion();
-        };
+        saveProgress(progress);
+
+        console.log(
+            "✅ Day completed:",
+            currentDay.id
+        );
+
+        showCompletion();
+    }
+
+    window.qadCompleteDayV3 =
+        completeDay;
 
     /* ============================================================
-       COMPLETION SCREEN
+       COMPLETION
        ============================================================ */
 
     function showCompletion() {
@@ -2087,15 +1954,13 @@
 
             <article
                 class="
-                    story-v2-result
+                    story-v3-result
                     ${finalDay ? "final" : ""}
                 "
             >
 
                 <div
-                    class="
-                        story-v2-result-icon
-                    "
+                    class="story-v3-result-icon"
                 >
                     ${
                         finalDay
@@ -2105,7 +1970,7 @@
                 </div>
 
                 <span
-                    class="story-v2-kicker"
+                    class="story-v3-kicker"
                 >
                     INVESTIGATION UPDATE
                 </span>
@@ -2131,10 +1996,9 @@
                 ${
                     currentDay.storyEffect
                         ? `
-
                             <div
                                 class="
-                                    story-v2-effect
+                                    story-v3-effect
                                 "
                             >
 
@@ -2144,13 +2008,11 @@
 
                                 <p>
                                     ${escapeHTML(
-                                        currentDay
-                                            .storyEffect
+                                        currentDay.storyEffect
                                     )}
                                 </p>
 
                             </div>
-
                         `
                         : ""
                 }
@@ -2158,11 +2020,9 @@
                 ${
                     currentDay.finalReveal
                         ? `
-
                             <div
                                 class="
-                                    story-v2-effect
-                                    final-reveal
+                                    story-v3-effect
                                 "
                             >
 
@@ -2172,59 +2032,178 @@
 
                                 <p>
                                     ${escapeHTML(
-                                        currentDay
-                                            .finalReveal
+                                        currentDay.finalReveal
                                     )}
                                 </p>
 
                             </div>
-
                         `
                         : ""
                 }
 
                 <button
                     type="button"
-                    id="storyV2BackToDays"
                     class="
-                        story-v2-btn
+                        story-v3-btn
                         primary
                     "
+                    data-action="back-days"
                 >
                     📅 العودة إلى الأيام
                 </button>
 
             </article>
         `;
-
-        document
-            .getElementById(
-                "storyV2BackToDays"
-            )
-            ?.addEventListener(
-                "click",
-                () => {
-
-                    window.qadOpenStoryV2(
-                        currentStory.id
-                    );
-
-                }
-            );
     }
 
     /* ============================================================
-       PUBLIC FUNCTIONS
+       EVENT DELEGATION
        ============================================================ */
 
-    window.qadRenderStoriesV2 =
-        renderStories;
+    function setupStoryEvents() {
 
-    window.qadLoadStoryV2 =
-        loadStories;
+        const root =
+            getRoot();
+
+        if (!root) return;
+
+        /*
+           أهم جزء في الإصلاح:
+           أي زر داخل Story Mode يتم التعامل معه
+           من مكان واحد.
+        */
+
+        root.addEventListener(
+            "click",
+            event => {
+
+                const button =
+                    event.target.closest(
+                        "[data-action]"
+                    );
+
+                if (!button) return;
+
+                const action =
+                    button.dataset.action;
+
+                console.log(
+                    "Story action:",
+                    action
+                );
+
+                /* فتح قصة */
+
+                if (
+                    action ===
+                    "open-story"
+                ) {
+
+                    openStory(
+                        button.dataset.storyId
+                    );
+
+                    return;
+                }
+
+                /* فتح يوم */
+
+                if (
+                    action ===
+                    "open-day"
+                ) {
+
+                    showBriefing(
+                        currentStory.id,
+                        button.dataset.dayId
+                    );
+
+                    return;
+                }
+
+                /* بداية اليوم */
+
+                if (
+                    action ===
+                    "start-day"
+                ) {
+
+                    startDay();
+
+                    return;
+                }
+
+                /* تقديم الإجابة */
+
+                if (
+                    action ===
+                    "submit-answer"
+                ) {
+
+                    event.preventDefault();
+
+                    checkAnswer();
+
+                    return;
+                }
+
+                /* إنهاء يوم بدون سؤال */
+
+                if (
+                    action ===
+                    "complete-day"
+                ) {
+
+                    completeDay();
+
+                    return;
+                }
+
+                /* العودة للأيام */
+
+                if (
+                    action ===
+                    "back-days"
+                ) {
+
+                    if (
+                        currentStory
+                    ) {
+                        openStory(
+                            currentStory.id
+                        );
+                    }
+
+                    return;
+                }
+
+                /* العودة للأرشيف */
+
+                if (
+                    action ===
+                    "back-archive"
+                ) {
+
+                    renderStories();
+
+                    return;
+                }
+            }
+        );
+    }
 
     /* ============================================================
-       START
+       PUBLIC LOAD
+       ============================================================ */
+
+    window.qadLoadStoryV3 =
+        loadStories;
+
+    window.qadRenderStoriesV3 =
+        renderStories;
+
+    /* ============================================================
+       DOM READY
        ============================================================ */
 
     document.addEventListener(
@@ -2233,9 +2212,12 @@
 
             injectStyles();
 
-            /* ====================================================
-               STORY MODE BUTTON
-               ==================================================== */
+            const root =
+                getRoot();
+
+            if (root) {
+                setupStoryEvents();
+            }
 
             const button =
                 document.getElementById(
@@ -2253,11 +2235,12 @@
                                 ".view-section"
                             )
                             .forEach(
-                                section =>
+                                section => {
                                     section.classList
                                         .add(
                                             "hidden"
-                                        )
+                                        );
+                                }
                             );
 
                         document
@@ -2270,15 +2253,9 @@
                             );
 
                         loadStories();
-
                     }
                 );
-
             }
-
-            /* ====================================================
-               BACK TO MAIN MENU
-               ==================================================== */
 
             const section =
                 document.getElementById(
@@ -2301,11 +2278,12 @@
                                 ".view-section"
                             )
                             .forEach(
-                                section =>
+                                section => {
                                     section.classList
                                         .add(
                                             "hidden"
-                                        )
+                                        );
+                                }
                             );
 
                         document
@@ -2316,10 +2294,8 @@
                             .remove(
                                 "hidden"
                             );
-
                     }
                 );
-
             }
 
         }
