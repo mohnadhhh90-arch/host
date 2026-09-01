@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -5,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta name="description"
-        content="الوفا تك - موبايلات، كاميرات مراقبة، إكسسوارات وأجهزة ذكية في مصر.">
+        content="الوفا تك - موبايلات، كاميرات مراقبة، لابتوب، تجميعات pc، شاشات وأجهزة ذكية في مصر.">
 
-    <title>الوفا تك | AL WAFA TECH</title>
+    <title>الوفاء تك | AL WAFA TECH</title>
 
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +27,8 @@
 </head>
 
 <body>
+
+    <div id="pageLoader" class="page-loader" aria-hidden="true"></div>
 
     <!-- =========================
          ANNOUNCEMENT BAR
@@ -48,12 +51,12 @@
     <!-- =========================
          HEADER
     ========================== -->
-    <header class="main-header" id="header">
+    <header class="main-header" id="mainHeader">
 
         <div class="container header-content">
 
             <a href="#home" class="logo">
-                <img src="assets/logo.png" alt="شعار الوفا تك">
+                <img src="_Result_d5110a4b8ddf4f39bd6dea9db4bde0e2.png" alt="شعار الوفا تك">
             </a>
 
             <nav class="desktop-nav">
@@ -66,18 +69,18 @@
 
             <div class="header-actions">
 
-                <button class="icon-btn" id="searchToggle" aria-label="البحث">
+                <button class="icon-btn" id="searchBtn" aria-label="البحث">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
 
-                <button class="cart-btn" id="cartToggle" aria-label="السلة">
+                <button class="cart-btn" id="cartBtn" aria-label="السلة">
                     <i class="fa-solid fa-cart-shopping"></i>
-                    <span class="cart-counter" id="cartCounter">0</span>
+                    <span class="cart-counter" id="cartCount">0</span>
                 </button>
 
                 <button
                     class="mobile-menu-btn"
-                    id="mobileMenuToggle"
+                    id="mobileMenuBtn"
                     aria-label="فتح القائمة">
                     <i class="fa-solid fa-bars"></i>
                 </button>
@@ -88,7 +91,7 @@
 
 
         <!-- SEARCH BAR -->
-        <div class="search-wrapper" id="searchWrapper">
+        <div class="search-wrapper" id="searchOverlay">
             <div class="container">
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -103,23 +106,29 @@
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
+
+                <div class="search-results" id="searchResults">
+                    <div class="search-empty">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <p>اكتب اسم المنتج اللي بتدور عليه</p>
+                    </div>
+                </div>
             </div>
         </div>
 
 
         <!-- MOBILE MENU -->
-        <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu" id="mobileNav">
 
             <a href="#home">الرئيسية</a>
             <a href="#products">المنتجات</a>
             <a href="#categories">الأقسام</a>
             <a href="#about">عن الوفا تك</a>
             <a href="#contact">تواصل معانا</a>
-
-            <button class="mobile-whatsapp" id="mobileWhatsApp">
-                <i class="fa-brands fa-whatsapp"></i>
-                كلمنا على واتساب
-            </button>
+<a href="https://wa.me/201501374600" target="_blank" class="mobile-whatsapp whatsapp-link" id="mobileWhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+    كلمنا على واتساب
+</a>
 
         </div>
 
@@ -155,7 +164,7 @@
                     </h1>
 
                     <p>
-                        موبايلات، كاميرات مراقبة، إكسسوارات وأجهزة ذكية —
+                        موبايلات، كاميرات مراقبة، لابتوب، تجميعات PC، شاشات وإكسسوارات —
                         اختيارات مميزة بأسعار مناسبة وخدمة تثق فيها.
                     </p>
 
@@ -260,70 +269,67 @@
                 <div class="categories-grid">
 
                     <button class="category-card" data-category="Mobiles">
-
                         <div class="category-image mobile-category">
                             <i class="fa-solid fa-mobile-screen-button"></i>
                         </div>
-
                         <div class="category-info">
                             <span>01</span>
-                            <h3>الموبايلات</h3>
-                            <p>اختيارات تناسب استخدامك وميزانيتك</p>
+                            <h3>موبايلات</h3>
+                            <p>أحدث الهواتف الذكية بأسعار ممتازة</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-left category-arrow"></i>
-
                     </button>
 
 
                     <button class="category-card" data-category="Cameras">
-
                         <div class="category-image camera-category">
                             <i class="fa-solid fa-video"></i>
                         </div>
-
                         <div class="category-info">
                             <span>02</span>
-                            <h3>كاميرات المراقبة</h3>
-                            <p>أمان ومراقبة للبيت والمحل والشركة</p>
+                            <h3>كاميرات</h3>
+                            <p>أنظمة مراقبة وأمان عالية الدقة</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-left category-arrow"></i>
-
                     </button>
 
 
-                    <button class="category-card" data-category="Accessories">
-
+                    <button class="category-card" data-category="Laptops">
                         <div class="category-image accessories-category">
-                            <i class="fa-solid fa-headphones"></i>
+                            <i class="fa-solid fa-laptop"></i>
                         </div>
-
                         <div class="category-info">
                             <span>03</span>
-                            <h3>الإكسسوارات</h3>
-                            <p>شواحن، سماعات، كابلات وباور بانك</p>
+                            <h3>لابتوب</h3>
+                            <p>أجهزة لابتوب قوية للأعمال والالعاب</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-left category-arrow"></i>
-
                     </button>
 
 
-                    <button class="category-card" data-category="Smart Tech">
-
+                    <button class="category-card" data-category="PC Builds">
                         <div class="category-image smart-category">
-                            <i class="fa-solid fa-clock"></i>
+                            <i class="fa-solid fa-computer"></i>
                         </div>
-
                         <div class="category-info">
                             <span>04</span>
-                            <h3>الأجهزة الذكية</h3>
-                            <p>تكنولوجيا تخلي حياتك أسهل</p>
+                            <h3>تجميعات PC</h3>
+                            <p>تجميعات احترافية للألعاب والجرافيك</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-left category-arrow"></i>
+                    </button>
 
+
+                    <button class="category-card" data-category="Monitors">
+                        <div class="category-image smart-category">
+                            <i class="fa-solid fa-tv"></i>
+                        </div>
+                        <div class="category-info">
+                            <span>05</span>
+                            <h3>شاشات</h3>
+                            <p>شاشات عرض الألعاب والأعمال بوضوح عالي</p>
+                        </div>
+                        <i class="fa-solid fa-arrow-left category-arrow"></i>
                     </button>
 
                 </div>
@@ -337,6 +343,7 @@
              FEATURED PRODUCTS
         ========================== -->
         <section class="section products-section" id="products">
+            <span id="shop" aria-hidden="true"></span>
 
             <div class="container">
 
@@ -367,19 +374,23 @@
                     </button>
 
                     <button class="filter-btn" data-filter="Mobiles">
-                        الموبايلات
+                        موبايلات
                     </button>
 
                     <button class="filter-btn" data-filter="Cameras">
-                        كاميرات المراقبة
+                        كاميرات
                     </button>
 
-                    <button class="filter-btn" data-filter="Accessories">
-                        الإكسسوارات
+                    <button class="filter-btn" data-filter="Laptops">
+                        لابتوب
                     </button>
 
-                    <button class="filter-btn" data-filter="Smart Tech">
-                        الأجهزة الذكية
+                    <button class="filter-btn" data-filter="PC Builds">
+                        تجميعات PC
+                    </button>
+
+                    <button class="filter-btn" data-filter="Monitors">
+                        شاشات
                     </button>
 
                 </div>
@@ -392,7 +403,7 @@
 
 
                 <!-- EMPTY STATE -->
-                <div class="empty-products" id="emptyProducts">
+                <div class="empty-products" id="productsEmpty">
 
                     <div class="empty-icon">
                         <i class="fa-solid fa-box-open"></i>
@@ -440,7 +451,7 @@
                             لو محتار تختار إيه، كلمنا وهنساعدك تلاقي الأنسب ليك.
                         </p>
 
-                        <button class="btn btn-primary" id="promoWhatsApp">
+                      <button class="btn btn-primary whatsapp-link" id="promoWhatsApp">
                             <i class="fa-brands fa-whatsapp"></i>
                             كلمنا على واتساب
                         </button>
@@ -486,62 +497,35 @@
                 <div class="why-grid">
 
                     <div class="why-card">
-
                         <div class="why-icon">
                             <i class="fa-solid fa-shield-halved"></i>
                         </div>
-
                         <h3>اختيارات موثوقة</h3>
-
-                        <p>
-                            بنركز على المنتجات اللي تقدم قيمة حقيقية مقابل السعر.
-                        </p>
-
+                        <p>بنركز على المنتجات اللي تقدم قيمة حقيقية مقابل السعر.</p>
                     </div>
 
-
                     <div class="why-card">
-
                         <div class="why-icon">
                             <i class="fa-solid fa-tags"></i>
                         </div>
-
                         <h3>أسعار مناسبة</h3>
-
-                        <p>
-                            اختيارات متنوعة تناسب احتياجات وميزانيات مختلفة.
-                        </p>
-
+                        <p>اختيارات متنوعة تناسب احتياجات وميزانيات مختلفة.</p>
                     </div>
 
-
                     <div class="why-card">
-
                         <div class="why-icon">
                             <i class="fa-solid fa-cart-shopping"></i>
                         </div>
-
                         <h3>طلب سهل</h3>
-
-                        <p>
-                            اختار منتجاتك وحط بياناتك وإحنا نتواصل معاك لتأكيد الطلب.
-                        </p>
-
+                        <p>اختار منتجاتك وحط بياناتك وإحنا نتواصل معاك لتأكيد الطلب.</p>
                     </div>
 
-
                     <div class="why-card">
-
                         <div class="why-icon">
                             <i class="fa-solid fa-headset"></i>
                         </div>
-
                         <h3>خدمة عملاء</h3>
-
-                        <p>
-                            عندك سؤال؟ تقدر تتواصل معانا ونساعدك في اختيار المنتج.
-                        </p>
-
+                        <p>عندك سؤال؟ تقدر تتواصل معانا ونساعدك في اختيار المنتج.</p>
                     </div>
 
                 </div>
@@ -559,60 +543,44 @@
             <div class="container about-grid">
 
                 <div class="about-visual">
-
                     <div class="about-box">
-
                         <span class="about-big-text">
                             AWT
                         </span>
-
                         <div class="about-logo-small">
-                            <img src="assets/logo.png" alt="الوفا تك">
+                            <img src="_Result_d5110a4b8ddf4f39bd6dea9db4bde0e2.png" alt="الوفا تك">
                         </div>
-
                     </div>
-
                 </div>
 
-
                 <div class="about-content">
-
                     <span class="section-label">عن الوفا تك</span>
-
                     <h2>
                         التكنولوجيا
                         <span>بشكل أبسط.</span>
                     </h2>
-
                     <p>
                         في الوفا تك بنحاول نوفرلك منتجات تكنولوجيا مختارة بعناية،
-                        من الموبايلات وكاميرات المراقبة للإكسسوارات والأجهزة الذكية،
+                        من الموبايلات وكاميرات المراقبة، اللابتوب، تجميعات PC والشاشات،
                         مع تجربة طلب سهلة وخدمة تركز على احتياجاتك.
                     </p>
-
                     <p>
                         هدفنا إنك تلاقي المنتج المناسب ليك من غير حيرة أو تعقيد.
                     </p>
-
                     <div class="about-stats">
-
                         <div>
                             <strong>01</strong>
                             <span>جودة</span>
                         </div>
-
                         <div>
                             <strong>02</strong>
                             <span>ثقة</span>
                         </div>
-
                         <div>
                             <strong>03</strong>
                             <span>خدمة</span>
                         </div>
-
                     </div>
-
                 </div>
 
             </div>
@@ -642,7 +610,7 @@
                         </p>
                     </div>
 
-                    <button class="btn btn-primary whatsapp-btn" id="contactWhatsApp">
+                    <button class="btn btn-primary whatsapp-btn whatsapp-link" id="contactWhatsApp">
                         <i class="fa-brands fa-whatsapp"></i>
                         كلمنا على واتساب
                     </button>
@@ -676,97 +644,56 @@
                     </p>
 
                     <div class="social-links">
-
-                        <a href="#" aria-label="Facebook">
-                            <i class="fa-brands fa-facebook-f"></i>
-                        </a>
-
-                        <a href="#" aria-label="Instagram">
-                            <i class="fa-brands fa-instagram"></i>
-                        </a>
-
-                        <a href="#" aria-label="TikTok">
-                            <i class="fa-brands fa-tiktok"></i>
-                        </a>
-
-                        <a href="#" id="footerWhatsApp" aria-label="WhatsApp">
-                            <i class="fa-brands fa-whatsapp"></i>
-                        </a>
-
+                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                        <a href="#" id="footerWhatsApp" class="whatsapp-link" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
                     </div>
 
                 </div>
 
 
                 <div class="footer-column">
-
                     <h3>روابط سريعة</h3>
-
                     <a href="#home">الرئيسية</a>
                     <a href="#products">المنتجات</a>
                     <a href="#categories">الأقسام</a>
                     <a href="#about">عن الوفا تك</a>
-
                 </div>
 
 
                 <div class="footer-column">
-
                     <h3>الأقسام</h3>
-
-                    <a href="#products" data-footer-category="Mobiles">
-                        الموبايلات
-                    </a>
-
-                    <a href="#products" data-footer-category="Cameras">
-                        كاميرات المراقبة
-                    </a>
-
-                    <a href="#products" data-footer-category="Accessories">
-                        الإكسسوارات
-                    </a>
-
-                    <a href="#products" data-footer-category="Smart Tech">
-                        الأجهزة الذكية
-                    </a>
-
+                    <a href="#products" data-footer-category="Mobiles">موبايلات</a>
+                    <a href="#products" data-footer-category="Cameras">كاميرات</a>
+                    <a href="#products" data-footer-category="Laptops">لابتوب</a>
+                    <a href="#products" data-footer-category="PC Builds">تجميعات PC</a>
+                    <a href="#products" data-footer-category="Monitors">شاشات</a>
                 </div>
 
 
                 <div class="footer-column">
-
                     <h3>تواصل معانا</h3>
-
                     <a href="#" id="footerPhone">
                         <i class="fa-solid fa-phone"></i>
-                        01000000000
+                        01015742369
                     </a>
-
-                    <a href="#" id="footerWhatsAppText">
+                    <a href="#" id="footerWhatsAppText" class="whatsapp-link">
                         <i class="fa-brands fa-whatsapp"></i>
                         واتساب
                     </a>
-
                     <span>
                         <i class="fa-solid fa-location-dot"></i>
                         مصر
                     </span>
-
                 </div>
 
             </div>
 
 
             <div class="footer-bottom">
-
-                <span>
-                    © 2026 AL WAFA TECH — جميع الحقوق محفوظة
-                </span>
-
-                <span>
-                    Made with <i class="fa-solid fa-heart"></i>
-                </span>
-
+                <span>© 2026 AL WAFA TECH — جميع الحقوق محفوظة</span>
+                <span>Made with <i class="fa-solid fa-heart"></i></span>
             </div>
 
         </div>
@@ -778,41 +705,38 @@
          CART DRAWER
     ========================== -->
 
-    <div class="overlay" id="overlay"></div>
+    <div class="overlay" id="drawerOverlay"></div>
 
     <aside class="cart-drawer" id="cartDrawer">
 
         <div class="drawer-header">
-
             <div>
                 <span>سلة المشتريات</span>
                 <small id="cartItemsText">0 منتجات</small>
             </div>
-
             <button class="close-btn" id="closeCart" aria-label="إغلاق">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-
         </div>
 
 
-        <div class="cart-body" id="cartBody">
-
+        <div class="cart-body" id="cartItems">
             <!-- JavaScript -->
+        </div>
 
+        <div class="cart-empty" id="cartEmpty">
+            <div class="empty-icon">
+                <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <h3>السلة فاضية</h3>
+            <p>ضيف منتجات للسلة وهنظهرهالك هنا.</p>
         </div>
 
 
         <div class="cart-footer" id="cartFooter">
-
             <div class="cart-total">
-
                 <span>الإجمالي</span>
-
-                <strong id="cartTotal">
-                    0 جنيه
-                </strong>
-
+                <strong id="cartTotal">0 جنيه</strong>
             </div>
 
             <button class="btn btn-primary checkout-btn" id="checkoutBtn">
@@ -823,7 +747,6 @@
             <button class="continue-shopping" id="continueShopping">
                 كمل تسوق
             </button>
-
         </div>
 
     </aside>
@@ -834,19 +757,14 @@
     ========================== -->
 
     <div class="modal-overlay" id="productModal">
-
         <div class="product-modal">
-
             <button class="modal-close" id="closeProductModal">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-
-            <div class="product-modal-content" id="productModalContent">
+            <div class="product-modal-content" id="productDetails">
                 <!-- JavaScript -->
             </div>
-
         </div>
-
     </div>
 
 
@@ -865,20 +783,9 @@
             <div class="checkout-content">
 
                 <div class="checkout-header">
-
-                    <span class="section-label">
-                        خطوة أخيرة
-                    </span>
-
-                    <h2>
-                        بيانات
-                        <span>الطلب</span>
-                    </h2>
-
-                    <p>
-                        اكتب بياناتك وإحنا هنتواصل معاك لتأكيد الطلب.
-                    </p>
-
+                    <span class="section-label">خطوة أخيرة</span>
+                    <h2>بيانات <span>الطلب</span></h2>
+                    <p>اكتب بياناتك وإحنا هنتواصل معاك لتأكيد الطلب.</p>
                 </div>
 
 
@@ -887,138 +794,71 @@
                     <form id="checkoutForm" class="checkout-form">
 
                         <div class="form-group">
-
-                            <label for="customerName">
-                                الاسم بالكامل *
-                            </label>
-
+                            <label for="customerName">الاسم بالكامل *</label>
                             <div class="input-wrapper">
                                 <i class="fa-regular fa-user"></i>
-
-                                <input
-                                    type="text"
-                                    id="customerName"
-                                    name="customerName"
-                                    placeholder="اكتب اسمك بالكامل"
-                                    required>
+                                <input type="text" id="customerName" name="customerName" placeholder="اكتب اسمك بالكامل" required>
                             </div>
-
                             <small class="form-error" id="nameError"></small>
-
                         </div>
 
 
                         <div class="form-group">
-
-                            <label for="customerPhone">
-                                رقم الموبايل *
-                            </label>
-
+                            <label for="customerPhone">رقم الموبايل *</label>
                             <div class="input-wrapper">
                                 <i class="fa-solid fa-phone"></i>
-
-                                <input
-                                    type="tel"
-                                    id="customerPhone"
-                                    name="customerPhone"
-                                    placeholder="مثال: 01012345678"
-                                    inputmode="numeric"
-                                    required>
+                                <input type="tel" id="customerPhone" name="customerPhone" placeholder="مثال: 01012345678" inputmode="numeric" required>
                             </div>
-
                             <small class="form-error" id="phoneError"></small>
-
                         </div>
 
 
                         <div class="form-group">
-
-                            <label for="customerAddress">
-                                العنوان *
-                            </label>
-
+                            <label for="customerAddress">العنوان *</label>
                             <div class="input-wrapper textarea-wrapper">
                                 <i class="fa-solid fa-location-dot"></i>
-
-                                <textarea
-                                    id="customerAddress"
-                                    name="customerAddress"
-                                    placeholder="اكتب المحافظة والمنطقة والعنوان بالتفصيل"
-                                    rows="4"
-                                    required></textarea>
+                                <textarea id="customerAddress" name="customerAddress" placeholder="اكتب المحافظة والمنطقة والعنوان بالتفصيل" rows="4" required></textarea>
                             </div>
-
                             <small class="form-error" id="addressError"></small>
-
                         </div>
 
 
                         <div class="form-group">
-
-                            <label for="customerNotes">
-                                ملاحظات
-                                <span>(اختياري)</span>
-                            </label>
-
+                            <label for="customerNotes">ملاحظات <span>(اختياري)</span></label>
                             <div class="input-wrapper textarea-wrapper">
                                 <i class="fa-regular fa-note-sticky"></i>
-
-                                <textarea
-                                    id="customerNotes"
-                                    name="customerNotes"
-                                    placeholder="أي ملاحظات على الطلب؟"
-                                    rows="3"></textarea>
+                                <textarea id="customerNotes" name="customerNotes" placeholder="أي ملاحظات على الطلب؟" rows="3"></textarea>
                             </div>
-
                         </div>
 
 
-                        <button
-                            type="submit"
-                            class="btn btn-primary submit-order-btn">
-
+                        <button type="submit" class="btn btn-primary submit-order-btn">
                             تأكيد الطلب
-
                             <i class="fa-solid fa-check"></i>
-
                         </button>
 
                     </form>
 
 
                     <div class="checkout-summary">
-
                         <div class="summary-header">
                             <h3>ملخص الطلب</h3>
-                            <span id="summaryCount">0 منتجات</span>
+                            <span id="checkoutItemsCount">0 منتجات</span>
                         </div>
 
-                        <div
-                            class="summary-products"
-                            id="summaryProducts">
+                        <div class="summary-products" id="checkoutItems">
                             <!-- JavaScript -->
                         </div>
 
                         <div class="summary-total">
-
                             <span>الإجمالي</span>
-
-                            <strong id="summaryTotal">
-                                0 جنيه
-                            </strong>
-
+                            <strong id="checkoutTotal">0 جنيه</strong>
                         </div>
 
                         <div class="order-note">
-
                             <i class="fa-solid fa-circle-info"></i>
-
-                            <span>
-                                الطلب مش دفع أونلاين. هنراجع بياناتك ونتواصل معاك لتأكيد الطلب.
-                            </span>
-
+                            <span>الطلب مش دفع أونلاين. هنراجع بياناتك ونتواصل معاك لتأكيد الطلب.</span>
                         </div>
-
                     </div>
 
                 </div>
@@ -1042,62 +882,36 @@
                 <i class="fa-solid fa-check"></i>
             </div>
 
-            <span class="section-label">
-                تم بنجاح
-            </span>
+            <span class="section-label">تم بنجاح</span>
 
-            <h2>
-                استلمنا
-                <span>طلبك 🎉</span>
-            </h2>
+            <h2>استلمنا <span>طلبك 🎉</span></h2>
 
-            <p>
-                هنراجع بيانات الطلب ونتواصل معاك لتأكيده.
-            </p>
+            <p>هنراجع بيانات الطلب ونتواصل معاك لتأكيده.</p>
 
             <div class="order-number-box">
-
                 <span>رقم الطلب</span>
-
-                <strong id="successOrderId">
-                    #AWT-00000
-                </strong>
-
+                <strong id="successOrderId">#AWT-00000</strong>
             </div>
 
             <div class="success-details">
-
                 <div>
                     <span>العميل</span>
                     <strong id="successCustomerName">-</strong>
                 </div>
-
                 <div>
                     <span>الإجمالي</span>
                     <strong id="successTotal">-</strong>
                 </div>
-
             </div>
 
             <div class="success-actions">
-
-                <button
-                    class="btn btn-primary"
-                    id="successWhatsApp">
-
+                <button class="btn btn-primary" id="successWhatsApp">
                     <i class="fa-brands fa-whatsapp"></i>
                     ابعت الطلب على واتساب
-
                 </button>
-
-                <button
-                    class="continue-shopping"
-                    id="successClose">
-
+                <button class="continue-shopping" id="closeSuccess">
                     الرجوع للمتجر
-
                 </button>
-
             </div>
 
         </div>
@@ -1108,149 +922,111 @@
     <!-- =========================
          ADMIN DASHBOARD
     ========================== -->
-
-    <section class="admin-page" id="adminPage">
+    <div class="admin-page" id="adminOverlay">
 
         <div class="admin-header">
-
             <div class="admin-header-left">
-
-                <button class="admin-back-btn" id="adminBack">
-
+                <button class="admin-back-btn" id="closeAdmin" type="button">
                     <i class="fa-solid fa-arrow-right"></i>
-
                     المتجر
-
                 </button>
 
                 <div class="admin-title">
-
                     <span>AL WAFA TECH</span>
-
-                    <strong>لوحة التحكم</strong>
-
+                    <strong id="adminPageTitle">لوحة التحكم</strong>
                 </div>
-
             </div>
 
             <div class="admin-header-right">
-
                 <span class="admin-status">
                     <span></span>
                     النظام يعمل
                 </span>
-
+                <button class="admin-mobile-close" id="adminMobileClose" type="button" aria-label="إغلاق لوحة التحكم">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-
         </div>
-
 
         <div class="container admin-container">
 
-            <!-- DASHBOARD STATS -->
-
-            <div class="admin-stats">
-
-                <div class="admin-stat">
-
-                    <div>
-                        <span>إجمالي المنتجات</span>
-                        <strong id="adminProductsCount">0</strong>
-                    </div>
-
-                    <i class="fa-solid fa-box"></i>
-
-                </div>
-
-
-                <div class="admin-stat">
-
-                    <div>
-                        <span>إجمالي الطلبات</span>
-                        <strong id="adminOrdersCount">0</strong>
-                    </div>
-
-                    <i class="fa-solid fa-cart-shopping"></i>
-
-                </div>
-
-
-                <div class="admin-stat">
-
-                    <div>
-                        <span>طلبات جديدة</span>
-                        <strong id="adminNewOrdersCount">0</strong>
-                    </div>
-
-                    <i class="fa-solid fa-bell"></i>
-
-                </div>
-
-            </div>
-
-
-            <!-- ADMIN TABS -->
-
             <div class="admin-tabs">
-
-                <button
-                    class="admin-tab active"
-                    data-admin-tab="products">
-
+                <button class="admin-nav-btn admin-tab active" data-admin-view="dashboard" type="button">
+                    <i class="fa-solid fa-chart-line"></i>
+                    الرئيسية
+                </button>
+                <button class="admin-nav-btn admin-tab" data-admin-view="products" type="button">
                     <i class="fa-solid fa-box"></i>
                     المنتجات
-
                 </button>
-
-                <button
-                    class="admin-tab"
-                    data-admin-tab="orders">
-
+                <button class="admin-nav-btn admin-tab" data-admin-view="orders" type="button">
                     <i class="fa-solid fa-cart-shopping"></i>
                     الطلبات
-
                 </button>
-
             </div>
 
-
-            <!-- PRODUCTS ADMIN -->
-
-            <div class="admin-panel active" id="adminProductsPanel">
-
-                <div class="admin-panel-header">
-
-                    <div>
-
-                        <span class="section-label">
-                            إدارة المنتجات
-                        </span>
-
-                        <h2>
-                            منتجات
-                            <span>المتجر</span>
-                        </h2>
-
+            <!-- DASHBOARD VIEW -->
+            <div class="admin-panel active" id="adminDashboardView">
+                <div class="admin-stats">
+                    <div class="admin-stat">
+                        <div>
+                            <span>إجمالي المنتجات</span>
+                            <strong id="statProducts">0</strong>
+                        </div>
+                        <i class="fa-solid fa-box"></i>
                     </div>
 
-                    <button
-                        class="btn btn-primary"
-                        id="addProductBtn">
+                    <div class="admin-stat">
+                        <div>
+                            <span>إجمالي الطلبات</span>
+                            <strong id="statOrders">0</strong>
+                        </div>
+                        <i class="fa-solid fa-cart-shopping"></i>
+                    </div>
 
-                        <i class="fa-solid fa-plus"></i>
-                        إضافة منتج
-
-                    </button>
-
+                    <div class="admin-stat">
+                        <div>
+                            <span>طلبات جديدة</span>
+                            <strong id="statNewOrders">0</strong>
+                        </div>
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
                 </div>
 
+                <span id="adminNewOrdersCount" hidden>0</span>
+
+                <div class="admin-panel-header">
+                    <div>
+                        <span class="section-label">آخر الطلبات</span>
+                        <h2>طلبات <span>العملاء</span></h2>
+                    </div>
+                    <button class="btn btn-primary" data-admin-view="orders" type="button">
+                        عرض كل الطلبات
+                    </button>
+                </div>
+
+                <div class="admin-orders-list" id="adminOrdersPreview">
+                    <!-- JavaScript -->
+                </div>
+            </div>
+
+            <!-- PRODUCTS VIEW -->
+            <div class="admin-panel" id="adminProductsView">
+                <div class="admin-panel-header">
+                    <div>
+                        <span class="section-label">إدارة المنتجات</span>
+                        <h2>منتجات <span>المتجر</span></h2>
+                    </div>
+
+                    <button class="btn btn-primary" id="openAddProduct" type="button">
+                        <i class="fa-solid fa-plus"></i>
+                        إضافة منتج
+                    </button>
+                </div>
 
                 <div class="admin-products-table-wrapper">
-
                     <table class="admin-table">
-
                         <thead>
-
                             <tr>
                                 <th>المنتج</th>
                                 <th>القسم</th>
@@ -1259,243 +1035,128 @@
                                 <th>الحالة</th>
                                 <th>الإجراءات</th>
                             </tr>
-
                         </thead>
-
                         <tbody id="adminProductsTable">
                             <!-- JavaScript -->
                         </tbody>
-
                     </table>
-
                 </div>
-
             </div>
 
-
-            <!-- ORDERS ADMIN -->
-
-            <div class="admin-panel" id="adminOrdersPanel">
-
+            <!-- ORDERS VIEW -->
+            <div class="admin-panel" id="adminOrdersView">
                 <div class="admin-panel-header">
-
                     <div>
-
-                        <span class="section-label">
-                            إدارة الطلبات
-                        </span>
-
-                        <h2>
-                            طلبات
-                            <span>العملاء</span>
-                        </h2>
-
+                        <span class="section-label">إدارة الطلبات</span>
+                        <h2>طلبات <span>العملاء</span></h2>
                     </div>
-
                 </div>
-
 
                 <div class="admin-orders-list" id="adminOrdersList">
                     <!-- JavaScript -->
                 </div>
-
             </div>
 
         </div>
-
-    </section>
+    </div>
 
 
     <!-- =========================
          ADMIN PRODUCT MODAL
     ========================== -->
 
-    <div class="modal-overlay" id="adminProductModal">
+    <div class="modal-overlay" id="productAdminModal">
 
         <div class="admin-product-modal">
 
-            <button class="modal-close" id="closeAdminProductModal">
+            <button class="modal-close" id="closeProductAdminModal">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
             <div class="admin-modal-header">
-
-                <span class="section-label">
-                    إدارة المنتجات
-                </span>
-
-                <h2 id="adminProductModalTitle">
-                    إضافة منتج
-                </h2>
-
+                <span class="section-label">إدارة المنتجات</span>
+                <h2 id="productAdminTitle">إضافة منتج</h2>
             </div>
 
 
-            <form id="adminProductForm">
+            <form id="productAdminForm">
 
+                <input type="hidden" id="editProductId">
                 <input type="hidden" id="adminProductId">
 
                 <div class="admin-form-grid">
 
                     <div class="form-group">
-
                         <label>اسم المنتج</label>
-
-                        <input
-                            type="text"
-                            id="adminProductName"
-                            placeholder="مثال: iPhone 15"
-                            required>
-
+                        <input type="text" id="adminProductName" placeholder="مثال: iPhone 15" required>
                     </div>
 
 
                     <div class="form-group">
-
                         <label>القسم</label>
-
                         <select id="adminProductCategory" required>
-
-                            <option value="Mobiles">
-                                الموبايلات
-                            </option>
-
-                            <option value="Cameras">
-                                كاميرات المراقبة
-                            </option>
-
-                            <option value="Accessories">
-                                الإكسسوارات
-                            </option>
-
-                            <option value="Smart Tech">
-                                الأجهزة الذكية
-                            </option>
-
+                            <option value="Mobiles">موبايلات</option>
+                            <option value="Cameras">كاميرات</option>
+                            <option value="Laptops">لابتوب</option>
+                            <option value="PC Builds">تجميعات PC</option>
+                            <option value="Monitors">شاشات</option>
                         </select>
-
                     </div>
 
 
                     <div class="form-group">
-
                         <label>السعر بالجنيه</label>
-
-                        <input
-                            type="number"
-                            id="adminProductPrice"
-                            min="0"
-                            placeholder="18999"
-                            required>
-
+                        <input type="number" id="adminProductPrice" min="0" placeholder="18999" required>
                     </div>
 
 
                     <div class="form-group">
-
                         <label>السعر قبل الخصم</label>
-
-                        <input
-                            type="number"
-                            id="adminProductOldPrice"
-                            min="0"
-                            placeholder="19999">
-
+                        <input type="number" id="adminProductOldPrice" min="0" placeholder="19999">
                     </div>
 
 
                     <div class="form-group">
-
                         <label>المخزون</label>
-
-                        <input
-                            type="number"
-                            id="adminProductStock"
-                            min="0"
-                            placeholder="10"
-                            required>
-
+                        <input type="number" id="adminProductStock" min="0" placeholder="10" required>
                     </div>
 
 
                     <div class="form-group">
-
                         <label>الشارة</label>
-
                         <select id="adminProductBadge">
-
-                            <option value="">
-                                بدون شارة
-                            </option>
-
-                            <option value="جديد">
-                                جديد
-                            </option>
-
-                            <option value="عرض">
-                                عرض
-                            </option>
-
-                            <option value="الأكثر مبيعًا">
-                                الأكثر مبيعًا
-                            </option>
-
-                            <option value="مميز">
-                                مميز
-                            </option>
-
+                            <option value="">بدون شارة</option>
+                            <option value="جديد">جديد</option>
+                            <option value="عرض">عرض</option>
+                            <option value="الأكثر مبيعًا">الأكثر مبيعًا</option>
+                            <option value="مميز">مميز</option>
                         </select>
-
                     </div>
 
                 </div>
 
 
                 <div class="form-group">
-
                     <label>رابط / مسار الصورة</label>
-
-                    <input
-                        type="text"
-                        id="adminProductImage"
-                        placeholder="assets/product.jpg">
-
+                    <input type="text" id="adminProductImage" placeholder="assets/product.jpg">
                 </div>
 
 
                 <div class="form-group">
-
                     <label>الوصف</label>
-
-                    <textarea
-                        id="adminProductDescription"
-                        rows="4"
-                        placeholder="اكتب وصف المنتج..."
-                        required></textarea>
-
+                    <textarea id="adminProductDescription" rows="4" placeholder="اكتب وصف المنتج..." required></textarea>
                 </div>
 
 
                 <div class="form-group">
-
                     <label>المواصفات</label>
-
-                    <textarea
-                        id="adminProductSpecifications"
-                        rows="4"
-                        placeholder="اكتب كل مواصفة في سطر..."></textarea>
-
+                    <textarea id="adminProductSpecs" rows="4" placeholder="اكتب كل مواصفة في سطر..."></textarea>
                 </div>
 
 
-                <button
-                    type="submit"
-                    class="btn btn-primary admin-submit-btn">
-
+                <button type="submit" class="btn btn-primary admin-submit-btn">
                     <i class="fa-solid fa-floppy-disk"></i>
-
                     حفظ المنتج
-
                 </button>
 
             </form>
@@ -1516,18 +1177,18 @@
          SCROLL TOP
     ========================== -->
 
-    <button
-        class="scroll-top"
-        id="scrollTop"
-        aria-label="العودة للأعلى">
-
+    <button class="scroll-top" id="scrollTop" aria-label="العودة للأعلى">
         <i class="fa-solid fa-arrow-up"></i>
-
     </button>
 
 
     <!-- Main JavaScript -->
-    <script src="app.js"></script>
+    <!-- استدعاء إعدادات فايربيز أولاً -->
+<script type="module" src="firebase-config.js"></script>
+
+<!-- بعده ملف الكود الرئيسي للموقع -->
+<script src="app.js"></script>
+ 
 
 </body>
 </html>
